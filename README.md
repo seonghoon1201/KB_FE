@@ -7,4 +7,5 @@
 | `docs/`       | 문서 변경             |
 | `test/`       | 테스트 코드 추가         |
 | `chore/`      | 설정, 빌드 수정 등 기타 작업 |
-asdfasdfasdfasdfasdf
+asdfasdfasdfasdfasd
+test test
