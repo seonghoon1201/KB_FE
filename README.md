@@ -9,3 +9,5 @@
 | `chore/`      | 설정, 빌드 수정 등 기타 작업 |
 asdfasdfasdfasdfasd
 test test
+test test
+test test
