@@ -57,6 +57,11 @@ const layoutRoutes: RouteRecordRaw = {
       component: () => import('@/pages/subscription/SubscriptionDetail.vue'),
     },
     {
+      path: 'subscription/favorite',
+      name: 'subscription-favorite',
+      component: () => import('@/pages/subscription/FavoriteSubscription.vue'),
+    },
+    {
       path: 'calculator',
       name: 'calculator',
       component: () => import('@/pages/calculator/Calculator.vue'),
