@@ -1,3 +1,7 @@
+/*
+청약 관련 스토어
+*/
+
 import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
 
