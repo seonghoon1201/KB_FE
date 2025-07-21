@@ -1,20 +1,18 @@
-<!-- 기본 버튼 컴포넌트 -->
 <template>
   <button
-    class="bg-[#00AEFF] text-white font-bold rounded-lg px-6 py-3 text-center"
-    @click="button.click"
+    class="w-full h-10 bg-[#00AEFF] text-white text-sm font-semibold rounded-[10px] flex items-center justify-center"
+    :class="customClass"
+    @click="$emit('click')"
   >
-    {{ button.name }}
+    <slot />
   </button>
 </template>
-<script setup>
-import { reactive } from 'vue'
 
-let button = reactive({
-  name: 'button name',
-  click: () => {
-    console.log('button click')
+<script setup>
+defineProps({
+  customClass: {
+    type: String,
+    default: '',
   },
-})
+});
 </script>
-<style></style>

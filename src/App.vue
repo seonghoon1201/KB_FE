@@ -1,8 +1,8 @@
 <template>
-  <MainHeader />
-  <BackHeader />
-  <PrimaryButton />
-  <RouterView />
+
+  <div class="min-h-screen bg-white">
+    <RouterView />
+  </div>
 </template>
 
 <script setup>
