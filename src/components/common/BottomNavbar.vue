@@ -1,6 +1,6 @@
 <template>
   <nav
-    class="fixed bottom-0 w-full bg-white border-t border-gray-200 flex justify-around py-2 z-50"
+    class="sticky fixed bottom-0 left-0 w-full bg-white border-t border-black-50 flex justify-around py-2 z-50"
   >
     <div
       v-for="(item, index) in navItems"
@@ -9,8 +9,8 @@
       :class="activeIndex === index ? 'text-black' : 'text-gray-400'"
       @click="setActive(index)"
     >
-      <component :is="item.iconInactive" class="w-6 h-6 mb-1" />
-      <span>{{ item.label }}</span>
+      <component :is="item.iconInactive" :size="30" stroke-width="1.2" class="w-10 h-10" />
+      <span class="text-[10px] font-sans">{{ item.label }}</span>
     </div>
   </nav>
 </template>
