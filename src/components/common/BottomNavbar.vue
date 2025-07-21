@@ -1,7 +1,6 @@
 <template>
   <nav
-    style="border-top: 1px solid gray"
-    class="sticky fixed bottom-0 left-0 w-full bg-white border-t border-red-50 flex justify-around py-2 z-50"
+    class="sticky fixed bottom-0 left-0 w-full bg-white border-t border-black-50 flex justify-around py-2 z-50"
   >
     <div
       v-for="(item, index) in navItems"
