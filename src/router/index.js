@@ -47,12 +47,12 @@ const routes = [
   { path: '/bank/complete', name: 'BankComplete', component: BankComplete },
 
   // 404
-  { path: '/:pathMatch(.*)*', name: 'NotFound', component: NotFound }
+  { path: '/:pathMatch(.*)*', name: 'NotFound', component: NotFound },
 ]
 
 const router = createRouter({
   history: createWebHistory(),
-  routes
+  routes,
 })
 
 export default router
