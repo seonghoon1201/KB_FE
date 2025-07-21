@@ -1,3 +1,6 @@
+<<<<<<< HEAD
+<!-- 계좌 등록 완성 페이지 -->
+=======
 <!-- 계좌 등록 완성 페이지 -->
  <template>
   <div class="flex flex-col items-center justify-center min-h-screen bg-white text-center px-6">
@@ -9,3 +12,4 @@
 <script setup>
 // 아직 구현할 기능 없음
 </script>
+>>>>>>> upstream/main
