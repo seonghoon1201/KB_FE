@@ -1,9 +1,8 @@
-import { createRouter, createWebHistory } from 'vue-router';
-import type { RouteRecordRaw } from 'vue-router'
-import DefaultLayout from '@/layouts/DefaultLayout.vue';
+import { createRouter, createWebHistory } from 'vue-router'
+import DefaultLayout from '@/layouts/DefaultLayout.vue'
 
 // 레이아웃 없이 보여줄 페이지 (로그인, 회원가입 등)
-const noLayoutRoutes: RouteRecordRaw[] = [
+const noLayoutRoutes = [
   {
     path: '/login',
     name: 'login',
@@ -29,10 +28,10 @@ const noLayoutRoutes: RouteRecordRaw[] = [
     name: 'reset-password',
     component: () => import('@/pages/auth/ResetPassword.vue'),
   },
-];
+]
 
 // 기본 레이아웃을 사용하는 모든 페이지
-const layoutRoutes: RouteRecordRaw = {
+const layoutRoutes = {
   path: '/',
   component: DefaultLayout,
   children: [
@@ -107,18 +106,18 @@ const layoutRoutes: RouteRecordRaw = {
       component: () => import('@/pages/account/BankComplete.vue'),
     },
   ],
-};
+}
 
 // 404 페이지
-const notFoundRoute: RouteRecordRaw = {
+const notFoundRoute = {
   path: '/:pathMatch(.*)*',
   name: 'not-found',
   component: () => import('@/pages/error/NotFound.vue'),
-};
+}
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [...noLayoutRoutes, layoutRoutes, notFoundRoute],
-});
+})
 
-export default router;
+export default router
