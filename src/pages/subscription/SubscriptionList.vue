@@ -1,10 +1,13 @@
 <template>
   <div class="flex flex-col items-center justify-center min-h-screen bg-white text-center px-6">
-    <h1 class="text-xl font-semibold text-gray-800 mb-2">[페이지 이름]</h1>
+    <h1 class="text-xl font-semibold text-gray-800 mb-2">[청약 공고 목록]</h1>
     <p class="text-gray-500">이 페이지는 아직 작업 중입니다.</p>
+    <BottomNavbar/>
   </div>
 </template>
 
 <script setup>
+import BottomNavbar from '@/components/common/BottomNavbar.vue';
+
 // 아직 구현할 기능 없음
 </script>
