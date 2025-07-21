@@ -28,6 +28,9 @@ coverage
 *.sw?
 
 *.tsbuildinfo
+<<<<<<< HEAD
 
 # myMemo
 .myMemo
+=======
+>>>>>>> upstream/main

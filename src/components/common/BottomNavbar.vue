@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 <!--
+=======
+
+>>>>>>> upstream/main
 <template>
   <nav
     class="fixed bottom-0 w-full bg-white border-t border-gray-200 flex justify-around py-2 z-50"
@@ -54,4 +58,8 @@ const navItems = [
   },
 ];
 </script>
+<<<<<<< HEAD
 -->
+=======
+
+>>>>>>> upstream/main
