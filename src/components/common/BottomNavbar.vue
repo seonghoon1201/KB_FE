@@ -1,6 +1,6 @@
 <template>
   <nav
-    class="sticky fixed bottom-0 left-0 w-full bg-white border-t border-black-50 flex justify-around py-2 z-50"
+    class="fixed bottom-0 left-0 w-full bg-white border-t border-black-50 flex justify-around py-2 z-50"
   >
     <div
       v-for="(item, index) in navItems"
@@ -17,33 +17,41 @@
 
 <script setup>
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { Home, Calendar, FileText, Map, Heart } from 'lucide-vue-next'
 
+const router = useRouter()
 const activeIndex = ref(0)
 const setActive = (index) => {
   activeIndex.value = index
+  router.push(navItems[index].path)
 }
 
 const navItems = [
   {
     label: '홈',
     iconInactive: Home,
+    path: '/',
   },
   {
     label: '달력',
     iconInactive: Calendar,
+    path: '/calendar',
   },
   {
     label: '청약 정보',
     iconInactive: FileText,
+    path: '/subscriptions',
   },
   {
     label: '지도',
     iconInactive: Map,
+    path: '/map',
   },
   {
     label: '즐겨찾기',
     iconInactive: Heart,
+    path: '/favorites',
   },
 ]
 </script>
