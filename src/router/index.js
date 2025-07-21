@@ -12,6 +12,8 @@ import EditProfile from '@/pages/mypage/EditProfile.vue'
 import Notice from '@/pages/mypage/Notice.vue'
 import Terms from '@/pages/mypage/Terms.vue'
 import Withdraw from '@/pages/mypage/Withdraw.vue'
+import Calendar from '@/pages/calendar/Calendar.vue'
+import Map from '@/pages/map/Map.vue'
 
 import Login from '@/pages/auth/Login.vue'
 import SignUp from '@/pages/auth/SignUp.vue'
@@ -36,6 +38,8 @@ const routes = [
   { path: '/mypage/notice', name: 'Notice', component: Notice },
   { path: '/mypage/terms', name: 'Terms', component: Terms },
   { path: '/mypage/withdraw', name: 'Withdraw', component: Withdraw },
+  { path: '/calendar', name: 'Calendar', component: Calendar },
+  { path: '/map', name: 'Map', component: Map },
 
   { path: '/login', name: 'Login', component: Login },
   { path: '/signup', name: 'SignUp', component: SignUp },
