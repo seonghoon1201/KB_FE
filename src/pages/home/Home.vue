@@ -12,4 +12,7 @@
 <script setup>
 import BottomNavBar from '@/components/common/BottomNavbar.vue';
 </script>
+<<<<<<< HEAD
+=======
 
+>>>>>>> upstream/main
