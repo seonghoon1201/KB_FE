@@ -1,14 +1,13 @@
 <template>
-<<<<<<< HEAD
-  <router-view />
-</template>
-
-<script setup>
-=======
+  <MainHeader />
+  <BackHeader />
+  <PrimaryButton />
   <RouterView />
 </template>
 
 <script setup>
 import { RouterView } from 'vue-router'
->>>>>>> upstream/main
+import MainHeader from './components/common/MainHeader.vue'
+import BackHeader from './components/common/BackHeader.vue'
+import PrimaryButton from './components/common/PrimaryButton.vue'
 </script>

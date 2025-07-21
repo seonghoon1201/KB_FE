@@ -1,8 +1,3 @@
-<<<<<<< HEAD
-<!--
-=======
-
->>>>>>> upstream/main
 <template>
   <nav
     class="fixed bottom-0 w-full bg-white border-t border-gray-200 flex justify-around py-2 z-50"
@@ -21,19 +16,13 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
-import {
-  Home,
-  Calendar,
-  FileText,
-  Map,
-  Heart,
-} from 'lucide-vue-next';
+import { ref } from 'vue'
+import { Home, Calendar, FileText, Map, Heart } from 'lucide-vue-next'
 
-const activeIndex = ref(0);
+const activeIndex = ref(0)
 const setActive = (index) => {
-  activeIndex.value = index;
-};
+  activeIndex.value = index
+}
 
 const navItems = [
   {
@@ -56,10 +45,5 @@ const navItems = [
     label: '즐겨찾기',
     iconInactive: Heart,
   },
-];
+]
 </script>
-<<<<<<< HEAD
--->
-=======
-
->>>>>>> upstream/main
