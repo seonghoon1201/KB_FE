@@ -2,7 +2,7 @@
     <div class="flex flex-col items-center justify-center min-h-screen bg-white text-center px-6">
         <BackHeader />
         <main
-            class="flex-1 w-full px-4 py-6 space-y-6 overflow-y-auto pb-20 mt-[60px] border border-black"
+            class="flex-1 w-full px-4 py-6 space-y-6 overflow-y-auto pt-[56px] pb-[60px] border border-black"
         >
             <FullCalendar :options="calendarOptions" />
             <h1 class="text-xl font-semibold text-gray-800 mb-2">[달력 페이지]</h1>
