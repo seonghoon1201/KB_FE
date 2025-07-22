@@ -2,7 +2,7 @@
 
 <template>
     <header
-        class="fixed top-0 left-0 right-0 z-[50] flex items-center justify-between w-full bg-[#DDF1FB] px-4 py-3 min-h-[56px] shadow"
+        class="fixed top-0 left-0 right-0 z-[40] flex items-center justify-between w-full bg-[#DDF1FB] px-4 py-3 min-h-[56px] shadow"
     >
         <div><ChevronLeft @click="backClick" /></div>
         <div @click="titleClick">{{ title }}</div>
@@ -26,7 +26,11 @@
 <script setup>
 import { ChevronLeft, Bell, BellDot, Menu } from 'lucide-vue-next'
 import { ref, reactive } from 'vue'
+import { useCommonStore } from '@/stores/common'
+import { useRouter } from 'vue-router'
 
+let modalStore = useCommonStore()
+const router = useRouter()
 let showAlarm = ref(true)
 let title = ref('title11')
 
