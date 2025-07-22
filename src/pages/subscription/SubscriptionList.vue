@@ -33,6 +33,8 @@
                     v-for="subscription in filteredSubscriptions"
                     :key="subscription.id"
                     :subscription="subscription"
+                    :favoriteDefault="favoritesStore.isFavorite(subscription.id)"
+                    @favorite-changed="handleFavoriteChanged"
                 />
             </div>
         </div>
@@ -46,6 +48,10 @@ import { ref, computed } from 'vue'
 import BottomNavbar from '@/components/common/BottomNavbar.vue'
 import SubscriptionCard from '@/components/subscription/SubscriptionCard.vue'
 import BackHeader from '@/components/common/BackHeader.vue'
+import { useFavoritesStore } from '@/stores/favorites'
+
+const favoritesStore = useFavoritesStore()
+favoritesStore.initializeFavorites()
 
 const selectedFilter = ref('latest')
 
@@ -174,5 +180,10 @@ const handleFilterClick = (filter) => {
     } else {
         selectedFilter.value = filter.key
     }
+}
+
+const handleFavoriteChanged = (subscriptionId) => {
+    const nowFavorite = favoritesStore.toggleFavorite(subscriptionId)
+    console.log(`ID: ${subscriptionId}, 즐겨찾기 상태: ${nowFavorite}`)
 }
 </script>
