@@ -64,6 +64,6 @@ const handleNext = () => {
     return
   }
 
-  router.push('/reset-password')
+  router.push('/find/reset-password')
 }
 </script>
