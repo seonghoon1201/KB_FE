@@ -1,10 +1,6 @@
 <template>
-    <div class="bg-white min-h-screen px-4 py-6 flex flex-col">
-        <!-- 헤더 -->
-        <div class="flex items-center justify-between mb-4">
-            <h1 class="text-lg font-bold text-gray-800">계좌 등록</h1>
-            <Cog class="w-5 h-5 text-gray-400" />
-        </div>
+    <div class="bg-white min-h-screen px-4 py-6 flex flex-col pt-[70px] ">
+        <BackHeader title="계좌 등록"/>
 
         <!-- 은행 리스트 -->
         <div class="grid grid-cols-3 gap-4">
@@ -45,9 +41,9 @@
 
 <script setup>
 import PrimaryButton from '@/components/common/PrimaryButton.vue'
-import { Cog } from 'lucide-vue-next'
 import { useRouter } from 'vue-router'
 import { useAccountStore } from '@/stores/account'
+import BackHeader from '@/components/common/BackHeader.vue'
 
 const router = useRouter()
 const accountStore = useAccountStore()
