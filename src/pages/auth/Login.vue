@@ -6,7 +6,7 @@
       <img
         src="@/assets/images/logo.png"
         alt="지비 로고"
-        class="w-[300px]"
+        class="w-full max-w-[280px] sm:max-w-[300px]"
       />
 
       <!-- 입력칸 -->
@@ -55,7 +55,7 @@
 
       <!-- 하단 링크 -->
       <div class="text-[12px] text-[#7E7E7E] flex justify-center gap-6 w-full">
-        <span class="cursor-pointer hover:underline">비밀번호 찾기</span>
+        <span class="cursor-pointer hover:underline" @click="goToFindPassword">비밀번호 찾기</span>
         <span class="text-[#D9D9D9]">|</span>
         <span class="cursor-pointer hover:underline" @click="goToSignUp">회원가입</span>
       </div>
@@ -82,6 +82,10 @@ function handleKakaoLogin() {
 
 function goToSignUp() {
   router.push('/signup')
+}
+
+function goToFindPassword() {
+  router.push('/find-password')
 }
 </script>
 

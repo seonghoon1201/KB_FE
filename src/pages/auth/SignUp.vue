@@ -1,11 +1,11 @@
 <template>
   <div class="min-h-screen bg-white px-6 py-4 overflow-y-auto">
     <!-- 상단 헤더 -->
-    <div class="flex items-center justify-between mb-6">
-      <!-- ✅ 버튼 요소로 감싸기 (가장 안정적인 방법) -->
-      <!-- LucideX에 직접 이벤트 부여 -->
-      <LucideX @click="goToLogin" class="w-6 h-6 text-gray-500 cursor-pointer" />
-      <h1 class="text-lg font-semibold text-center flex-1 -ml-6">회원가입</h1>
+    <div class="flex items-center mb-6 relative w-full">
+      <button @click="goBack" class="absolute left-0 text-black">
+        <LucideArrowLeft class="w-6 h-6" />
+      </button>
+      <h1 class="text-lg font-semibold text-center w-full">회원가입</h1>
     </div>
 
     <!-- 제목 -->
@@ -133,7 +133,7 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { X as LucideX } from 'lucide-vue-next'
+import { ArrowLeft as LucideArrowLeft } from 'lucide-vue-next'
 import PrimaryButton from '@/components/common/PrimaryButton.vue'
 
 const router = useRouter()
@@ -159,9 +159,8 @@ const toggleAll = () => {
   terms.value.marketing = val
 }
 
-const goToLogin = () => {
-  console.log('goToLogin called') // 이 로그가 뜨는지 먼저 확인
-  router.push('/login')
+const goBack = () => {
+  router.back()
 }
 
 const sendAuthCode = () => {
