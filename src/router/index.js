@@ -26,37 +26,37 @@ import BankComplete from '@/pages/account/BankComplete.vue'
 import NotFound from '@/pages/error/NotFound.vue'
 
 const routes = [
-  // ✅ 모든 페이지를 평면 구조로 처리
-  { path: '/', name: 'Home', component: Home },
-  { path: '/calculator', name: 'Calculator', component: Calculator },
-  { path: '/chatbot', name: 'Chatbot', component: Chatbot },
-  { path: '/notification', name: 'Notification', component: Notification },
-  { path: '/subscriptions', name: 'SubscriptionList', component: SubscriptionList },
-  { path: '/subscriptions/:id', name: 'SubscriptionDetail', component: SubscriptionDetail },
-  { path: '/favorites', name: 'FavoriteSubscription', component: FavoriteSubscription },
-  { path: '/mypage/edit', name: 'EditProfile', component: EditProfile },
-  { path: '/mypage/notice', name: 'Notice', component: Notice },
-  { path: '/mypage/terms', name: 'Terms', component: Terms },
-  { path: '/mypage/withdraw', name: 'Withdraw', component: Withdraw },
-  { path: '/calendar', name: 'Calendar', component: Calendar },
-  { path: '/map', name: 'Map', component: Map },
+    // ✅ 모든 페이지를 평면 구조로 처리
+    { path: '/', name: 'Home', component: Home }, // 홈 화면
+    { path: '/calculator', name: 'Calculator', component: Calculator }, // 가점계산기
+    { path: '/chatbot', name: 'Chatbot', component: Chatbot }, // 챗봇
+    { path: '/notification', name: 'Notification', component: Notification }, // 알림페이지
+    { path: '/subscriptions', name: 'SubscriptionList', component: SubscriptionList }, // 청약정보 페이지
+    { path: '/subscriptions/:id', name: 'SubscriptionDetail', component: SubscriptionDetail }, // 청약정보 상세 페이지
+    { path: '/favorites', name: 'FavoriteSubscription', component: FavoriteSubscription }, // 즐겨찾기 페이지
+    { path: '/mypage/edit', name: 'EditProfile', component: EditProfile }, // 프로필 편집
+    { path: '/mypage/notice', name: 'Notice', component: Notice }, // 공지사항 페이지
+    { path: '/mypage/terms', name: 'Terms', component: Terms }, // 약관확인 페이지
+    { path: '/mypage/withdraw', name: 'Withdraw', component: Withdraw }, // 회원탈퇴 페이지
+    { path: '/calendar', name: 'Calendar', component: Calendar }, // 달력 페이지
+    { path: '/map', name: 'Map', component: Map }, // 지도 페이지
 
-  { path: '/login', name: 'Login', component: Login },
-  { path: '/signup', name: 'SignUp', component: SignUp },
-  { path: '/find-password', name: 'FindPassword', component: FindPassword },
-  { path: '/find-password/verify', name: 'VerifyCode', component: VerifyCode },
-  { path: '/find/reset-password', name: 'ResetPassword', component: ResetPassword },
-  { path: '/bank/auth', name: 'BankAuth', component: BankAuth },
-  { path: '/bank/select', name: 'BankSelect', component: BankSelect },
-  { path: '/bank/complete', name: 'BankComplete', component: BankComplete },
+    { path: '/login', name: 'Login', component: Login }, // 로그인 페이지
+    { path: '/signup', name: 'SignUp', component: SignUp }, // 회원가입 페이지
+    { path: '/find-password', name: 'FindPassword', component: FindPassword }, // 비밀번호 찾기 페이지
+    { path: '/find-password/verify', name: 'VerifyCode', component: VerifyCode }, // 비밀번호 찾기 인증 코드 페이지
+    { path: '/find/reset-password', name: 'ResetPassword', component: ResetPassword }, // 비밀번호 초기화 페이지
+    { path: '/bank/auth', name: 'BankAuth', component: BankAuth }, // 은행 인증 페이지
+    { path: '/bank/select', name: 'BankSelect', component: BankSelect }, // 은행 선택 페이지
+    { path: '/bank/complete', name: 'BankComplete', component: BankComplete }, // 은행 연동 완료 페이지
 
-  // 404
-  { path: '/:pathMatch(.*)*', name: 'NotFound', component: NotFound },
+    // 404ㄴ
+    { path: '/:pathMatch(.*)*', name: 'NotFound', component: NotFound }, // 에러 페이지
 ]
 
 const router = createRouter({
-  history: createWebHistory(),
-  routes,
+    history: createWebHistory(),
+    routes,
 })
 
 export default router
