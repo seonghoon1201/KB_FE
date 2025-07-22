@@ -6,8 +6,8 @@
       v-for="(item, index) in navItems"
       :key="index"
       class="flex flex-col items-center text-xs cursor-pointer"
-      :class="activeIndex === index ? 'text-black' : 'text-gray-400'"
-      @click="setActive(index)"
+      :class="isActive(item.path) ? 'text-black' : 'text-gray-400'"
+      @click="navigateTo(item.path)"
     >
       <component :is="item.iconInactive" :size="30" stroke-width="1.2" class="w-10 h-10" />
       <span class="text-[10px] font-sans">{{ item.label }}</span>
@@ -16,15 +16,19 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { computed } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import { Home, Calendar, FileText, Map, Heart } from 'lucide-vue-next'
 
 const router = useRouter()
-const activeIndex = ref(0)
-const setActive = (index) => {
-  activeIndex.value = index
-  router.push(navItems[index].path)
+const route = useRoute()
+
+const navigateTo = (path) => {
+  router.push(path)
+}
+
+const isActive = (path) => {
+  return route.path === path
 }
 
 const navItems = [
