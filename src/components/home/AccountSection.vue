@@ -1,5 +1,6 @@
 <template>
     <div class="w-full bg-white rounded-2xl border p-5 shadow-sm">
+        <!-- ✅ 계좌 등록된 경우 -->
         <template v-if="hasAccount">
             <!-- 납입 상태 -->
             <div class="text-center text-xs font-semibold mb-2 space-y-1">
@@ -12,7 +13,7 @@
             <!-- 이미지 + 예치금 -->
             <div class="flex flex-col items-center gap-1">
                 <img :src="imagePath" alt="zibi" class="w-24 h-24" />
-                <p class="text-xs text-gray-400">KB 국민은행 {{ accountNumber }}</p>
+                <p class="text-xs text-gray-400">{{ bankName }} {{ accountNumber }}</p>
                 <p class="text-2xl font-extrabold text-black">{{ balance.toLocaleString() }} 원</p>
             </div>
 
@@ -30,14 +31,12 @@
                     <p>₩{{ balance.toLocaleString() }} / ₩{{ goal.toLocaleString() }}</p>
                     <p v-if="depositRate < 100">
                         예치금 달성까지
-                        <span class="text-red-500 font-semibold"
-                            >₩{{ (goal - balance).toLocaleString() }}</span
-                        >
+                        <span class="text-red-500 font-semibold">
+                            ₩{{ (goal - balance).toLocaleString() }}
+                        </span>
                         남았어요!
                     </p>
-                    <p class="text-blue-600 font-semibold" v-if="depositRate >= 100">
-                        예치금 목표를 달성했어요!
-                    </p>
+                    <p class="text-blue-600 font-semibold" v-else>예치금 목표를 달성했어요!</p>
                 </div>
             </div>
 
@@ -64,7 +63,7 @@
             />
         </template>
 
-        <!-- 계좌 미등록 -->
+        <!-- ❌ 계좌 미등록 시 -->
         <template v-else>
             <div class="flex flex-col items-center gap-2">
                 <img src="@/assets/images/zibi_0.png" alt="egg" class="w-24 h-24" />
@@ -99,24 +98,36 @@ import zibi2 from '@/assets/images/zibi_2.png'
 import zibi3 from '@/assets/images/zibi_3.png'
 import zibi4 from '@/assets/images/zibi_4.png'
 import zibi5 from '@/assets/images/zibi_5.png'
-import router from '@/router'
+import { useAccountStore } from '@/stores/account'
 
+const router = useRouter()
+const accountStore = useAccountStore()
+
+// props
 const props = defineProps({
-    hasAccount: Boolean,
     hasDepositThisMonth: Boolean,
-    depositRate: { type: Number, default: 0 },
-    balance: { type: Number, default: 0 },
-    goal: { type: Number, default: 0 },
-    accountNumber: { type: String, default: '123-45-678901' },
+    balance: { type: Number, default: 1500000 },
+    goal: { type: Number, default: 2000000 },
     region: { type: String, default: '서울 구로구' },
     area: { type: Number, default: 84 },
 })
 
-const emit = defineEmits(['connect-account'])
+const depositRate = computed(() => Math.floor(Math.min(100, (props.balance / props.goal) * 100)))
 
+// 계좌 등록 여부는 store 기준
+const hasAccount = computed(() => !!accountStore.selectedBankCode)
+const bankName = computed(() => accountStore.selectedBankName || 'KB 국민은행')
+const accountNumber = computed(() => accountStore.selectedAccountNumber || '123-45-678901')
+
+// 이미지 계산
+const imagePath = computed(() => {
+    const index = Math.min(5, Math.floor(depositRate.value / 20))
+    return [zibi0, zibi1, zibi2, zibi3, zibi4, zibi5][index]
+})
+
+// 평수 설정 관련
 const showModal = ref(false)
 const selectedArea = ref(props.area)
-
 const areaOptions = [
     { label: '60㎡ 이하', value: 60 },
     { label: '60㎡ ~ 85㎡', value: 85 },
@@ -124,23 +135,17 @@ const areaOptions = [
     { label: '100㎡ ~ 135㎡', value: 135 },
     { label: '135㎡ 이상', value: 136 },
 ]
-
 const areaLabel = computed(() => {
     const found = areaOptions.find((opt) => opt.value === selectedArea.value)
     return found?.label ?? `${selectedArea.value}㎡`
 })
-
 const updateArea = (val) => {
     selectedArea.value = val
     showModal.value = false
 }
 
+// 계좌 연결 페이지 이동
 const onConnectAccount = () => {
     router.push('/bank/select')
 }
-
-const imagePath = computed(() => {
-    const index = Math.min(5, Math.floor(props.depositRate / 20))
-    return [zibi0, zibi1, zibi2, zibi3, zibi4, zibi5][index]
-})
 </script>
