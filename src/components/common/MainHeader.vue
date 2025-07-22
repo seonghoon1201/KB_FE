@@ -1,5 +1,7 @@
 <template>
-    <header class="flex items-center justify-between w-full bg-[#DDF1FB] px-4 py-3 min-h-[56px]">
+    <header
+        class="fixed top-0 left-0 right-0 z-[50] flex items-center justify-between w-full bg-[#DDF1FB] px-4 py-3 min-h-[56px] shadow"
+    >
         <!-- 왼쪽: 로고/텍스트 -->
         <div @click="goHome" class="text-base font-semibold text-black cursor-pointer">zibi</div>
 

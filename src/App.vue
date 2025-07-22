@@ -1,5 +1,5 @@
 <template>
-    <div class="min-h-screen bg-white relative">
+    <div class="min-h-screen bg-white relative pt-[56px] pb-[60px]">
         <ModalBase />
         <RouterView />
     </div>

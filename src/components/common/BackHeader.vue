@@ -1,8 +1,8 @@
 <!-- 메인 헤더 컴포넌트 -->
 
 <template>
-    <div
-        class="flex items-center justify-between w-full h-15 border border-black px-4 py-2 bg-[#DDF1FB]"
+    <header
+        class="fixed top-0 left-0 right-0 z-[50] flex items-center justify-between w-full bg-[#DDF1FB] px-4 py-3 min-h-[56px] shadow"
     >
         <div><ChevronLeft @click="backClick" /></div>
         <div @click="titleClick">{{ title }}</div>
@@ -21,7 +21,7 @@
                 <Menu @click="menuClick" />
             </div>
         </div>
-    </div>
+    </header>
 </template>
 <script setup>
 import { ChevronLeft, Bell, BellDot, Menu } from 'lucide-vue-next'
