@@ -1,19 +1,28 @@
-// stores/account.js
+// 예시: stores/account.ts
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
 
-export const useAccountStore = defineStore('account', () => {
-  const selectedBankName = ref('')
-  const selectedBankCode = ref('')
-
-  function setSelectedBank(name, code) {
-    selectedBankName.value = name
-    selectedBankCode.value = code
-  }
-
-  return {
-    selectedBankName,
-    selectedBankCode,
-    setSelectedBank
+export const useAccountStore = defineStore('account', {
+  state: () => ({
+    selectedBankName: '',
+    selectedBankCode: '',
+    selectedBankLogo: '',
+    accountNumber: '',
+  }),
+  actions: {
+    setSelectedBank(name, code, logo) {
+      this.selectedBankName = name
+      this.selectedBankCode = code
+      this.selectedBankLogo = logo
+      this.accountNumber = '123-45-678901' // 더미 계좌번호 (추후 API로 대체)
+    },
+    reset() {
+      this.selectedBankName = ''
+      this.selectedBankCode = ''
+      this.selectedBankLogo = ''
+      this.accountNumber = ''
+    }
+  },
+  getters: {
+    isRegistered: (state) => !!state.selectedBankName
   }
 })

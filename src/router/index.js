@@ -3,6 +3,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 // ✅ 단독 페이지들 (이제 모두 레이아웃 없이 사용)
 import Home from '@/pages/home/Home.vue'
 import Calculator from '@/pages/calculator/Calculator.vue'
+import Preference from '@/pages/preference/Preference.vue'
 import Chatbot from '@/pages/chatbot/Chatbot.vue'
 import Notification from '@/pages/notification/Notification.vue'
 import SubscriptionList from '@/pages/subscription/SubscriptionList.vue'
@@ -29,6 +30,7 @@ const routes = [
   // ✅ 모든 페이지를 평면 구조로 처리
   { path: '/', name: 'Home', component: Home },
   { path: '/calculator', name: 'Calculator', component: Calculator },
+  { path: '/preference', name: 'Preference', component: Preference },
   { path: '/chatbot', name: 'Chatbot', component: Chatbot },
   { path: '/notification', name: 'Notification', component: Notification },
   { path: '/subscriptions', name: 'SubscriptionList', component: SubscriptionList },
