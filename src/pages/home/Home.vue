@@ -1,5 +1,5 @@
 <template>
-    <div class="bg-white min-h-screen flex flex-col">
+    <div class="bg-white min-h-screen flex flex-col pt-[56px] pb-[60px]">
         <MainHeader />
         <main class="flex-1 px-4 py-6 space-y-6 overflow-y-auto">
             <AccountSection
