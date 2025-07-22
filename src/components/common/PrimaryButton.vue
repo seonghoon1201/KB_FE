@@ -4,7 +4,7 @@
     :class="customClass"
     @click="$emit('click')"
   >
-    <slot />
+    <slot></slot>
   </button>
 </template>
 
@@ -14,5 +14,5 @@ defineProps({
     type: String,
     default: '',
   },
-});
+})
 </script>
