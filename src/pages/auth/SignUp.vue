@@ -78,6 +78,16 @@
         />
       </div>
 
+      <!-- 생년월일 -->
+      <div>
+        <label class="text-base font-medium block mb-2">생년월일</label>
+        <input
+          v-model="birth"
+          type="date"
+          class="w-full border-b border-gray-300 py-2 text-base focus:outline-none"
+        />
+      </div>
+
       <!-- 주소 -->
       <div>
         <label class="text-base font-medium block mb-2">주소</label>
@@ -105,14 +115,23 @@
           <input type="checkbox" v-model="agreeAll" @change="toggleAll" />
           모두 동의합니다
         </label>
+        <!-- 이용약관 [보기] 부분 수정 -->
         <label class="flex items-center gap-2">
           <input type="checkbox" v-model="terms.service" />
-          [필수] 이용약관 <span class="text-primary underline">[보기]</span>
+          [필수] 이용약관
+          <button type="button" class="text-primary underline" @click="openTermsModal">
+            [보기]
+          </button>
         </label>
+        <TermsModal :visible="showTermsModal" @close="closeTermsModal" />
+
         <label class="flex items-center gap-2">
           <input type="checkbox" v-model="terms.privacy" />
-          [필수] 개인정보 수집 및 이용 동의 <span class="text-primary underline">[보기]</span>
+          [필수] 개인정보 수집 및 이용 동의
+          <button type="button" class="text-primary underline" @click="openPrivacyModal">[보기]</button>
         </label>
+        <PrivacyModal :visible="showPrivacyModal" @close="closePrivacyModal" />
+
         <label class="flex items-center gap-2">
           <input type="checkbox" v-model="terms.marketing" />
           [선택] 마케팅 정보 수신 동의
@@ -135,6 +154,8 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ArrowLeft as LucideArrowLeft } from 'lucide-vue-next'
 import PrimaryButton from '@/components/common/PrimaryButton.vue'
+import TermsModal from '@/components/modal/TermsModal.vue'
+import PrivacyModal from '@/components/modal/PrivacyModal.vue'
 
 const router = useRouter()
 
@@ -144,6 +165,10 @@ const password = ref('')
 const confirmPassword = ref('')
 const name = ref('')
 const address = ref('')
+const birth = ref('')
+
+const showTermsModal = ref(false)
+const showPrivacyModal = ref(false)
 
 const agreeAll = ref(false)
 const terms = ref({
@@ -184,8 +209,23 @@ const submit = () => {
     email: email.value,
     password: password.value,
     name: name.value,
+    birth: birth.value,
     address: address.value,
     terms: terms.value,
   })
 }
+
+const openTermsModal = () => {
+  showTermsModal.value = true
+}
+const closeTermsModal = () => {
+  showTermsModal.value = false
+}
+const openPrivacyModal = () => { 
+  showPrivacyModal.value = true 
+}
+const closePrivacyModal = () => { 
+  showPrivacyModal.value = false 
+}
+
 </script>
