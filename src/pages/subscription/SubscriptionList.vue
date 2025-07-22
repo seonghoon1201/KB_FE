@@ -72,37 +72,34 @@ const filteredSubscriptions = computed(() => {
   // 정렬 적용
   switch (selectedFilter.value) {
     case 'latest':
-      // 최신순 정렬 (ID 기준 내림차순)
-      result.sort((a, b) => b.id - a.id);
-      break;
-      
-    case 'deadline-first':
-      // 마감임박순 정렬 (D-Day 오름차순)
+      // 최신순 정렬 (신청 시작일이 빠른 순)
       result.sort((a, b) => {
-        const aDDay = calculateDDay(a.applicationPeriod);
-        const bDDay = calculateDDay(b.applicationPeriod);
-        
-        // 마감된 것들(-값)은 맨 뒤로
-        if (aDDay < 0 && bDDay >= 0) return 1;
-        if (bDDay < 0 && aDDay >= 0) return -1;
-        if (aDDay < 0 && bDDay < 0) return b.id - a.id; // 둘 다 마감이면 최신순
-        
-        return aDDay - bDDay; // D-Day 오름차순
+        const aStartDate = new Date(a.applicationStartDate.replace(/\./g, '-'));
+        const bStartDate = new Date(b.applicationStartDate.replace(/\./g, '-'));
+        return aStartDate - bStartDate;
       });
       break;
       
-    case 'filter':
-      // 필터 옵션은 현재 상태 유지 (추후 모달 구현 가능)
+    case 'deadline-first':
+      // 마감임박순 정렬 (마감일이 빠른 순)
+      result.sort((a, b) => {
+        const aCompleteDate = new Date(a.applicationCompleteDate.replace(/\./g, '-'));
+        const bCompleteDate = new Date(b.applicationCompleteDate.replace(/\./g, '-'));
+        return aCompleteDate - bCompleteDate;
+      });
       break;
       
     default:
       // 기본은 최신순
-      result.sort((a, b) => b.id - a.id);
+      result.sort((a, b) => {
+        const aStartDate = new Date(a.applicationStartDate.replace(/\./g, '-'));
+        const bStartDate = new Date(b.applicationStartDate.replace(/\./g, '-'));
+        return aStartDate - bStartDate;
+      });
   }
   
   return result;
 });
-
 
 
 // 샘플 청약 공고 데이터
