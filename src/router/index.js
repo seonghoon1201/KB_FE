@@ -22,6 +22,7 @@ import FindPassword from '@/pages/auth/FindPassword.vue'
 import VerifyCode from '@/pages/auth/VerifyCode.vue'
 import ResetPassword from '@/pages/auth/ResetPassword.vue'
 import BankAuth from '@/pages/account/BankAuth.vue'
+import BankLoading from '@/pages/account/BankLoading.vue'
 import BankSelect from '@/pages/account/BankSelect.vue'
 import BankComplete from '@/pages/account/BankComplete.vue'
 import NotFound from '@/pages/error/NotFound.vue'
@@ -50,6 +51,7 @@ const routes = [
     { path: '/find/reset-password', name: 'ResetPassword', component: ResetPassword },
     { path: '/bank/auth', name: 'BankAuth', component: BankAuth },
     { path: '/bank/select', name: 'BankSelect', component: BankSelect },
+    { path: '/bank/loading', name: 'BankLoading', component: BankLoading },
     { path: '/bank/complete', name: 'BankComplete', component: BankComplete },
 
     // 404
