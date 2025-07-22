@@ -1,5 +1,6 @@
 <template>
-    <div class="bg-white min-h-screen px-4 py-6 space-y-6">
+    <div class="bg-white min-h-screen px-4 py-6 space-y-6 pt-[56px]">
+        <BackHeader title="청약 가점 계산기" />
         <!-- 상단 설명 박스 -->
         <div class="bg-[#F5F2FD] p-4 rounded-lg text-center space-y-1">
             <h1 class="text-base font-semibold text-indigo-600">📊 청약 가점 계산기</h1>
@@ -131,6 +132,7 @@ import PrimaryButton from '@/components/common/PrimaryButton.vue'
 import Modal from '@/components/modal/InfoModal.vue'
 import { Info } from 'lucide-vue-next'
 import { useScoreStore } from '@/stores/score'
+import BackHeader from '@/components/common/BackHeader.vue'
 
 const scoreStore = useScoreStore()
 const noHouse = ref('')
@@ -238,40 +240,44 @@ watch(accountPeriod, (val) => {
     accountScore.value = parseInt(val) || 0
 })
 watch([hasSpouse, myAscendants, spouseAscendants, descendants], () => {
-    const ascendants = parseInt(myAscendants.value || 0)
-    const spouseParents = hasSpouse.value ? parseInt(spouseAscendants.value || 0) : 0
-    const children = parseInt(descendants.value || 0)
+  const ascendants = parseInt(myAscendants.value || 0)
+  const spouseParents = hasSpouse.value ? parseInt(spouseAscendants.value || 0) : 0
+  const children = parseInt(descendants.value || 0)
 
-    const totalDependents = ascendants + spouseParents + children
+  const totalDependents = ascendants + spouseParents + children
 
-    if (hasSpouse.value === null && totalDependents === 0) {
-        // 사용자가 아무것도 선택하지 않은 기본 상태
-        familyScore.value = 5
-    } else if (!hasSpouse.value && totalDependents === 0) {
-        familyScore.value = 5 // 본인 단독
-    } else if (hasSpouse.value && totalDependents === 0) {
-        familyScore.value = 10 // 배우자만 있음
-    } else {
-        let counted = hasSpouse.value ? 1 : 0
-        counted += totalDependents
-        familyScore.value = counted >= 6 ? 35 : 5 + counted * 5
-    }
+  if (hasSpouse.value === null && totalDependents === 0) {
+    // 사용자가 아무것도 선택하지 않은 기본 상태
+    familyScore.value = 5
+  } else if (!hasSpouse.value && totalDependents === 0) {
+    familyScore.value = 5 // 본인 단독
+  } else if (hasSpouse.value && totalDependents === 0) {
+    familyScore.value = 10 // 배우자만 있음
+  } else {
+    let counted = hasSpouse.value ? 1 : 0
+    counted += totalDependents
+    familyScore.value = counted >= 6 ? 35 : 5 + counted * 5
+  }
 })
 
 const calculateScore = () => {
-    // 입력 누락 체크
-    if (noHouse.value === '' || accountPeriod.value === '' || hasSpouse.value === null) {
-        modalTitle.value = '입력값을 확인해주세요'
-        modalContent.value =
-            '모든 항목을 입력하셔야 가점을 계산할 수 있어요.\n\n' +
-            '1. 무주택 기간\n2. 부양가족 유무\n3. 청약통장 가입기간\n\n이 항목들을 모두 선택해주세요.'
-        modalVisible.value = true
-        return
-    }
+  // 입력 누락 체크
+  if (
+    noHouse.value === '' ||
+    accountPeriod.value === '' ||
+    hasSpouse.value === null
+  ) {
+    modalTitle.value = '입력값을 확인해주세요'
+    modalContent.value =
+      '모든 항목을 입력하셔야 가점을 계산할 수 있어요.\n\n' +
+      '1. 무주택 기간\n2. 부양가족 유무\n3. 청약통장 가입기간\n\n이 항목들을 모두 선택해주세요.'
+    modalVisible.value = true
+    return
+  }
 
-    totalScore.value = noHouseScore.value + familyScore.value + accountScore.value
-    scoreStore.setScore(totalScore.value)
-    isCalculated.value = true
+  totalScore.value = noHouseScore.value + familyScore.value + accountScore.value
+  scoreStore.setScore(totalScore.value)
+  isCalculated.value = true
 }
 
 const evaluateScore = (score) => {
