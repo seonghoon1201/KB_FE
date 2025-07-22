@@ -39,7 +39,7 @@ const goHome = () => {
 }
 
 const alarmClick = () => {
-    console.log('alarm click => open alarm')
+    router.push('/notification')
 }
 
 const menuClick = () => {
