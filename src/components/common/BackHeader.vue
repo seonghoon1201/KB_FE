@@ -5,7 +5,7 @@
         class="fixed top-0 left-0 right-0 z-[40] flex items-center justify-between w-full bg-[#DDF1FB] px-4 py-3 min-h-[56px] shadow"
     >
         <div><ChevronLeft @click="backClick" /></div>
-        <div @click="titleClick">{{ title }}</div>
+        <div @click="titleClick" class="font-bold text-base">{{ props.title }}</div>
         <div class="flex items-center space-x-4">
             <div v-if="showAlarm">
                 <Bell @click="alarmClick" />
@@ -25,21 +25,28 @@
 </template>
 <script setup>
 import { ChevronLeft, Bell, BellDot, Menu } from 'lucide-vue-next'
-import { ref, reactive } from 'vue'
+import { ref } from 'vue'
 import { useCommonStore } from '@/stores/common'
 import { useRouter } from 'vue-router'
 
-let modalStore = useCommonStore()
+// ✅ props로 제목 받기
+const props = defineProps({
+    title: {
+        type: String,
+        required: true,
+    },
+})
+
 const router = useRouter()
-let showAlarm = ref(true)
-let title = ref('title11')
+const modalStore = useCommonStore()
+const showAlarm = ref(true)
 
 const backClick = () => {
-    console.log('back button click')
+    router.back()
 }
 
 const titleClick = () => {
-    console.log(`title ${title.value} click`)
+    console.log(`title ${props.title} click`)
 }
 
 const alarmClick = () => {
@@ -50,4 +57,5 @@ const menuClick = () => {
     modalStore.modalOnOff()
 }
 </script>
+
 <style></style>
