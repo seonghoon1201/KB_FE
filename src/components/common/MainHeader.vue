@@ -1,42 +1,46 @@
-<!-- 메인 헤더 컴포넌트 -->
 <template>
-  <div
-    class="flex items-center justify-between w-full h-15 border border-black px-4 py-2 bg-[#DDF1FB]"
-  >
-    <div @click="backClick">zibi</div>
-    <div class="flex items-center space-x-4">
-      <div v-if="showAlarm">
-        <Bell @click="alarmClick" />
-      </div>
-      <div v-else class="relative inline-block">
-        <BellDot @click="alarmClick" />
-        <div
-          class="absolute top-2 right-1.5 w-2 h-2 bg-red-500 rounded-full board-2 border-red"
-          style="transform: translate(50%, -50%)"
-        ></div>
-      </div>
-      <div>
-        <Menu @click="menuClick" />
-      </div>
-    </div>
-  </div>
+    <header class="flex items-center justify-between w-full bg-[#DDF1FB] px-4 py-3 min-h-[56px]">
+        <!-- 왼쪽: 로고/텍스트 -->
+        <div @click="goHome" class="text-base font-semibold text-black cursor-pointer">zibi</div>
+
+        <!-- 오른쪽: 알림, 메뉴 -->
+        <div class="flex items-center gap-x-6">
+            <div v-if="showAlarm">
+                <Bell @click="alarmClick" class="w-6 h-6 text-gray-700" />
+            </div>
+            <div v-else class="relative">
+                <BellDot @click="alarmClick" class="w-6 h-6 text-gray-700" />
+                <div
+                    class="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full border border-white"
+                    style="transform: translate(50%, -50%)"
+                ></div>
+            </div>
+            <div>
+                <Menu @click="menuClick" class="w-6 h-6 text-gray-700" />
+            </div>
+        </div>
+    </header>
 </template>
+
 <script setup>
 import { Bell, BellDot, Menu } from 'lucide-vue-next'
-import { ref, reactive } from 'vue'
+import { ref } from 'vue'
+import { useCommonStore } from '@/stores/common'
+import { useRouter } from 'vue-router'
 
-let showAlarm = ref(true)
+const modalStore = useCommonStore()
+const showAlarm = ref(true)
+const router = useRouter()
 
-const backClick = () => {
-  console.log('zibi click => go to home')
+const goHome = () => {
+    router.push('/')
 }
 
 const alarmClick = () => {
-  console.log('alarm click => open alarm')
+    console.log('alarm click => open alarm')
 }
 
 const menuClick = () => {
-  console.log('menu click => open menu')
+    modalStore.modalOnOff()
 }
 </script>
-<style></style>
