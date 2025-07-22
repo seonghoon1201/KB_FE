@@ -4,8 +4,8 @@
         class="bg-white rounded-2xl border border-gray-200 p-4 shadow-sm hover:shadow-md transition-shadow duration-200"
     >
         <!-- 상단: 제목, D-Day, 하트 -->
-        <div class="flex items-start justify-between mb-3">
-            <h2 class="text-lg font-bold text-gray-900 flex-1 pr-4">
+        <div class="flex items-start justify-between mb-1">
+            <h2 class="text-lg font-bold text-gray-900 flex-1 pr-4 text-left">
                 {{ subscription.title }}
             </h2>
             <div class="flex items-center gap-2 flex-shrink-0">
@@ -29,22 +29,20 @@
         </div>
 
         <!-- 위치 정보 -->
-        <p class="text-gray-500 text-sm mb-3">
-            {{ subscription.location }}
-        </p>
+        <p class="text-gray-500 text-sm mb-2 text-left">{{ subscription.location }}</p>
 
         <!-- 하단: 날짜, 타입, 버튼들 -->
         <div class="flex items-end justify-between">
             <!-- 좌측: 날짜와 타입 -->
-            <div class="flex flex-col gap-2">
+            <div class="flex flex-col gap-4">
                 <span class="text-gray-500 text-sm">
-                    {{ subscription.applicationStartDate }} ~
+                    {{ subscription.applicationStartDate }} -
                     {{ subscription.applicationCompleteDate }}
                 </span>
                 <!-- 주택 타입 배지 -->
                 <span
                     :class="houseTypeBadgeClass"
-                    class="text-xs font-medium px-3 py-1 rounded-full w-fit"
+                    class="text-sm font-medium px-3 py-1 rounded-full w-fit"
                 >
                     {{ subscription.type }}
                 </span>
@@ -148,7 +146,6 @@ const houseTypeBadgeClass = computed(() => {
 
 // 이벤트 emit
 const emit = defineEmits(['favorite-changed', 'detail-click'])
-
 
 // 즐겨찾기 토글
 const handleFavoriteClick = () => {
