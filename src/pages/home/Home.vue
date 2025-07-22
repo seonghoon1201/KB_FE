@@ -1,5 +1,6 @@
 <template>
   <div class="bg-white min-h-screen flex flex-col">
+    <MainHeader/>
     <!-- 본문 콘텐츠 -->
     <main class="flex-1 px-4 py-6 space-y-6 overflow-y-auto pb-20">
       <!-- 계좌 연결 또는 예치금 현황 -->
@@ -30,6 +31,7 @@ import BottomNavbar from '@/components/common/BottomNavbar.vue'
 import AccountSection from '@/components/home/AccountSection.vue'
 import ScoreSection from '@/components/home/ScoreSection.vue'
 import RecommendSection from '@/components/home/RecommendSection.vue'
+import MainHeader from '@/components/common/MainHeader.vue'
 
 import { useRouter } from 'vue-router'
 import { computed } from 'vue'
@@ -41,7 +43,7 @@ const isScoreCalculated = computed(() => scoreStore.isCalculated)
 const score = computed(() => scoreStore.score)
 
 // 임시 상태 (예치금 상태 및 추천)
-const hasAccount = false
+const hasAccount = true
 const depositRate = 68
 
 const isPreferenceSet = true
