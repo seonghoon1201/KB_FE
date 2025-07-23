@@ -1,5 +1,5 @@
 <template>
-    <div class="flex flex-col min-h-screen bg-gray-50">
+    <div class="flex flex-col min-h-screen bg-gray-50 pt-14">
         <!-- 헤더 -->
         <BackHeader title="청약 공고" />
 
