@@ -54,6 +54,22 @@
                 <PrimaryButton @click="showModal = true">📏 평수 설정</PrimaryButton>
             </div>
 
+            <!-- 계좌 해지 버튼 -->
+            <div class="mt-4 flex justify-center">
+                <button
+                    @click="showConfirmModal = true"
+                    class="text-xs text-red-500 underline transition"
+                >
+                    계좌 연결 해지
+                </button>
+            </div>
+
+            <ConfirmModal
+                :visible="showConfirmModal"
+                @confirm="disconnectAccount"
+                @cancel="showConfirmModal = false"
+            />
+
             <!-- 평수 설정 모달 -->
             <AreaSettingModal
                 v-if="showModal"
@@ -92,6 +108,7 @@ import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import PrimaryButton from '@/components/common/PrimaryButton.vue'
 import AreaSettingModal from '@/components/modal/AreaSettingModal.vue'
+import ConfirmModal from '@/components/modal/ConfirmModal.vue'
 import zibi0 from '@/assets/images/zibi_0.png'
 import zibi1 from '@/assets/images/zibi_1.png'
 import zibi2 from '@/assets/images/zibi_2.png'
@@ -102,6 +119,7 @@ import { useAccountStore } from '@/stores/account'
 
 const router = useRouter()
 const accountStore = useAccountStore()
+const showConfirmModal = ref(false)
 
 // props
 const props = defineProps({
@@ -142,6 +160,11 @@ const areaLabel = computed(() => {
 const updateArea = (val) => {
     selectedArea.value = val
     showModal.value = false
+}
+
+const disconnectAccount = () => {
+    accountStore.reset()
+    showConfirmModal.value = false
 }
 
 // 계좌 연결 페이지 이동
