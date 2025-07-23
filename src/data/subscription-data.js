@@ -1,19 +1,4 @@
-/**
- * 청약 관련 스토어
- */
-
-import { ref, computed } from 'vue'
-import { defineStore } from 'pinia'
-
-export const useSubscriptionsStore = defineStore('subscription', () => {
-    const count = ref(0)
-    const doubleCount = computed(() => count.value * 2)
-    function increment() {
-        count.value++
-    }
-
-    // 샘플 청약 공고 데이터
-const subscriptions = ref([
+export const allSubscriptions = [
     {
         id: 1,
         title: '힐스테이트 청라 국제도시',
@@ -45,7 +30,7 @@ const subscriptions = ref([
         location: '경기도 화성시',
         totalUnits: 2156,
         applicationStartDate: '2025.08.08',
-        applicationCompleteDate: '2025.08.10',
+        applicationCompleteDate: '2025.08.30',
         type: '아파트',
         squareMeters: 83,
         price: '15억',
@@ -77,7 +62,4 @@ const subscriptions = ref([
         price: '9억',
         completionDate: '2027.08',
     },
-])
-
-    return { count, doubleCount, increment, subscriptions }
-})
+]
