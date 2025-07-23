@@ -105,7 +105,7 @@
 
             <!-- 버튼 2개 -->
             <div class="grid grid-cols-2 gap-2 mt-4">
-                <PrimaryButton customClass="bg-gray-100 text-gray-700" @click="goHome">
+                <PrimaryButton customClass="text-white" @click="goHome">
                     홈으로 돌아가기
                 </PrimaryButton>
                 <PrimaryButton customClass="bg-[#A48BFF] text-white" @click="reset">
