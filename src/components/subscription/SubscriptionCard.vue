@@ -68,11 +68,12 @@
 
 <script setup>
 import { ref, computed, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import { Heart } from 'lucide-vue-next'
 import { useFavoritesStore } from '@/stores/favorites'
 
 const favoritesStore = useFavoritesStore()
-
+const router = useRouter()
 
 // Props 정의
 const props = defineProps({
@@ -149,6 +150,6 @@ const handleFavoriteClick = () => {
 
 // 상세보기 클릭
 const handleDetailClick = () => {
-    emit('detail-click', props.subscription)
+  router.push(`/subscriptions/${props.subscription.id}`)
 }
 </script>
