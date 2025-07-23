@@ -11,9 +11,9 @@ export const useFavoritesStore = defineStore('favorites', () => {
   
   const favoriteIdsList = computed(() => Array.from(favoriteIds.value))
   
-  const isFavorite = computed(() => (subscriptionId) => {
-    return favoriteIds.value.has(subscriptionId)
-  })
+ const isFavorite = (subscriptionId) => {
+  return favoriteIds.value.has(subscriptionId)
+}
 
   // 액션 (Actions)
   const addToFavorites = (subscriptionId) => {
