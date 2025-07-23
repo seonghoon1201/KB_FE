@@ -69,6 +69,7 @@
 <script setup>
 import { ref, computed, watch } from 'vue'
 import { Heart } from 'lucide-vue-next'
+
 import { useFavoritesStore } from '@/stores/favorites'
 
 const favoritesStore = useFavoritesStore()

@@ -9,15 +9,19 @@
                 <button
                     v-for="filter in filters"
                     :key="filter.key"
-                    @click="selectedFilter = filter.key"
+                    @click="handleFilterClick(filter)"
                     :class="[
-                        'px-4 py-2 rounded-full text-sm whitespace-nowrap transition-colors',
+                        'flex items-center gap-1 px-4 py-2 rounded-full text-sm whitespace-nowrap transition-colors',
                         selectedFilter === filter.key
                             ? 'bg-blue-500 text-white'
                             : 'bg-gray-100 text-gray-600 hover:bg-gray-200',
                     ]"
                 >
-                    {{ filter.label }}
+                    <!-- 아이콘 -->
+                    <component :is="filter.icon" class="w-4 h-4" />
+
+                    <!-- 텍스트 -->
+                    <span>{{ filter.label }}</span>
                 </button>
             </div>
         </div>
@@ -50,6 +54,8 @@ import SubscriptionCard from '@/components/subscription/SubscriptionCard.vue'
 import BackHeader from '@/components/common/BackHeader.vue'
 import { allSubscriptions } from '@/data/subscription-data'
 import { useFavoritesStore } from '@/stores/favorites'
+import { TrendingUp, Clock, ArrowDownWideNarrow } from 'lucide-vue-next'
+
 const favoritesStore = useFavoritesStore()
 
 const subscriptions = ref(allSubscriptions)
@@ -57,17 +63,19 @@ const subscriptions = ref(allSubscriptions)
 const selectedFilter = ref('latest')
 
 const filters = [
-    { key: 'latest', label: '최신순' },
-    { key: 'deadline-first', label: '마감임박순' },
-    { key: 'filter', label: '필터', isCustom: true },
+    { key: 'latest', label: '최신순', icon: TrendingUp },
+    { key: 'deadline-first', label: '마감임박순', icon: Clock },
+    { key: 'filter', label: '필터', icon: ArrowDownWideNarrow, isCustom: true },
 ]
 
-// 상세 필터 조건
-const customFilterOptions = [
-    { key: 'location', label: '지역' },
-    { key: 'price', label: '가격대' },
-    { key: 'area', label: '면적(평수)' },
-]
+const showCustomFilter = ref(false)
+
+const customFilter = ref({
+  location: '',
+  area: '',
+  price: '',
+})
+
 
 // 필터링된 청약 공고 목록
 const filteredSubscriptions = computed(() => {
@@ -107,13 +115,12 @@ const filteredSubscriptions = computed(() => {
 
 // 필터 클릭 핸들러
 const handleFilterClick = (filter) => {
-    if (filter.isCustom) {
-        // 필터 버튼 클릭 시 모달이나 추가 옵션 표시 (추후 구현)
-        console.log('필터 옵션 열기')
-        // 여기에 모달 열기 로직 추가 가능
-    } else {
-        selectedFilter.value = filter.key
-    }
+  if (filter.isCustom) {
+    showCustomFilter.value = !showCustomFilter.value
+  } else {
+    selectedFilter.value = filter.key
+    showCustomFilter.value = false // 맞춤 필터는 숨김
+  }
 }
 
 const handleFavoriteChanged = (subscriptionId) => {
@@ -122,6 +129,6 @@ const handleFavoriteChanged = (subscriptionId) => {
 }
 
 onMounted(() => {
-  favoritesStore.initializeFavorites()
+    favoritesStore.initializeFavorites()
 })
 </script>
