@@ -44,7 +44,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import BottomNavbar from '@/components/common/BottomNavbar.vue'
 import SubscriptionCard from '@/components/subscription/SubscriptionCard.vue'
 import BackHeader from '@/components/common/BackHeader.vue'
@@ -120,4 +120,8 @@ const handleFavoriteChanged = (subscriptionId) => {
     const nowFavorite = favoritesStore.toggleFavorite(subscriptionId)
     console.log(`ID: ${subscriptionId}, 즐겨찾기 상태: ${nowFavorite}`)
 }
+
+onMounted(() => {
+  favoritesStore.initializeFavorites()
+})
 </script>
