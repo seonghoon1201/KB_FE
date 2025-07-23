@@ -30,7 +30,7 @@ export const allSubscriptions = [
         location: '경기도 화성시',
         totalUnits: 2156,
         applicationStartDate: '2025.08.08',
-        applicationCompleteDate: '2025.08.10',
+        applicationCompleteDate: '2025.08.30',
         type: '아파트',
         squareMeters: 83,
         price: '15억',
