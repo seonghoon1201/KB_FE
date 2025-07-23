@@ -11,7 +11,7 @@
                 선호하는 지역과 평수를 설정하면<br />더 정확한 청약 추천을 받을 수 있어요.
             </p>
         </div>
-
+ 
         <!-- 선호 지역 -->
         <div class="mb-5">
             <label class="text-sm font-semibold text-gray-800 mb-1 block"
