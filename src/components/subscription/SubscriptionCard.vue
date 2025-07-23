@@ -4,8 +4,8 @@
         class="bg-white rounded-2xl border border-gray-200 p-4 shadow-sm hover:shadow-md transition-shadow duration-200"
     >
         <!-- 상단: 제목, D-Day, 하트 -->
-        <div class="flex items-start justify-between mb-1">
-            <h2 class="text-lg font-bold text-gray-900 flex-1 pr-4 text-left">
+        <div class="flex items-start justify-between mb-2">
+            <h2 class="text-lg font-bold text-gray-900 flex-1 pr-4">
                 {{ subscription.title }}
             </h2>
             <div class="flex items-center gap-2 flex-shrink-0">
@@ -67,24 +67,18 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { Heart } from 'lucide-vue-next'
+import { useFavoritesStore } from '@/stores/favorites'
+
+const favoritesStore = useFavoritesStore()
+
 
 // Props 정의
 const props = defineProps({
     subscription: {
         type: Object,
         required: true,
-        default: () => ({
-            id: 1,
-            title: 'e편한세상 아파트',
-            location: '인천시 연수구 송도동',
-            applicationStartDate: '2025.07.15',
-            applicationCompleteDate: '2025.07.17',
-            type: '아파트',
-            squareMeters: '84',
-            price: '12억',
-        }),
     },
     favoriteDefault: {
         type: Boolean,
@@ -92,8 +86,8 @@ const props = defineProps({
     },
 })
 
-// 즐겨찾기 상태 (단순하게)
 const isFavorite = ref(props.favoriteDefault)
+
 
 // D-Day 계산 (computed)
 const dDayInfo = computed(() => {
@@ -149,8 +143,8 @@ const emit = defineEmits(['favorite-changed', 'detail-click'])
 
 // 즐겨찾기 토글
 const handleFavoriteClick = () => {
-    emit('favorite-changed', props.subscription.id)
-    isFavorite.value = !isFavorite.value // UI 업데이트는 로컬 상태에서 즉시
+    const result = favoritesStore.toggleFavorite(props.subscription.id)
+    isFavorite.value = result
 }
 
 // 상세보기 클릭

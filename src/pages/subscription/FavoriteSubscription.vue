@@ -1,52 +1,50 @@
 <template>
-    <div class="flex flex-col items-center justify-center min-h-screen bg-white text-center px-6">
-        <BackHeader />
+  <div class="flex flex-col min-h-screen bg-gray-50">
+    <!-- 헤더 -->
+    <BackHeader title="즐겨찾기" />
 
-        <div v-if="favoriteSubscriptions.length === 0" class="text-gray-500 py-20">
-            즐겨찾기한 청약 공고가 없습니다.
-        </div>
+    <!-- 즐겨찾기 공고 목록 -->
+    <div class="flex-1 px-4 py-6 pb-20">
+      <div v-if="favoriteSubscriptions.length === 0" class="text-center py-20 text-gray-500">
+        즐겨찾기한 청약 공고가 없습니다.
+      </div>
 
-        <div v-else class="space-y-4">
-            <SubscriptionCard
-                v-for="sub in favoriteSubscriptions"
-                :key="sub.id"
-                :subscription="sub"
-                :favoriteDefault="true"
-                @favorite-changed="handleFavoriteChanged"
-            />
-        </div>
+      <div v-else class="space-y-4">
+        <SubscriptionCard
+          v-for="subscription in favoriteSubscriptions"
+          :key="subscription.id"
+          :subscription="subscription"
+          :favorite-default="true"
+          @favorite-changed="handleFavoriteToggle"
+        />
+      </div>
     </div>
+
+    <!-- 하단 네비게이션 -->
     <BottomNavbar />
+  </div>
 </template>
 
 <script setup>
-import BottomNavbar from '@/components/common/BottomNavbar.vue'
-import BackHeader from '@/components/common/BackHeader.vue'
-
-import { ref, computed } from 'vue'
+import { computed } from 'vue'
 import { useFavoritesStore } from '@/stores/favorites'
-import { useSubscriptionsStore } from '@/stores/subscription'
+import BackHeader from '@/components/common/BackHeader.vue'
+import BottomNavbar from '@/components/common/BottomNavbar.vue'
 import SubscriptionCard from '@/components/subscription/SubscriptionCard.vue'
 
-// 스토어 초기화
+// 스토어
 const favoritesStore = useFavoritesStore()
-favoritesStore.initializeFavorites()
 
-const subscriptionsStore = useSubscriptionsStore()
-// 스토어가 ref([])로 정의되어 있다면 .value 붙이고,
-// reactive([]) 또는 plain array라면 .value 없이 사용하세요.
-const allSubscriptions = subscriptionsStore.subscriptions
+// 전체 청약 공고 (예: 외부에서 받아오거나 import)
+import { allSubscriptions } from '@/data/subscription-data' // 또는 props로 전달
 
-// 즐겨찾기된 공고만 필터링
-const favoriteSubscriptions = computed(() =>
-    favoritesStore.getFavoriteSubscriptions(
-        // ref로 정의된 경우엔 .value, 그렇지 않으면 생략
-        Array.isArray(allSubscriptions.value) ? allSubscriptions.value : allSubscriptions,
-    ),
-)
+// 즐겨찾기된 공고 필터링
+const favoriteSubscriptions = computed(() => {
+  return favoritesStore.getFavoriteSubscriptions(allSubscriptions)
+})
 
-// 하트 클릭 처리
-const handleFavoriteChanged = (subscriptionId) => {
-    favoritesStore.toggleFavorite(subscriptionId)
+// 즐겨찾기 토글 핸들러
+const handleFavoriteToggle = (id) => {
+  favoritesStore.toggleFavorite(id)
 }
 </script>

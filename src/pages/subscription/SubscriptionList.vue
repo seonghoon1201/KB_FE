@@ -33,8 +33,8 @@
                     v-for="subscription in filteredSubscriptions"
                     :key="subscription.id"
                     :subscription="subscription"
-                    :favoriteDefault="favoritesStore.isFavorite(subscription.id)"
-                    @favorite-changed="handleFavoriteChanged"
+                    :favorite-default="favoritesStore.favoriteIds.has(subscription.id)"
+                    @favorite-changed="(id) => favoritesStore.toggleFavorite(id)"
                 />
             </div>
         </div>
@@ -48,14 +48,11 @@ import { ref, computed } from 'vue'
 import BottomNavbar from '@/components/common/BottomNavbar.vue'
 import SubscriptionCard from '@/components/subscription/SubscriptionCard.vue'
 import BackHeader from '@/components/common/BackHeader.vue'
-import { useSubscriptionsStore } from '@/stores/subscription'
+import { allSubscriptions } from '@/data/subscription-data'
 import { useFavoritesStore } from '@/stores/favorites'
-
-const subscriptionsStore = useSubscriptionsStore()
-const subscriptions = subscriptionsStore.subscriptions
-
 const favoritesStore = useFavoritesStore()
-favoritesStore.initializeFavorites()
+
+const subscriptions = ref(allSubscriptions)
 
 const selectedFilter = ref('latest')
 
@@ -107,8 +104,6 @@ const filteredSubscriptions = computed(() => {
 
     return result
 })
-
-
 
 // 필터 클릭 핸들러
 const handleFilterClick = (filter) => {
