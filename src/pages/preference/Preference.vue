@@ -1,10 +1,6 @@
 <template>
-    <div class="bg-white min-h-screen px-4 pt-5 pb-6">
-        <!-- 헤더 -->
-        <div class="flex items-center justify-between mb-4">
-            <h1 class="text-lg font-bold">선호 지역 및 평수 설정</h1>
-            <Cog class="w-5 h-5 text-gray-500" />
-        </div>
+    <div class="bg-white min-h-screen px-4 pb-6 pt-[70px]">
+        <BackHeader title="선호 설정" />
 
         <!-- 설명 박스 -->
         <div
@@ -136,6 +132,7 @@ import { ref, computed } from 'vue'
 import { Cog } from 'lucide-vue-next'
 import { usePreferenceStore } from '@/stores/preference'
 import { useRouter } from 'vue-router'
+import BackHeader from '@/components/common/BackHeader.vue'
 
 const router = useRouter()
 const preferenceStore = usePreferenceStore()
