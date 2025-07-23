@@ -1,7 +1,7 @@
 <template>
     <div class="bg-white min-h-screen flex flex-col pt-[56px] pb-[60px]">
         <MainHeader />
-        <main class="flex-1 px-4 py-6 space-y-6 overflow-y-auto">
+        <main class="flex-1 px-4 py-6 space-y-6 overflow-y-auto" @click="commonStore.modalClose">
             <AccountSection
                 :hasAccount="accountStore.isRegistered"
                 :bankName="accountStore.selectedBankName"
@@ -26,6 +26,7 @@ import { useRouter } from 'vue-router'
 import { computed } from 'vue'
 import { useScoreStore } from '@/stores/score'
 import { useAccountStore } from '@/stores/account'
+import { useCommonStore } from '@/stores/common'
 
 import MainHeader from '@/components/common/MainHeader.vue'
 import BottomNavbar from '@/components/common/BottomNavbar.vue'
@@ -33,6 +34,7 @@ import AccountSection from '@/components/home/AccountSection.vue'
 import ScoreSection from '@/components/home/ScoreSection.vue'
 import RecommendSection from '@/components/home/RecommendSection.vue'
 
+const commonStore = useCommonStore()
 const scoreStore = useScoreStore()
 const accountStore = useAccountStore()
 
