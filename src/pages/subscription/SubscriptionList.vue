@@ -87,6 +87,38 @@
                     </button>
                 </div>
             </div>
+
+            <!-- 희망 가격대 -->
+            <div class="mb-5">
+                <label class="text-sm font-semibold text-gray-800 block mb-2"
+                    >희망 가격대 (만원 단위)</label
+                >
+                <div class="flex items-center gap-2">
+                    <input
+                        v-model.number="priceMin"
+                        type="number"
+                        class="w-full border rounded px-3 py-2 text-sm"
+                        placeholder="최소 금액"
+                    />
+                    <span class="text-gray-500">~</span>
+                    <input
+                        v-model.number="priceMax"
+                        type="number"
+                        class="w-full border rounded px-3 py-2 text-sm"
+                        placeholder="최대 금액"
+                    />
+                </div>
+            </div>
+
+            <!-- 필터 적용 버튼 -->
+            <div class="text-center mt-4">
+                <button
+                    @click="applyFilters"
+                    class="bg-blue-500 text-white text-sm font-semibold px-4 py-2 rounded hover:bg-blue-600"
+                >
+                    필터 적용
+                </button>
+            </div>
         </div>
 
         <!-- 공고 목록 -->
@@ -129,19 +161,26 @@ const selectedFilter = ref('latest')
 
 const isFilterOpen = ref(false)
 
-
-
 const filters = [
     { key: 'latest', label: '최신순', icon: TrendingUp },
     { key: 'deadline-first', label: '마감임박순', icon: Clock },
     { key: 'filter', label: '필터', icon: ArrowDownWideNarrow, isCustom: true },
 ]
 
-const cities = Object.keys(districts)
+const appliedFilters = ref({
+    regions: [],
+    areas: [],
+    priceMin: null,
+    priceMax: null,
+})
 
+
+const cities = Object.keys(districts)
 const selectedCity = ref('')
 const selectedDistrict = ref('')
 const selectedRegions = ref([])
+const priceMin = ref(null) // 만 원 단위
+const priceMax = ref(null)
 
 const showCustomFilter = ref(false)
 
@@ -179,42 +218,72 @@ const toggleArea = (val) => {
     }
 }
 
-
 // 필터링된 청약 공고 목록
 const filteredSubscriptions = computed(() => {
     let result = [...subscriptions.value]
 
-    // 정렬 적용
+    // 정렬
     switch (selectedFilter.value) {
         case 'latest':
-            // 최신순 정렬 (신청 시작일이 빠른 순)
-            result.sort((a, b) => {
-                const aStartDate = new Date(a.applicationStartDate.replace(/\./g, '-'))
-                const bStartDate = new Date(b.applicationStartDate.replace(/\./g, '-'))
-                return aStartDate - bStartDate
-            })
+            result.sort((a, b) => new Date(a.applicationStartDate) - new Date(b.applicationStartDate))
             break
-
         case 'deadline-first':
-            // 마감임박순 정렬 (마감일이 빠른 순)
-            result.sort((a, b) => {
-                const aCompleteDate = new Date(a.applicationCompleteDate.replace(/\./g, '-'))
-                const bCompleteDate = new Date(b.applicationCompleteDate.replace(/\./g, '-'))
-                return aCompleteDate - bCompleteDate
-            })
+            result.sort((a, b) => new Date(a.applicationCompleteDate) - new Date(b.applicationCompleteDate))
             break
+    }
 
-        default:
-            // 기본은 최신순
-            result.sort((a, b) => {
-                const aStartDate = new Date(a.applicationStartDate.replace(/\./g, '-'))
-                const bStartDate = new Date(b.applicationStartDate.replace(/\./g, '-'))
-                return aStartDate - bStartDate
-            })
+    // 지역 필터
+    if (appliedFilters.value.regions.length > 0) {
+        result = result.filter((item) =>
+            appliedFilters.value.regions.some(
+                (region) =>
+                    item.city === region.city && item.district === region.district
+            )
+        )
+    }
+
+    // 평수 필터
+    if (appliedFilters.value.areas.length > 0) {
+    result = result.filter((item) => {
+        const area = item.area // 숫자형이어야 함
+        return appliedFilters.value.areas.some(([min, max]) => area >= min && area < max)
+    })
+}
+
+    // 가격 필터
+    if (appliedFilters.value.priceMin !== null || appliedFilters.value.priceMax !== null) {
+        result = result.filter((item) => {
+            const price = item.price
+            return (
+                (appliedFilters.value.priceMin === null || price >= appliedFilters.value.priceMin) &&
+                (appliedFilters.value.priceMax === null || price <= appliedFilters.value.priceMax)
+            )
+        })
     }
 
     return result
 })
+
+
+// 3️⃣ 필터 적용 버튼 클릭 시
+const applyFilters = () => {
+    appliedFilters.value = {
+        regions: [...selectedRegions.value],
+        areas: [...selectedAreas.value],
+        priceMin: priceMin.value,
+        priceMax: priceMax.value,
+    }
+    isFilterOpen.value = false // 필터 창 닫기
+}
+const expandAreaRanges = (ranges) => {
+    const allSizes = []
+    ranges.forEach(([min, max]) => {
+        for (let i = min + 1; i <= max; i++) {
+            allSizes.push(i)
+        }
+    })
+    return allSizes
+}
 
 const toggleFilter = () => {
     isFilterOpen.value = !isFilterOpen.value

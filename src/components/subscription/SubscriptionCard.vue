@@ -29,7 +29,7 @@
         </div>
 
         <!-- 위치 정보 -->
-        <p class="text-gray-500 text-sm mb-2 text-left">{{ subscription.location }}</p>
+        <p class="text-gray-500 text-sm mb-2 text-left">{{ subscription.city }} {{ subscription.district }}</p>
 
         <!-- 하단: 날짜, 타입, 버튼들 -->
         <div class="flex items-end justify-between">
