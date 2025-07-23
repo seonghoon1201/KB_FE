@@ -6,6 +6,12 @@ import { defineStore } from 'pinia'
 
 export const useCommonStore = defineStore('common', () => {
     const modal = ref(false) // 메뉴 버튼 눌렀을 때 우측 모달 창을 여는 플래그
+
+    // 모달 닫기
+    const modalClose = () => {
+        modal.value = false
+    }
+
     // 모달 열기/닫기
     const modalOnOff = () => {
         if (modal.value) {
@@ -15,5 +21,5 @@ export const useCommonStore = defineStore('common', () => {
         }
     }
 
-    return { modal, modalOnOff }
+    return { modal, modalClose, modalOnOff }
 })

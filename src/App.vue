@@ -1,6 +1,6 @@
 <template>
-    <div class="min-h-screen bg-white relative pt-[56px] pb-[60px]">
-        <ModalBase />
+    <div class="min-h-screen bg-white relative border border-red-600">
+        <ModalBase class="border border-black" />
         <RouterView />
     </div>
 </template>
