@@ -11,7 +11,9 @@
             <div class="flex items-center gap-2 flex-shrink-0">
                 <!-- D-Day 배지 -->
                 <span
-                    :class="getDDayBadgeClass(getDDayInfo(subscription.applicationCompleteDate).dDay)"
+                    :class="
+                        getDDayBadgeClass(getDDayInfo(subscription.applicationCompleteDate).dDay)
+                    "
                     class="text-xs font-semibold px-3 py-1 rounded-md"
                 >
                     {{ getDDayInfo(subscription.applicationCompleteDate).text }}
@@ -41,7 +43,8 @@
             <!-- 좌측: 날짜 정보 -->
             <div class="flex flex-col gap-4">
                 <span class="text-gray-500 text-sm">
-                    {{ subscription.applicationStartDate }} - {{ subscription.applicationCompleteDate }}
+                    {{ subscription.applicationStartDate }} -
+                    {{ subscription.applicationCompleteDate }}
                 </span>
                 <!-- 아파트 타입 버튼 -->
                 <button
@@ -76,28 +79,28 @@ import { Heart } from 'lucide-vue-next'
 
 // Props 정의
 const props = defineProps({
-  subscription: {
-    type: Object,
-    required: true,
-    default: () => ({
-      id: 1,
-      title: 'e편한세상 아파트',
-      location: '인천시 연수구 송도동',
-      totalUnits: 1000,
-      applicationStartDate: '2025.07.15',
-      applicationCompleteDate: '2025.07.17',
-      status: 'available',
-      type: '분양권',
-      priceRange: '12억',
-      completionDate: '2027.03',
-      features: ['역세권', '대단지']
-    })
-  },
-  favoriteDefault: {
-    type: Boolean,
-    default: false
-  }
-});
+    subscription: {
+        type: Object,
+        required: true,
+        default: () => ({
+            id: 1,
+            title: 'e편한세상 아파트',
+            location: '인천시 연수구 송도동',
+            totalUnits: 1000,
+            applicationStartDate: '2025.07.15',
+            applicationCompleteDate: '2025.07.17',
+            status: 'available',
+            type: '분양권',
+            priceRange: '12억',
+            completionDate: '2027.03',
+            features: ['역세권', '대단지'],
+        }),
+    },
+    favoriteDefault: {
+        type: Boolean,
+        default: false,
+    },
+})
 
 // 즐겨찾기 상태
 const isFavorite = ref(props.favoriteDefault)
@@ -179,12 +182,29 @@ const getHouseTypeBadgeClass = (type) => {
     }
 }
 
-// 이벤트 emit (부모 컴포넌트에서 사용할 경우)
-const emit = defineEmits(['favorite-changed', 'detail-click'])
-
 const handleDetailClick = () => {
     emit('detail-click', props.subscription)
 }
 
+import { useFavoritesStore } from '@/stores/favorites'; // 실제 사용시
 
+// Pinia 스토어 사용
+const favoritesStore = useFavoritesStore() // 실제 사용시
+
+// 현재 즐겨찾기 상태 (스토어에서 직접 가져오기)
+const isCurrentlyFavorite = computed(() => favoritesStore.isFavorite.value(props.subscription.id))
+
+const handleFavoriteClick = () => {
+    const newFavoriteState = favoritesStore.toggleFavorite(props.subscription.id)
+
+    // 부모 컴포넌트에 알림 (선택사항)
+    emit('favorite-changed', {
+        subscriptionId: props.subscription.id,
+        isFavorite: newFavoriteState,
+        subscription: props.subscription,
+    })
+}
+
+// 이벤트 emit
+const emit = defineEmits(['favorite-changed', 'detail-click'])
 </script>
