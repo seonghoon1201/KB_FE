@@ -1,7 +1,7 @@
 <template>
-    <div class="flex flex-col min-h-screen bg-gray-50">
+    <div class="flex flex-col min-h-screen bg-gray-50 pt-14">
         <!-- 헤더 -->
-        <BackHeader />
+        <BackHeader title="청약 공고" />
 
         <!-- 필터 버튼들 (옵셔널) -->
         <div class="px-4 py-3 bg-white border-b border-gray-100">
