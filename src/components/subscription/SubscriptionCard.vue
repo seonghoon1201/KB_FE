@@ -86,8 +86,7 @@ const props = defineProps({
     },
 })
 
-const isFavorite = ref(props.favoriteDefault)
-
+const isFavorite = computed(() => favoritesStore.isFavorite(props.subscription.id))
 
 // D-Day 계산 (computed)
 const dDayInfo = computed(() => {
