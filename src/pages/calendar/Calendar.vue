@@ -594,7 +594,7 @@ const monthMove = (move) => {
 
 // 뷰 변경 함수
 function changeView(viewName, date) {
-    console.log('click')
+    console.log('click : ', date)
     currentView.value = viewName
     const api = calendarRef.value.getApi()
 
