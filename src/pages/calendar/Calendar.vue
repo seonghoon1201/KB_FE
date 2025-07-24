@@ -1,9 +1,11 @@
 <template>
     <div class="flex flex-1 flex-col bg-white text-center px-4">
         <BackHeader title="달력 보기" />
-        <main class="w-full px-1 py-6 space-y-6 pt-[70px]">
-            <div class="flex-1 w-full overflow-hidden">
-                <div class="flex items-center">
+        <main
+            class="fixed top-0 left-0 w-full px-1 py-6 space-y-6 pt-[70px] pb-[70px] flex flex-col inset-0"
+        >
+            <div class="flex-none w-full overflow-hidden">
+                <div class="flex items-center mb-2">
                     <div
                         class="relative w-full h-6 rounded flex justify-between items-center m-1"
                         v-if="currentView === 'dayGridMonth'"
@@ -38,7 +40,7 @@
                             @click="changeView('dayGridMonth')"
                             class="w-8 m-1 flex justify-center items-center border"
                         >
-                            ←
+                            <ArrowLeft />
                         </span>
                         <!-- 캘린더 제목 -->
                         <div
@@ -57,16 +59,45 @@
                     class="fc-toolbar-title"
                 />
             </div>
+            <div
+                v-if="currentView === 'dayGridWeek'"
+                class="flex-1 w-full overflow-y-auto border-t"
+            >
+                <!-- 공고 목록 -->
+                <div class="flex-1 px-4 py-4 pb-20">
+                    <div v-if="filteredSubscriptions.length === 0" class="text-center py-12">
+                        <p class="text-gray-500">현재 표시할 청약 공고가 없습니다.</p>
+                    </div>
+
+                    <div v-else class="space-y-4">
+                        <SubscriptionCard
+                            v-for="subscription in filteredSubscriptions"
+                            :key="subscription.id"
+                            :subscription="subscription"
+                            :favorite-default="favoritesStore.favoriteIds.has(subscription.id)"
+                            @favorite-changed="(id) => favoritesStore.toggleFavorite(id)"
+                        />
+                    </div>
+                </div>
+            </div>
         </main>
+
         <BottomNavBar />
     </div>
 </template>
 <script setup>
 import { ref, reactive, watch, computed } from 'vue'
 import axios from 'axios' // ← 이 줄을 추가하세요
-import { ChevronLeft, ChevronRight } from 'lucide-vue-next'
+import { ChevronLeft, ChevronRight, ArrowLeft } from 'lucide-vue-next'
+import { allSubscriptions } from '@/data/subscription-data'
+import { useFavoritesStore } from '@/stores/favorites'
+
+/** 컴포넌트 */
 import BackHeader from '@/components/common/BackHeader.vue'
 import BottomNavBar from '@/components/common/BottomNavbar.vue'
+import SubscriptionCard from '@/components/subscription/SubscriptionCard.vue'
+
+/** 달력 관련 라이브러리 */
 import FullCalendar from '@fullcalendar/vue3'
 import dayGridPlugin from '@fullcalendar/daygrid'
 import timeGridPlugin from '@fullcalendar/timegrid'
@@ -76,214 +107,32 @@ const calendarRef = ref(null) // 달력의 기능을 사용하는 ref
 const selectedDate = ref('') // 선택된 날짜를 저장할 ref
 const currentView = ref('dayGridMonth') // 달력의 뷰 설정
 const headerTitle = ref('') // 달력의 제목 설정
+const subscriptions = ref(allSubscriptions)
+const favoritesStore = useFavoritesStore()
 
-// const calendarOptions = reactive({
-//     plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin],
-//     initialView: currentView.value,
-//     allDaySlot: false, // 주간뷰에서 all-day 슬롯(빈 행) 제거
-//     weekends: false,
-//     fixedWeekCount: false,
-//     height: 500,
-
-//     contentHeight: 400,
-//     dayMaxEventRows: true, // 셀당 최대 표시 가능한 이벤트 개수를 '셀 높이' 기준으로 자름 :contentReference[oaicite:0]{index=0}
-//     // fixedWeekCount: false, // 해당 월에 꼭 필요한 주만 표시 (5주 이하)
-
-//     expandRows: true, // 빈 공간 없이 최대한 꽉 채움
-//     headerToolbar: {
-//         left: false,
-//         center: false,
-//         right: false,
-//     }, // 헤더 툴바 숨김
-//     slotLabelFormat: [
-//         { hour: 'numeric', minute: '2-digit', omitZeroMinute: true, meridiem: 'short' }, // top level of text
-//         { weekday: 'short' }, // lower level of text
-//     ], // 시간대 레이블 숨김
-//     views: {
-//         // 월간 뷰: 요일 이름만
-//         dayGridMonth: {
-//             // dayHeaderFormat: { weekday: 'short' }, // Mon, Tue, Wed...
-//             // height: 500,
-//             showNonCurrentDates: false,
-//         },
-//         // 주간 뷰: 날짜(숫자)만
-//         dayGridWeek: {
-//             dayHeaderFormat: { day: 'numeric' },
-//             height: 100,
-//             // showNonCurrentDates: false,
-//             // fixedWeekCount: false,
-//         },
-//     },
-//     events: [
-//         {
-//             id: '1', // (선택) 고유 ID
-//             title: '회의', // 캘린더에 표시될 텍스트
-//             start: '2025-07-23T09:00:00', // 시작 시각 (ISO 문자열 또는 Date 객체)
-//             end: '2025-07-23T10:00:00', // (선택) 종료 시각
-//             allDay: false, // 종일 여부 (true면 시간 무시)
-//             color: '#3a87ad', // (선택) 이벤트 색상
-//         },
-//         {
-//             id: '2', // (선택) 고유 ID
-//             title: '회의', // 캘린더에 표시될 텍스트
-//             start: '2025-07-23T09:00:00', // 시작 시각 (ISO 문자열 또는 Date 객체)
-//             end: '2025-07-23T10:00:00', // (선택) 종료 시각
-//             allDay: false, // 종일 여부 (true면 시간 무시)
-//             color: '#3a87ad', // (선택) 이벤트 색상
-//         },
-//         {
-//             id: '3', // (선택) 고유 ID
-//             title: '회의', // 캘린더에 표시될 텍스트
-//             start: '2025-07-23T09:00:00', // 시작 시각 (ISO 문자열 또는 Date 객체)
-//             end: '2025-07-23T10:00:00', // (선택) 종료 시각
-//             allDay: false, // 종일 여부 (true면 시간 무시)
-//             color: '#3a87ad', // (선택) 이벤트 색상
-//         },
-//         {
-//             id: '4',
-//             title: '점심 약속',
-//             start: '2025-07-25', // 날짜만 쓰면 00:00부터 종일로 간주
-//             end: '2025-08-12T16:00:00', // 2박 3일
-//             allDay: true,
-//         },
-//         {
-//             id: '4',
-//             title: '점심 약속',
-//             start: '2025-07-25', // 날짜만 쓰면 00:00부터 종일로 간주
-//             end: '2025-08-12T16:00:00', // 2박 3일
-//             allDay: true,
-//         },
-//         {
-//             id: '4',
-//             title: '점심 약속',
-//             start: '2025-07-25', // 날짜만 쓰면 00:00부터 종일로 간주
-//             end: '2025-08-12T16:00:00', // 2박 3일
-//             allDay: true,
-//         },
-//         {
-//             id: '4',
-//             title: '점심 약속',
-//             start: '2025-07-16', // 날짜만 쓰면 00:00부터 종일로 간주
-//             allDay: false, // 종일 여부 (true면 시간 무시)
-//         },
-//         {
-//             id: '4',
-//             title: '점심 약속',
-//             start: '2025-07-16', // 날짜만 쓰면 00:00부터 종일로 간주
-//             allDay: false, // 종일 여부 (true면 시간 무시)
-//         },
-//         {
-//             id: '4',
-//             title: '점심 약속',
-//             start: '2025-07-16', // 날짜만 쓰면 00:00부터 종일로 간주
-//             allDay: false, // 종일 여부 (true면 시간 무시)
-//         },
-//         {
-//             id: '4',
-//             title: '점심 약속',
-//             start: '2025-07-09', // 날짜만 쓰면 00:00부터 종일로 간주
-//             allDay: false, // 종일 여부 (true면 시간 무시)
-//         },
-//         {
-//             id: '4',
-//             title: '점심 약속',
-//             start: '2025-07-09', // 날짜만 쓰면 00:00부터 종일로 간주
-//             allDay: false, // 종일 여부 (true면 시간 무시)
-//         },
-//         {
-//             id: '4',
-//             title: '점심 약속',
-//             start: '2025-07-09', // 날짜만 쓰면 00:00부터 종일로 간주
-//             allDay: false, // 종일 여부 (true면 시간 무시)
-//         },
-//         {
-//             id: '4',
-//             title: '점심 약속',
-//             start: '2025-07-09', // 날짜만 쓰면 00:00부터 종일로 간주
-//             allDay: false, // 종일 여부 (true면 시간 무시)
-//         },
-//         {
-//             id: '4',
-//             title: '점심 약속',
-//             start: '2025-07-02', // 날짜만 쓰면 00:00부터 종일로 간주
-//             allDay: false, // 종일 여부 (true면 시간 무시)
-//         },
-//         {
-//             id: '4',
-//             title: '점심 약속',
-//             start: '2025-07-02', // 날짜만 쓰면 00:00부터 종일로 간주
-//             allDay: false, // 종일 여부 (true면 시간 무시)
-//         },
-//         {
-//             id: '4',
-//             title: '점심 약속',
-//             start: '2025-07-02', // 날짜만 쓰면 00:00부터 종일로 간주
-//             allDay: false, // 종일 여부 (true면 시간 무시)
-//         },
-//     ],
-//     dateClick(info) {
-//         const api = calendarRef.value.getApi()
-
-//         console.log('클릭된 날짜:', info.dateStr) // 'YYYY-MM-DD' 형식 문자열
-//         // info.date: JS Date 객체
-//         // info.dayEl: 클릭된 셀 DOM 요소
-//         // info.jsEvent: 원본 마우스 이벤트
-//         selectedDate.value = info.dateStr
-//         changeView('dayGridWeek', info.date)
-//         currentView.value = 'dayGridWeek'
-
-//         api.getEvents()
-//             .filter((e) => e.display === 'background')
-//             .forEach((e) => e.remove())
-
-//         api.addEvent({
-//             start: info.dateStr,
-//             allDay: true,
-//             display: 'background',
-//             color: '#FFE0B2',
-//         })
-//     },
-//     datesSet(arg) {
-//         if (arg.view.type === 'dayGridMonth') {
-//             const api = calendarRef.value.getApi()
-//             api.getEvents()
-//                 .filter((e) => e.display === 'background')
-//                 .forEach((e) => e.remove())
-//         }
-//     },
-//     dayHeaderClassNames(arg) {
-//         // 특정 날짜 헤더에 클래스 붙여 배경색 변경
-//         return arg.dateStr === selectedDate.value ? ['selected-day'] : []
-//     },
-//     dayCellClassNames(arg) {
-//         // 실제 그리드 셀(td)에 클래스 붙이기
-//         return currentView.value === 'dayGridWeek' && arg.dateStr === selectedDate.value
-//             ? ['selected-day']
-//             : []
-//     },
-//     eventClick: (info) => {
-//         info.jsEvent.preventDefault()
-//         info.jsEvent.stopPropagation()
-//     },
-// })
-
-// 월 이름 배열
+const testArr = []
+for (let i = 0; i < 100; i++) {
+    testArr.push(i)
+}
 
 const calendarOptions = reactive({
     plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin],
     initialView: 'dayGridMonth',
     allDaySlot: false,
     weekends: false,
+    displayEventTime: false,
+
+    // height: 500,
 
     // 한 행의 높이를 균일하게 분배
-    contentHeight: 400,
+    contentHeight: 450,
 
     // 월별로 꼭 필요한 주만 표시
     fixedWeekCount: false,
 
     // 한 셀에 표시할 이벤트 최대 개수: 3개
-    dayMaxEventRows: 2,
-    dayMaxEvents: 3,
+    // dayMaxEventRows: 3,
+    dayMaxEvents: 1,
 
     // 전체 높이(픽셀 고정)는 제거하고 contentHeight만 사용
     // height: 500,  // 필요 없으면 주석 처리
@@ -434,9 +283,8 @@ const calendarOptions = reactive({
             successCallback([
                 {
                     id: '1', // (선택) 고유 ID
-                    title: '회의', // 캘린더에 표시될 텍스트
+                    title: '회의약속약속약속약속약속약속약속약속약속약속약속', // 캘린더에 표시될 텍스트
                     start: '2025-07-23', // 시작 시각 (ISO 문자열 또는 Date 객체)
-                    end: '2025-07-23', // (선택) 종료 시각
                     allDay: false, // 종일 여부 (true면 시간 무시)
                     color: '#3a87ad', // (선택) 이벤트 색상
                 },
@@ -444,15 +292,13 @@ const calendarOptions = reactive({
                     id: '4',
                     title: '점심 약속',
                     start: '2025-07-25', // 날짜만 쓰면 00:00부터 종일로 간주
-                    end: '2025-08-13',
-                    allDay: true,
+                    allDay: false,
                 },
                 {
                     id: '4',
                     title: '점심 약속',
                     start: '2025-07-25', // 날짜만 쓰면 00:00부터 종일로 간주
-                    end: '2025-08-13',
-                    allDay: true,
+                    allDay: false,
                 },
                 {
                     id: '4',
@@ -505,12 +351,13 @@ const calendarOptions = reactive({
                 {
                     id: '4',
                     title: '점심 약속',
-                    start: '2025-07-02', // 날짜만 쓰면 00:00부터 종일로 간주
+                    start: '2025-07-26', // 날짜만 쓰면 00:00부터 종일로 간주
+                    end: '2025-08-12',
                     allDay: true, // 종일 여부 (true면 시간 무시)
                 },
                 {
                     id: '4',
-                    title: '점심 약속',
+                    title: '점심 약속약속약속약속약속',
                     start: '2025-07-02', // 날짜만 쓰면 00:00부터 종일로 간주
                     allDay: true, // 종일 여부 (true면 시간 무시)
                 },
@@ -518,6 +365,20 @@ const calendarOptions = reactive({
         } catch (err) {
             console.error('이벤트 로드 실패', err)
             failureCallback(err)
+        }
+    },
+
+    eventDidMount: (info) => {
+        // 이벤트 제목 요소 선택
+        let titleEl = info.el.querySelector('.fc-event-title')
+        // 뷰마다 클래스명이 다를 수 있으니 혹시 다른 셀렉터가 필요하면 찍어보세요
+        if (titleEl) {
+            Object.assign(titleEl.style, {
+                display: 'block', // 블록으로 만들고
+                whiteSpace: 'nowrap', // 한 줄만
+                overflow: 'hidden', // 넘치는 건 숨기고
+                textOverflow: 'ellipsis', // 말줄임 적용
+            })
         }
     },
 
@@ -593,7 +454,7 @@ const monthMove = (move) => {
 }
 
 // 뷰 변경 함수
-function changeView(viewName, date) {
+const changeView = (viewName, date) => {
     console.log('click : ', date)
     currentView.value = viewName
     const api = calendarRef.value.getApi()
@@ -613,11 +474,26 @@ function changeView(viewName, date) {
     }
 }
 
+// 필터링된 청약 공고 목록
+const filteredSubscriptions = computed(() => {
+    let result = [...subscriptions.value]
+
+    // 기본은 최신순
+    result.sort((a, b) => {
+        const aStartDate = new Date(a.applicationStartDate.replace(/\./g, '-'))
+        const bStartDate = new Date(b.applicationStartDate.replace(/\./g, '-'))
+        return aStartDate - bStartDate
+    })
+
+    return result
+})
+
 // 달력 타이틀 설정 ()
 watch(currentView, (val) => {
     headerTitle.value = val === 'dayGridMonth' ? '' : '세부 일정'
 })
 </script>
+
 <style>
 /* 1. 전체 테이블·셀 border 제거 */
 .fc,
@@ -733,5 +609,13 @@ watch(currentView, (val) => {
     justify-content: center !important;
     align-items: center !important;
     text-align: center !important;
+}
+
+.fc .fc-event-title {
+    display: block !important;
+    width: 100% !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
 }
 </style>

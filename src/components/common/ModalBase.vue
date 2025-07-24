@@ -27,13 +27,13 @@
                     </div>
                 </div>
             </div>
-            <div class="h-[30%] pt-4 pb-4 flex flex-col justify-around p-1 border-b-2">
+            <div class="h-[25%] pt-4 pb-4 flex flex-col justify-around p-1 border-b-2">
                 <div class="flex justify-start">
                     <div
                         class="w-[30%] flex flex-col items-center mr-3"
                         @click="movePage('/calculator')"
                     >
-                        <Calculator stroke-width="1" size="36" />
+                        <Calculator stroke-width="1.5" size="36" />
                         <p class="text-sm">가점</p>
                         <p class="text-sm">계산기</p>
                     </div>
@@ -41,57 +41,66 @@
                         class="w-[30%] flex flex-col items-center mr-3"
                         @click="movePage('/subscriptions')"
                     >
-                        <ClipboardList stroke-width="1" size="36" />
+                        <ClipboardList stroke-width="1.5" size="36" />
                         <p class="text-sm">청약정보</p>
                     </div>
                     <div class="w-[30%] flex flex-col items-center" @click="movePage('/favorites')">
-                        <Heart stroke-width="1" size="36" />
+                        <Heart stroke-width="1.5" size="36" />
                         <p class="text-sm">즐겨찾기</p>
                     </div>
                 </div>
                 <div class="flex justify-start">
                     <div class="w-[30%] flex flex-col items-center mr-3" @click="movePage('/map')">
-                        <Map stroke-width="1" size="36" />
+                        <Map stroke-width="1.5" size="36" />
                         <p class="text-sm">지도</p>
                     </div>
                     <div
                         class="w-[30%] flex flex-col items-center mr-3"
                         @click="movePage('/calendar')"
                     >
-                        <Calendar stroke-width="1" size="36" />
+                        <Calendar stroke-width="1.5" size="36" />
                         <p class="text-sm">달력</p>
                     </div>
                     <div class="w-[30%] flex flex-col items-center"></div>
                 </div>
             </div>
-            <div class="h-[55%] p-5 flex flex-col items-center">
-                <div
-                    class="w-full h-8 mb-4 flex justify-between border-b-2"
-                    @click="movePage('/mypage')"
-                >
-                    <p class="text-sm">마이페이지</p>
-                    <ChevronRight />
+            <div class="h-[55%] p-5 flex flex-col justify-between items-center">
+                <div class="w-full">
+                    <div
+                        class="w-full h-8 mb-4 flex justify-between border-b-2"
+                        @click="movePage('/mypage')"
+                    >
+                        <p class="text-sm">마이페이지</p>
+                        <ChevronRight />
+                    </div>
+                    <div
+                        class="w-full h-8 mb-4 flex justify-between border-b-2"
+                        @click="movePage('/mypage/notice')"
+                    >
+                        <p class="text-sm">공지사항</p>
+                        <ChevronRight />
+                    </div>
+                    <div
+                        class="w-full h-8 mb-4 flex justify-between border-b-2"
+                        @click="movePage('/mypage/terms')"
+                    >
+                        <p class="text-sm">이용약관</p>
+                        <ChevronRight />
+                    </div>
+                    <div
+                        class="w-full h-8 mb-4 flex justify-between border-b-2"
+                        @click="movePage('/login')"
+                    >
+                        <p class="text-sm">로그아웃</p>
+                        <ChevronRight />
+                    </div>
                 </div>
                 <div
-                    class="w-full h-8 mb-4 flex justify-between border-b-2"
-                    @click="movePage('/mypage/notice')"
+                    class="w-full h-8 mb-4 flex justify-between border-red-500 border-b-2"
+                    @click="movePage('/mypage/withdraw')"
                 >
-                    <p class="text-sm">공지사항</p>
-                    <ChevronRight />
-                </div>
-                <div
-                    class="w-full h-8 mb-4 flex justify-between border-b-2"
-                    @click="movePage('/mypage/terms')"
-                >
-                    <p class="text-sm">이용약관</p>
-                    <ChevronRight />
-                </div>
-                <div
-                    class="w-full h-8 mb-4 flex justify-between border-b-2"
-                    @click="movePage('/login')"
-                >
-                    <p class="text-sm">로그아웃</p>
-                    <ChevronRight />
+                    <p class="text-sm text-red-600 font-bold">회원탈퇴</p>
+                    <ChevronRight color="red" />
                 </div>
             </div>
         </div>
