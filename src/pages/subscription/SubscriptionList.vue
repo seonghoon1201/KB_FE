@@ -174,7 +174,6 @@ const appliedFilters = ref({
     priceMax: null,
 })
 
-
 const cities = Object.keys(districts)
 const selectedCity = ref('')
 const selectedDistrict = ref('')
@@ -225,10 +224,14 @@ const filteredSubscriptions = computed(() => {
     // 정렬
     switch (selectedFilter.value) {
         case 'latest':
-            result.sort((a, b) => new Date(a.applicationStartDate) - new Date(b.applicationStartDate))
+            result.sort(
+                (a, b) => new Date(a.applicationStartDate) - new Date(b.applicationStartDate),
+            )
             break
         case 'deadline-first':
-            result.sort((a, b) => new Date(a.applicationCompleteDate) - new Date(b.applicationCompleteDate))
+            result.sort(
+                (a, b) => new Date(a.applicationCompleteDate) - new Date(b.applicationCompleteDate),
+            )
             break
     }
 
@@ -236,26 +239,26 @@ const filteredSubscriptions = computed(() => {
     if (appliedFilters.value.regions.length > 0) {
         result = result.filter((item) =>
             appliedFilters.value.regions.some(
-                (region) =>
-                    item.city === region.city && item.district === region.district
-            )
+                (region) => item.city === region.city && item.district === region.district,
+            ),
         )
     }
 
     // 평수 필터
     if (appliedFilters.value.areas.length > 0) {
-    result = result.filter((item) => {
-        const area = item.area // 숫자형이어야 함
-        return appliedFilters.value.areas.some(([min, max]) => area >= min && area < max)
-    })
-}
+        result = result.filter((item) => {
+            const area = item.area // 숫자형이어야 함
+            return appliedFilters.value.areas.some(([min, max]) => area >= min && area < max)
+        })
+    }
 
     // 가격 필터
     if (appliedFilters.value.priceMin !== null || appliedFilters.value.priceMax !== null) {
         result = result.filter((item) => {
             const price = item.price
             return (
-                (appliedFilters.value.priceMin === null || price >= appliedFilters.value.priceMin) &&
+                (appliedFilters.value.priceMin === null ||
+                    price >= appliedFilters.value.priceMin) &&
                 (appliedFilters.value.priceMax === null || price <= appliedFilters.value.priceMax)
             )
         })
@@ -263,7 +266,6 @@ const filteredSubscriptions = computed(() => {
 
     return result
 })
-
 
 // 3️⃣ 필터 적용 버튼 클릭 시
 const applyFilters = () => {
