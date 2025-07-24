@@ -7,5 +7,5 @@
 
 <script setup>
 import { RouterView } from 'vue-router'
-import ModalBase from './components/common/ModalBase.vue'
+import ModalBase from './components/modal/ModalBase.vue'
 </script>
