@@ -3,7 +3,7 @@
         class="fixed top-0 left-0 right-0 z-[40] flex items-center justify-between w-full bg-[#DDF1FB] px-4 py-3 min-h-[56px] shadow"
     >
         <!-- 왼쪽: 로고/텍스트 -->
-        <div @click="goHome" class="text-base font-semibold text-black cursor-pointer">zibi</div>
+        <div @click="goHome" class="text-xl font-bold text-black cursor-pointer">zibi</div>
 
         <!-- 오른쪽: 알림, 메뉴 -->
         <div class="flex items-center gap-x-6">

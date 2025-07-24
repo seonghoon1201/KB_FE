@@ -1,7 +1,7 @@
 <template>
   <div class="bg-white p-4 rounded-xl border shadow-sm">
     <div class="flex justify-between items-center mb-3">
-      <h2 class="text-base font-bold">맞춤형 청약 추천</h2>
+      <h2 class="text-lg font-bold">맞춤형 청약 추천</h2>
       <Cog class="w-4 h-4 text-gray-500 cursor-pointer" @click="goToPreference" />
     </div>
 
@@ -30,8 +30,8 @@
     >
       <!-- Lucide Settings 아이콘 -->
       <Settings class="w-10 h-10 text-gray-500 mb-2" />
-      <p class="text-sm font-semibold text-gray-800">선호 설정이 필요해요!</p>
-      <p class="text-xs text-gray-500 mt-1 leading-relaxed">
+      <p class="text-lg font-bold text-gray-800">선호 설정이 필요해요!</p>
+      <p class="text-sm text-gray-500 mt-1 leading-relaxed">
         선호하는 지역과 평수를 설정하면<br />
         맞춤형 청약 추천을 받을 수 있어요
       </p>
