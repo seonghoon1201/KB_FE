@@ -1,3 +1,4 @@
+<!-- 게좌 연결 시 예치금 기준 위해 평수 설정하는 필터 -->
 <template>
   <div class="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
     <div class="bg-white rounded-xl w-[300px] p-6 space-y-4 shadow-md">
