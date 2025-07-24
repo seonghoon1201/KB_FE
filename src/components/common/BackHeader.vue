@@ -5,7 +5,12 @@
         class="fixed top-0 left-0 right-0 z-[40] flex items-center justify-between w-full bg-[#DDF1FB] px-4 py-3 min-h-[56px] shadow"
     >
         <div><ChevronLeft @click="backClick" /></div>
-        <div @click="titleClick" class="font-bold text-base">{{ props.title }}</div>
+        <div
+            @click="titleClick"
+            class="absolute left-1/2 transform -translate-x-1/2 font-bold text-lg"
+        >
+            {{ props.title }}
+        </div>
         <div class="flex items-center space-x-4">
             <div v-if="showAlarm">
                 <Bell @click="alarmClick" />
