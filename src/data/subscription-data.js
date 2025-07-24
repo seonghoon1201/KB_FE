@@ -1,8 +1,11 @@
+import { districts } from './districts'
+
 export const allSubscriptions = [
     {
         id: 1,
         title: '힐스테이트 청라 국제도시',
-        location: '인천광역시 서구',
+        city: '인천광역시',
+        district: '서구',
         totalUnits: 1284,
         applicationStartDate: '2025.08.15',
         applicationCompleteDate: '2025.08.17',
@@ -15,7 +18,8 @@ export const allSubscriptions = [
     {
         id: 2,
         title: '래미안 원베일리',
-        location: '서울특별시 강동구',
+        city: '서울특별시',
+        district: '강동구',
         totalUnits: 758,
         applicationStartDate: '2025.07.21',
         applicationCompleteDate: '2025.07.22',
@@ -27,7 +31,8 @@ export const allSubscriptions = [
     {
         id: 3,
         title: '푸르지오 시티 동탄',
-        location: '경기도 화성시',
+        city: '경기도',
+        district: '화성시',
         totalUnits: 2156,
         applicationStartDate: '2025.08.08',
         applicationCompleteDate: '2025.08.30',
@@ -39,7 +44,8 @@ export const allSubscriptions = [
     {
         id: 4,
         title: '자이 평촌 센트럴파크',
-        location: '경기도 안양시 동안구',
+        city: '경기도',
+        district: '안양시',
         totalUnits: 924,
         applicationStartDate: '2025.08.25',
         applicationCompleteDate: '2025.08.27',
@@ -52,7 +58,8 @@ export const allSubscriptions = [
     {
         id: 5,
         title: '롯데캐슬 베네시티',
-        location: '대구광역시 달서구',
+        city: '대구광역시',
+        district: '달서구',
         totalUnits: 1456,
         applicationStartDate: '2025.08.12',
         applicationCompleteDate: '2025.08.14',
