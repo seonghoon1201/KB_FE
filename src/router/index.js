@@ -6,6 +6,7 @@ import Calculator from '@/pages/calculator/Calculator.vue'
 import Preference from '@/pages/preference/Preference.vue'
 import Chatbot from '@/pages/chatbot/Chatbot.vue'
 import Notification from '@/pages/notification/Notification.vue'
+import NotoficationDetail from '@/pages/notification/NotoficationDetail.vue'
 import SubscriptionList from '@/pages/subscription/SubscriptionList.vue'
 import SubscriptionDetail from '@/pages/subscription/SubscriptionDetail.vue'
 import FavoriteSubscription from '@/pages/subscription/FavoriteSubscription.vue'
@@ -34,6 +35,7 @@ const routes = [
     { path: '/calculator', name: 'Calculator', component: Calculator }, // 가점 계산기
     { path: '/preference', name: 'Preference', component: Preference }, // 선호지역
     { path: '/notification', name: 'Notification', component: Notification }, // 알림 페이지
+    { path: '/notification/:id', name: 'NotificationDetail', component: NotoficationDetail }, // 알림 상세 페이지   
     { path: '/subscriptions', name: 'SubscriptionList', component: SubscriptionList }, // 청약 정보 리스트 페이지
     { path: '/subscriptions/:id', name: 'SubscriptionDetail', component: SubscriptionDetail }, // 청약 정보 상세 페이지
     { path: '/favorites', name: 'FavoriteSubscription', component: FavoriteSubscription }, // 즐겨찾기
