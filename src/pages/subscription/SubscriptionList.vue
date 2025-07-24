@@ -79,8 +79,8 @@
                         :class="[
                             'px-3 py-2 rounded-full border',
                             selectedAreas.some((a) => a.toString() === option.value.toString())
-                                ? 'bg-primary text-white'
-                                : 'bg-blue-500 text-white-600',
+                                ? 'bg-blue-500 text-white'
+                                : 'bg-white text-gray-600',
                         ]"
                     >
                         {{ option.label }}
