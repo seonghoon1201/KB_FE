@@ -12,7 +12,7 @@ export const allSubscriptions = [
         status: 'available',
         type: '아파트',
         squareMeters: 104,
-        price: '12억',
+        price: '1230,000,000',
         completionDate: '2027.03',
     },
     {
@@ -25,7 +25,7 @@ export const allSubscriptions = [
         applicationCompleteDate: '2025.07.22',
         type: '오피스텔',
         squareMeters: 74,
-        price: '18억',
+        price: '1860,000,000',
         completionDate: '2027.06',
     },
     {
@@ -38,7 +38,7 @@ export const allSubscriptions = [
         applicationCompleteDate: '2025.08.30',
         type: '아파트',
         squareMeters: 83,
-        price: '15억',
+        price: '1520,000,000',
         completionDate: '2027.09',
     },
     {
@@ -52,7 +52,7 @@ export const allSubscriptions = [
         status: 'upcoming',
         type: '도시형 생활주택',
         squareMeters: 104,
-        price: '20억',
+        price: '2000,000,000',
         completionDate: '2027.12',
     },
     {
@@ -66,7 +66,7 @@ export const allSubscriptions = [
         status: 'available',
         type: '아파트',
         squareMeters: 104,
-        price: '9억',
+        price: '920,000,000',
         completionDate: '2027.08',
     },
 ]

@@ -78,8 +78,8 @@
                         @click="toggleArea(option.value)"
                         :class="[
                             'px-3 py-2 rounded-full border',
-                            selectedAreas.includes(option.value)
-                                ? 'bg-primary text-white'
+                            selectedAreas.some((a) => a.toString() === option.value.toString())
+                                ? 'bg-blue-500 text-white'
                                 : 'bg-white text-gray-600',
                         ]"
                     >
@@ -149,7 +149,7 @@ import SubscriptionCard from '@/components/subscription/SubscriptionCard.vue'
 import BackHeader from '@/components/common/BackHeader.vue'
 import { allSubscriptions } from '@/data/subscription-data'
 import { useFavoritesStore } from '@/stores/favorites'
-import { TrendingUp, Clock, ArrowDownWideNarrow } from 'lucide-vue-next'
+import { TrendingUp, Clock, ArrowDownWideNarrow, SquareUser } from 'lucide-vue-next'
 import { districts } from '@/data/districts'
 import { areaOptions } from '@/data/area'
 
@@ -169,7 +169,7 @@ const filters = [
 
 const appliedFilters = ref({
     regions: [],
-    areas: [],
+    squareMeters: [],
     priceMin: null,
     priceMax: null,
 })
@@ -202,18 +202,19 @@ const removeSelectedRegion = (index) => {
 
 const customFilter = ref({
     location: '',
-    area: '',
+    squareMeter: '',
     price: '',
 })
 
 const selectedAreas = ref([])
+
 const toggleArea = (val) => {
-    const key = val.toString()
-    const exists = selectedAreas.value.find((a) => a.toString() === key)
+    const valStr = val.toString()
+    const exists = selectedAreas.value.some((a) => a.toString() === valStr)
     if (exists) {
-        selectedAreas.value = selectedAreas.value.filter((a) => a.toString() !== key)
+        selectedAreas.value = selectedAreas.value.filter((a) => a.toString() !== valStr)
     } else {
-        selectedAreas.value.push(val)
+        selectedAreas.value.push([...val]) // 깊은 복사해서 추가
     }
 }
 
@@ -245,17 +246,23 @@ const filteredSubscriptions = computed(() => {
     }
 
     // 평수 필터
-    if (appliedFilters.value.areas.length > 0) {
+    if (appliedFilters.value.squareMeters.length > 0) {
         result = result.filter((item) => {
-            const area = item.area // 숫자형이어야 함
-            return appliedFilters.value.areas.some(([min, max]) => area >= min && area < max)
+            const squareMeter = Number(item.squareMeters)
+            const match = appliedFilters.value.squareMeters.some(([min, max]) => {
+                const matched = squareMeter >= min && squareMeter <= max
+                console.log(`🧪 ${squareMeter} in [${min}, ${max}]? => ${matched}`)
+                return matched
+            })
+            return match
         })
     }
 
     // 가격 필터
     if (appliedFilters.value.priceMin !== null || appliedFilters.value.priceMax !== null) {
         result = result.filter((item) => {
-            const price = item.price
+            const price = stringPriceToNumber(item.price) / 10000 // 만원 단위로 환산
+
             return (
                 (appliedFilters.value.priceMin === null ||
                     price >= appliedFilters.value.priceMin) &&
@@ -269,14 +276,32 @@ const filteredSubscriptions = computed(() => {
 
 // 3️⃣ 필터 적용 버튼 클릭 시
 const applyFilters = () => {
+    const parsedAreas = selectedAreas.value.map((val) => {
+        if (typeof val === 'string') {
+            const [min, max] = val.split(',').map(Number)
+            return [min, max]
+        }
+        return val
+    })
+
+    console.log('🟡 selectedAreas.value:', selectedAreas.value)
+    console.log('🟢 parsedAreas:', parsedAreas)
+
     appliedFilters.value = {
         regions: [...selectedRegions.value],
-        areas: [...selectedAreas.value],
+        squareMeters: parsedAreas,
         priceMin: priceMin.value,
         priceMax: priceMax.value,
     }
-    isFilterOpen.value = false // 필터 창 닫기
+
+    isFilterOpen.value = false
 }
+
+const stringPriceToNumber = (str) => {
+    if (!str) return 0
+    return parseInt(str.replace(/,/g, ''), 10)
+}
+
 const expandAreaRanges = (ranges) => {
     const allSizes = []
     ranges.forEach(([min, max]) => {

@@ -52,7 +52,7 @@
             <div class="flex flex-col gap-2 items-end">
                 <!-- 면적, 가격 -->
                 <span class="text-gray-500 text-sm">
-                    {{ subscription.squareMeters }}㎡ · {{ subscription.price }}
+                    {{ subscription.squareMeters }}㎡ · <span>{{ formatToEok(subscription.price) }}</span>
                 </span>
                 <!-- 상세보기 버튼 -->
                 <button
@@ -151,5 +151,20 @@ const handleFavoriteClick = () => {
 // 상세보기 클릭
 const handleDetailClick = () => {
   router.push(`/subscriptions/${props.subscription.id}`)
+}
+
+const formatToEok = (priceStr) => {
+  if (!priceStr) return ''
+
+  // 1. 쉼표 제거 → 문자열 → 숫자
+  const number = parseInt(priceStr.replace(/,/g, ''), 10)
+
+  if (isNaN(number)) return ''
+
+  // 2. 억 단위로 환산 (1억 = 100,000,000)
+  const eok = number / 100000000
+
+  // 3. 소수점 1자리로 포맷
+  return `${eok.toFixed(1)}억`
 }
 </script>
