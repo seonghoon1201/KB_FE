@@ -45,7 +45,9 @@
             </div>
 
             <div class="mb-4 text-left w-full">
-                <label class="block font-semibold mb-1 text-[14px]">거주지(주민등록 상 거주지)</label>
+                <label class="block font-semibold mb-1 text-[14px]"
+                    >거주지(주민등록 상 거주지)</label
+                >
                 <div
                     class="address-input w-full border rounded-[8px] px-3 py-2 flex justify-between"
                 >
@@ -54,17 +56,17 @@
                 </div>
             </div>
 
-            <div class="password-change mt-8 mb-8 flex justify-center ">
+            <div class="password-change mt-8 mb-8 flex justify-center">
                 <button
                     type="button"
-                    @click="changePassword"
+                    @click="navigateTo('/mypage/changepw')"
                     class="flex items-center gap-2 text-sm text-gray-600"
                 >
                     <SquarePen /> 비밀번호 변경
                 </button>
             </div>
 
-            <PrimaryButton >저장</PrimaryButton>
+            <PrimaryButton>저장</PrimaryButton>
         </form>
     </div>
 </template>
@@ -74,6 +76,8 @@ import { useRouter } from 'vue-router'
 import { reactive } from 'vue'
 import PrimaryButton from '@/components/common/PrimaryButton.vue'
 import { SquarePen } from 'lucide-vue-next'
+
+const router = useRouter()
 
 const profile = reactive({
     name: '김제비',
@@ -93,5 +97,8 @@ const changePassword = () => {
 
 const saveProfile = () => {
     alert('저장되었습니다!')
+}
+const navigateTo = (path) => {
+    router.push(path)
 }
 </script>
