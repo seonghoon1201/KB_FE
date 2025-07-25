@@ -4,122 +4,92 @@
         <BackHeader title="청약 공고" />
 
         <!-- 필터 버튼들 (옵셔널) -->
-        <div class="px-4 py-3 bg-white border-b border-gray-100">
-            <div class="justify-center flex space-x-2 overflow-x-auto">
+        <!-- 🔹 정렬 & 필터 버튼 바 -->
+        <div class="px-4 py-3 bg-white border-b border-gray-100 flex items-center relative">
+            <!-- 중앙 정렬: 정렬 기준 버튼 -->
+            <div class="absolute left-1/2 transform -translate-x-1/2 flex space-x-2">
                 <button
-                    v-for="filter in filters"
-                    :key="filter.key"
-                    @click="handleFilterClick(filter)"
+                    v-for="sortStandard in sortStandards"
+                    :key="sortStandard.key"
+                    @click="handleSortClick(sortStandard)"
                     :class="[
                         'flex items-center gap-1 px-4 py-2 rounded-full text-sm whitespace-nowrap transition-colors',
-                        selectedFilter === filter.key
+                        selectedFilter === sortStandard.key
                             ? 'bg-blue-500 text-white'
                             : 'bg-gray-100 text-gray-600 hover:bg-gray-200',
                     ]"
                 >
-                    <!-- 아이콘 -->
-                    <component :is="filter.icon" class="w-4 h-4" />
-
-                    <!-- 텍스트 -->
-                    <span>{{ filter.label }}</span>
+                    <component :is="sortStandard.icon" class="w-4 h-4" />
+                    <span>{{ sortStandard.label }}</span>
                 </button>
             </div>
-        </div>
 
-        <!-- 🔽 필터 드롭다운 -->
-        <div v-if="isFilterOpen" class="px-4 pt-4 pb-2 bg-white border-b border-gray-100">
-            <label class="text-sm font-semibold text-gray-800 mb-1 block"
-                >선호 지역 (복수 선택 가능)</label
+            <!-- 오른쪽 끝 필터 버튼 -->
+            <button
+                @click="toggleFilter"
+                class="ml-auto z-10 flex items-center gap-1 px-3 py-2 rounded-full text-sm text-black-600 bg-gray-100 hover:bg-gray-200 transition-colors"
             >
-
-            <div class="space-y-2">
-                <select v-model="selectedCity" class="w-full border rounded px-3 py-2 text-sm">
-                    <option disabled value="">시/도를 선택해주세요</option>
-                    <option v-for="city in cities" :key="city">{{ city }}</option>
-                </select>
-
-                <select
-                    v-model="selectedDistrict"
-                    class="w-full border rounded px-3 py-2 text-sm"
-                    @change="addSelectedRegion"
-                >
-                    <option disabled value="">군/구를 선택해주세요</option>
-                    <option v-for="gu in filteredDistricts" :key="gu">{{ gu }}</option>
-                </select>
-            </div>
-
-            <!-- 선택된 지역 태그 -->
-            <div v-if="selectedRegions.length > 0" class="mt-3 flex flex-wrap gap-2 text-xs">
-                <div
-                    v-for="(region, index) in selectedRegions"
-                    :key="index"
-                    class="flex items-center bg-[#E8EAFE] text-[#5A78FF] px-2 py-1 rounded-full"
-                >
-                    <span>{{ region.city }} {{ region.district }}</span>
-                    <button
-                        @click="removeSelectedRegion(index)"
-                        class="ml-1 text-[#5A78FF] font-bold"
-                    >
-                        ✕
-                    </button>
-                </div>
-                <span class="text-gray-400 ml-2">{{ selectedRegions.length }}개 선택됨</span>
-            </div>
-
-            <!-- 선호 평수 -->
-            <div class="mb-5">
-                <label class="text-sm font-semibold text-gray-800 block mt-3 mb-1"
-                    >선호 평수 (복수 선택 가능)</label
-                >
-                <div class="grid grid-cols-3 gap-2 text-sm">
-                    <button
-                        v-for="option in areaOptions"
-                        :key="option.value"
-                        @click="toggleArea(option.value)"
-                        :class="[
-                            'px-3 py-2 rounded-full border',
-                            selectedAreas.some((a) => a.toString() === option.value.toString())
-                                ? 'bg-blue-500 text-white'
-                                : 'bg-white text-gray-600',
-                        ]"
-                    >
-                        {{ option.label }}
-                    </button>
-                </div>
-            </div>
-
-            <!-- 희망 가격대 -->
-            <div class="mb-5">
-                <label class="text-sm font-semibold text-gray-800 block mb-2"
-                    >희망 가격대 (만원 단위)</label
-                >
-                <div class="flex items-center gap-2">
-                    <input
-                        v-model.number="priceMin"
-                        type="number"
-                        class="w-full border rounded px-3 py-2 text-sm"
-                        placeholder="최소 금액"
-                    />
-                    <span class="text-gray-500">~</span>
-                    <input
-                        v-model.number="priceMax"
-                        type="number"
-                        class="w-full border rounded px-3 py-2 text-sm"
-                        placeholder="최대 금액"
-                    />
-                </div>
-            </div>
-
-            <!-- 필터 적용 버튼 -->
-            <div class="text-center mt-4">
-                <button
-                    @click="applyFilters"
-                    class="bg-blue-500 text-white text-sm font-semibold px-4 py-2 rounded hover:bg-blue-600"
-                >
-                    필터 적용
-                </button>
-            </div>
+                <ListFilter class="w-4 h-4" />
+            </button>
         </div>
+
+        <hr />
+            <!-- 🔽 필터 요약 바 -->
+            <div
+                v-if="hasActiveFilters"
+                class="flex flex-wrap gap-2 px-4 py-2 bg-gray-50 border-b border-gray-100 text-sm text-gray-700"
+            >
+                <!-- 지역 필터 -->
+                <span
+                    v-for="(region, index) in appliedFilters.regions"
+                    :key="'region-' + index"
+                >
+                    <div class="flex items-center bg-blue-100 text-blue-700 px-2 py-1 rounded-full">
+                        <span>{{ region.city }} {{ region.district }}</span>
+                        <button class="ml-1 font-bold" @click="removeFilter('region', index)">✕</button>
+                    </div>
+                  </span>
+
+                <!-- 평수 필터 -->
+                <span
+                    v-for="(range, index) in appliedFilters.squareMeters"
+                    :key="'area-' + index"
+                >
+                    <div
+                        class="flex items-center bg-green-100 text-green-700 px-2 py-1 rounded-full"
+                    >
+                        <span>{{ range[0] }}~{{ range[1] }}㎡</span>
+                        <button class="ml-1 font-bold" @click="removeFilter('area', index)">✕</button>
+                    </div>
+                  </span>
+
+                <!-- 가격 필터 -->
+                <div
+                    v-if="appliedFilters.priceMin || appliedFilters.priceMax"
+                    class="flex items-center bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full"
+                >
+                    <span>
+                        {{ appliedFilters.priceMin ? appliedFilters.priceMin + '만원' : '' }}
+                        ~
+                        {{ appliedFilters.priceMax ? appliedFilters.priceMax + '만원' : '' }}
+                    </span>
+                    <button class="ml-1 font-bold" @click="removeFilter('price')">✕</button>
+                </div>
+            </div>
+
+        <!-- 🔽 필터 모달 -->
+        <SubscriptionFilterModal
+            :visible="isFilterOpen"
+            :selectedRegions="selectedRegions"
+            :selectedAreas="selectedAreas"
+            :priceMin="priceMin"
+            :priceMax="priceMax"
+            :selectedCity="selectedCity"
+            :selectedDistrict="selectedDistrict"
+            @update:visible="isFilterOpen = $event"
+            @update="handleFilterUpdate"
+            @apply="applyFilters"
+        />
 
         <!-- 공고 목록 -->
         <div class="flex-1 px-4 py-4 pb-20">
@@ -149,9 +119,9 @@ import SubscriptionCard from '@/components/subscription/SubscriptionCard.vue'
 import BackHeader from '@/components/common/BackHeader.vue'
 import { allSubscriptions } from '@/data/subscription-data'
 import { useFavoritesStore } from '@/stores/favorites'
-import { TrendingUp, Clock, ArrowDownWideNarrow, SquareUser } from 'lucide-vue-next'
+import { TrendingUp, Clock, ArrowDownWideNarrow, SquareUser, ListFilter} from 'lucide-vue-next'
 import { districts } from '@/data/districts'
-import { areaOptions } from '@/data/area'
+import SubscriptionFilterModal from '@/components/modal/SubscriptionFilterModal.vue'
 
 const favoritesStore = useFavoritesStore()
 
@@ -161,11 +131,18 @@ const selectedFilter = ref('latest')
 
 const isFilterOpen = ref(false)
 
-const filters = [
+const selectedCity = ref('')
+const selectedDistrict = ref('')
+const selectedRegions = ref([])
+const priceMin = ref(null)
+const priceMax = ref(null)
+
+const sortStandards = [
     { key: 'latest', label: '최신순', icon: TrendingUp },
     { key: 'deadline-first', label: '마감임박순', icon: Clock },
-    { key: 'filter', label: '필터', icon: ArrowDownWideNarrow, isCustom: true },
 ]
+
+const filters = [{ key: 'filter', label: '필터', icon: ArrowDownWideNarrow, isCustom: true }]
 
 const appliedFilters = ref({
     regions: [],
@@ -175,26 +152,8 @@ const appliedFilters = ref({
 })
 
 const cities = Object.keys(districts)
-const selectedCity = ref('')
-const selectedDistrict = ref('')
-const selectedRegions = ref([])
-const priceMin = ref(null) // 만 원 단위
-const priceMax = ref(null)
 
 const showCustomFilter = ref(false)
-
-const filteredDistricts = computed(() => districts[selectedCity.value] || [])
-
-const addSelectedRegion = () => {
-    if (!selectedCity.value || !selectedDistrict.value) return
-    const duplicate = selectedRegions.value.some(
-        (item) => item.city === selectedCity.value && item.district === selectedDistrict.value,
-    )
-    if (!duplicate) {
-        selectedRegions.value.push({ city: selectedCity.value, district: selectedDistrict.value })
-    }
-    selectedDistrict.value = ''
-}
 
 const removeSelectedRegion = (index) => {
     selectedRegions.value.splice(index, 1)
@@ -276,6 +235,7 @@ const filteredSubscriptions = computed(() => {
 
 // 3️⃣ 필터 적용 버튼 클릭 시
 const applyFilters = () => {
+    console.log('✅ selectedRegions before apply:', selectedRegions.value)
     const parsedAreas = selectedAreas.value.map((val) => {
         if (typeof val === 'string') {
             const [min, max] = val.split(',').map(Number)
@@ -312,8 +272,15 @@ const expandAreaRanges = (ranges) => {
     return allSizes
 }
 
+
 const toggleFilter = () => {
-    isFilterOpen.value = !isFilterOpen.value
+  // 필터 열기 전 appliedFilters 값으로 초기화
+  selectedRegions.value = [...appliedFilters.value.regions]
+  selectedAreas.value = [...appliedFilters.value.squareMeters]
+  priceMin.value = appliedFilters.value.priceMin
+  priceMax.value = appliedFilters.value.priceMax
+
+  isFilterOpen.value = !isFilterOpen.value
 }
 
 // 필터 클릭 핸들러
@@ -329,6 +296,40 @@ const handleFilterClick = (filter) => {
 const handleFavoriteChanged = (subscriptionId) => {
     const nowFavorite = favoritesStore.toggleFavorite(subscriptionId)
     console.log(`ID: ${subscriptionId}, 즐겨찾기 상태: ${nowFavorite}`)
+}
+
+const handleSortClick = (sortStandard) => {
+    selectedFilter.value = sortStandard.key
+    isFilterOpen.value = false
+}
+
+const handleFilterUpdate = ({ field, value }) => {
+    if (field === 'selectedCity') selectedCity.value = value
+    else if (field === 'selectedDistrict') selectedDistrict.value = value
+    else if (field === 'selectedRegions') selectedRegions.value = value
+    else if (field === 'selectedAreas') selectedAreas.value = value
+    else if (field === 'priceMin') priceMin.value = value
+    else if (field === 'priceMax') priceMax.value = value
+}
+
+const hasActiveFilters = computed(() => {
+  return (
+    appliedFilters.value.regions.length > 0 ||
+    appliedFilters.value.squareMeters.length > 0 ||
+    appliedFilters.value.priceMin !== null ||
+    appliedFilters.value.priceMax !== null
+  )
+})
+
+const removeFilter = (type, index) => {
+  if (type === 'region') {
+    appliedFilters.value.regions.splice(index, 1)
+  } else if (type === 'area') {
+    appliedFilters.value.squareMeters.splice(index, 1)
+  } else if (type === 'price') {
+    appliedFilters.value.priceMin = null
+    appliedFilters.value.priceMax = null
+  }
 }
 
 onMounted(() => {

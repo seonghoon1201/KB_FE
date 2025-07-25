@@ -82,9 +82,16 @@
                     </div>
                     <div
                         class="w-full h-8 mb-4 flex justify-between border-b-2"
-                        @click="movePage('/mypage/terms')"
+                        @click="movePage('/terms')"
                     >
                         <p class="text-sm">이용약관</p>
+                        <ChevronRight />
+                    </div>
+                    <div
+                        class="w-full h-8 mb-4 flex justify-between border-b-2"
+                        @click="movePage('/mypage/terms')"
+                    >
+                        <p class="text-sm">사용자약관</p>
                         <ChevronRight />
                     </div>
                     <div
