@@ -1,4 +1,4 @@
-// stores/favorites.js
+// 즐겨찾기 스토어
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 

@@ -1,4 +1,4 @@
-// stores/notificationStore.js
+// 공지사항 스토어
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 
