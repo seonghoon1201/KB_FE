@@ -1,4 +1,4 @@
-// 예시: stores/account.ts
+// 계좌 등록 스토어
 import { defineStore } from 'pinia'
 
 export const useAccountStore = defineStore('account', {

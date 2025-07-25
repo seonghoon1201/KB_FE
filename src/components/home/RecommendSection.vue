@@ -28,7 +28,6 @@
       v-else
       class="bg-[#FFF7E7] rounded-xl p-4 text-center flex flex-col items-center"
     >
-      <!-- Lucide Settings 아이콘 -->
       <Settings class="w-10 h-10 text-gray-500 mb-2" />
       <p class="text-lg font-bold text-gray-800">선호 설정이 필요해요!</p>
       <p class="text-sm text-gray-500 mt-1 leading-relaxed">
@@ -47,14 +46,42 @@
 </template>
 
 <script setup>
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { Cog, Settings } from 'lucide-vue-next'
 
 const router = useRouter()
 
-defineProps({
+const props = defineProps({
   isPreferenceSet: Boolean,
-  recommendList: Array
+})
+
+const recommendList = ref([])
+
+onMounted(() => {
+  if (props.isPreferenceSet) {
+    // ✅ 더미 추천 데이터
+    recommendList.value = [
+      {
+        id: 1,
+        name: '힐스테이트 강남역',
+        location: '서울 강남구',
+        image: 'apt_1.jpg',
+      },
+      {
+        id: 2,
+        name: '래미안 서초',
+        location: '서울 서초구',
+        image: 'apt_2.jpg',
+      },
+      {
+        id: 3,
+        name: '자이 송파',
+        location: '서울 송파구',
+        image: 'apt_3.jpg',
+      },
+    ]
+  }
 })
 
 const goToPreference = () => {

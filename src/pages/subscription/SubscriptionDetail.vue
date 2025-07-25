@@ -28,12 +28,8 @@
             </p>
             <p class="mt-2 text-lg font-bold text-blue-600">{{ subscription.price }}</p>
 
-            <!-- 지도 -->
-            <img
-                :src="subscription.mapImage"
-                alt="지도"
-                class="rounded-lg mt-4 w-full aspect-video object-cover"
-            />
+           <!-- 지도 영역 -->
+            <div ref="mapRef" class="rounded-lg mt-4 w-full aspect-video" />
         </section>
 
         <!-- 청약 일정 -->
@@ -119,23 +115,42 @@ import {
     Stethoscope,
     ShoppingBag,
 } from 'lucide-vue-next'
-import { computed } from 'vue'
+import { onMounted, ref, computed } from 'vue'
 import BackHeader from '@/components/common/BackHeader.vue'
 import PossibilitySection from '@/components/SubDetail/PossibilitySection.vue'
 import RankSection from '@/components/SubDetail/RankSection.vue'
 import { useFavoritesStore } from '@/stores/favorites'
+import { loadKakaoMapScript } from '@/utils/KakaoMapLoader'
+
+const mapRef = ref(null)
+
+onMounted(async () => {
+  const kakao = await loadKakaoMapScript()
+
+  const map = new kakao.maps.Map(mapRef.value, {
+    center: new kakao.maps.LatLng(subscription.lat, subscription.lng),
+    level: 4,
+  })
+
+  new kakao.maps.Marker({
+    position: new kakao.maps.LatLng(subscription.lat, subscription.lng),
+    map: map,
+  })
+})
 
 // 임시 subscription 데이터
 const subscription = {
     id: 1,
     title: '힐스테이트',
     type: '아파트',
-    area: ['59', '74', '84'], // 다중 평수
+    area: ['59', '74', '84'],
     householdCount: 175,
     address: '서울시 강남구 역삼동 123-45',
     price: '7억',
-    mapImage: '/assets/images/sample-map.png',
+    lat: 37.50098,      // 위도
+    lng: 127.03654,     // 경도
 }
+
 
 // 다중 평수를 문자열로 포맷
 const areaList = computed(() => subscription.area.map((a) => `${a}㎡`).join(' / '))
