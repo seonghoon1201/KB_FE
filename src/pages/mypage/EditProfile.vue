@@ -64,7 +64,7 @@
                 </button>
             </div>
 
-            <PrimaryButton @click="saveProfile">저장</PrimaryButton>
+            <PrimaryButton >저장</PrimaryButton>
         </form>
     </div>
 </template>
