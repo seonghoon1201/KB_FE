@@ -89,7 +89,7 @@
                     </div>
                     <div
                         class="w-full h-8 mb-4 flex justify-between border-b-2"
-                        @click="movePage('/mypage/terms')"
+                        @click="movePage('/userterms')"
                     >
                         <p class="text-sm">사용자약관</p>
                         <ChevronRight />
