@@ -32,7 +32,7 @@
 import { ChevronLeft, Bell, BellDot, Menu } from 'lucide-vue-next'
 import { ref } from 'vue'
 import { useCommonStore } from '@/stores/common'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 
 // ✅ props로 제목 받기
 const props = defineProps({
@@ -43,11 +43,16 @@ const props = defineProps({
 })
 
 const router = useRouter()
+const route = useRoute()
 const modalStore = useCommonStore()
 const showAlarm = ref(true)
 
 const backClick = () => {
-    router.back()
+    const currentPath = route.path.slice(1).split('/')
+    console.log('currentPath : ', currentPath)
+    const backPath = ['subscriptions', 'mypage']
+    if (backPath.filter((item) => item === currentPath[0]) && currentPath.length > 1) router.back()
+    else router.push('/')
 }
 
 const titleClick = () => {
