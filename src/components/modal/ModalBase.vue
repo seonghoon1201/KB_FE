@@ -22,8 +22,8 @@
                     </div>
                     <div
                         class="border-2 border-black rounded-full w-30 h-30 flex items-center justify-center"
-                    > 
-                          <User size="30" />
+                    >
+                        <User size="30" />
                     </div>
                 </div>
             </div>
@@ -85,6 +85,13 @@
                         @click="movePage('/terms')"
                     >
                         <p class="text-sm">이용약관</p>
+                        <ChevronRight />
+                    </div>
+                    <div
+                        class="w-full h-8 mb-4 flex justify-between border-b-2"
+                        @click="movePage('/mypage/terms')"
+                    >
+                        <p class="text-sm">사용자약관</p>
                         <ChevronRight />
                     </div>
                     <div
