@@ -34,48 +34,40 @@
         </div>
 
         <hr />
-            <!-- 🔽 필터 요약 바 -->
-            <div
-                v-if="hasActiveFilters"
-                class="flex flex-wrap gap-2 px-4 py-2 bg-gray-50 border-b border-gray-100 text-sm text-gray-700"
-            >
-                <!-- 지역 필터 -->
-                <span
-                    v-for="(region, index) in appliedFilters.regions"
-                    :key="'region-' + index"
-                >
-                    <div class="flex items-center bg-blue-100 text-blue-700 px-2 py-1 rounded-full">
-                        <span>{{ region.city }} {{ region.district }}</span>
-                        <button class="ml-1 font-bold" @click="removeFilter('region', index)">✕</button>
-                    </div>
-                  </span>
-
-                <!-- 평수 필터 -->
-                <span
-                    v-for="(range, index) in appliedFilters.squareMeters"
-                    :key="'area-' + index"
-                >
-                    <div
-                        class="flex items-center bg-green-100 text-green-700 px-2 py-1 rounded-full"
-                    >
-                        <span>{{ range[0] }}~{{ range[1] }}㎡</span>
-                        <button class="ml-1 font-bold" @click="removeFilter('area', index)">✕</button>
-                    </div>
-                  </span>
-
-                <!-- 가격 필터 -->
-                <div
-                    v-if="appliedFilters.priceMin || appliedFilters.priceMax"
-                    class="flex items-center bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full"
-                >
-                    <span>
-                        {{ appliedFilters.priceMin ? appliedFilters.priceMin + '만원' : '' }}
-                        ~
-                        {{ appliedFilters.priceMax ? appliedFilters.priceMax + '만원' : '' }}
-                    </span>
-                    <button class="ml-1 font-bold" @click="removeFilter('price')">✕</button>
+        <!-- 🔽 필터 요약 바 -->
+        <div
+            v-if="hasActiveFilters"
+            class="flex flex-wrap gap-2 px-4 py-2 bg-gray-50 border-b border-gray-100 text-sm text-gray-700"
+        >
+            <!-- 지역 필터 -->
+            <span v-for="(region, index) in appliedFilters.regions" :key="'region-' + index">
+                <div class="flex items-center bg-blue-100 text-blue-700 px-2 py-1 rounded-full">
+                    <span>{{ region.city }} {{ region.district }}</span>
+                    <button class="ml-1 font-bold" @click="removeFilter('region', index)">✕</button>
                 </div>
+            </span>
+
+            <!-- 평수 필터 -->
+            <span v-for="(range, index) in appliedFilters.squareMeters" :key="'area-' + index">
+                <div class="flex items-center bg-green-100 text-green-700 px-2 py-1 rounded-full">
+                    <span>{{ range[0] }}~{{ range[1] }}㎡</span>
+                    <button class="ml-1 font-bold" @click="removeFilter('area', index)">✕</button>
+                </div>
+            </span>
+
+            <!-- 가격 필터 -->
+            <div
+                v-if="appliedFilters.priceMin || appliedFilters.priceMax"
+                class="flex items-center bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full"
+            >
+                <span>
+                    {{ appliedFilters.priceMin ? appliedFilters.priceMin + '만원' : '' }}
+                    ~
+                    {{ appliedFilters.priceMax ? appliedFilters.priceMax + '만원' : '' }}
+                </span>
+                <button class="ml-1 font-bold" @click="removeFilter('price')">✕</button>
             </div>
+        </div>
 
         <!-- 🔽 필터 모달 -->
         <SubscriptionFilterModal
@@ -107,21 +99,27 @@
                 />
             </div>
         </div>
-
         <BottomNavbar />
+        <!-- 🔝 맨 위로 이동 버튼 -->
+        <button
+            v-show="showScrollTop"
+            class="fixed bottom-20 right-4 bg-blue-500 hover:bg-blue-600 text-white p-3 rounded-full shadow transition"
+            @click="scrollToTop"
+        >
+            <ArrowUp class="w-5 h-5" />
+        </button>
     </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import BottomNavbar from '@/components/common/BottomNavbar.vue'
 import SubscriptionCard from '@/components/subscription/SubscriptionCard.vue'
 import BackHeader from '@/components/common/BackHeader.vue'
 import { allSubscriptions } from '@/data/subscription-data'
 import { useFavoritesStore } from '@/stores/favorites'
-import { TrendingUp, Clock, ArrowDownWideNarrow, SquareUser, ListFilter} from 'lucide-vue-next'
+import { TrendingUp, Clock, ArrowDownWideNarrow, SquareUser, ListFilter } from 'lucide-vue-next'
 import { districts } from '@/data/districts'
-import { areaOptions } from '@/data/area'
 import SubscriptionFilterModal from '@/components/modal/SubscriptionFilterModal.vue'
 
 const favoritesStore = useFavoritesStore()
@@ -137,6 +135,8 @@ const selectedDistrict = ref('')
 const selectedRegions = ref([])
 const priceMin = ref(null)
 const priceMax = ref(null)
+
+const showScrollTop = ref(false)
 
 const sortStandards = [
     { key: 'latest', label: '최신순', icon: TrendingUp },
@@ -273,15 +273,14 @@ const expandAreaRanges = (ranges) => {
     return allSizes
 }
 
-
 const toggleFilter = () => {
-  // 필터 열기 전 appliedFilters 값으로 초기화
-  selectedRegions.value = [...appliedFilters.value.regions]
-  selectedAreas.value = [...appliedFilters.value.squareMeters]
-  priceMin.value = appliedFilters.value.priceMin
-  priceMax.value = appliedFilters.value.priceMax
+    // 필터 열기 전 appliedFilters 값으로 초기화
+    selectedRegions.value = [...appliedFilters.value.regions]
+    selectedAreas.value = [...appliedFilters.value.squareMeters]
+    priceMin.value = appliedFilters.value.priceMin
+    priceMax.value = appliedFilters.value.priceMax
 
-  isFilterOpen.value = !isFilterOpen.value
+    isFilterOpen.value = !isFilterOpen.value
 }
 
 // 필터 클릭 핸들러
@@ -314,26 +313,39 @@ const handleFilterUpdate = ({ field, value }) => {
 }
 
 const hasActiveFilters = computed(() => {
-  return (
-    appliedFilters.value.regions.length > 0 ||
-    appliedFilters.value.squareMeters.length > 0 ||
-    appliedFilters.value.priceMin !== null ||
-    appliedFilters.value.priceMax !== null
-  )
+    return (
+        appliedFilters.value.regions.length > 0 ||
+        appliedFilters.value.squareMeters.length > 0 ||
+        appliedFilters.value.priceMin !== null ||
+        appliedFilters.value.priceMax !== null
+    )
 })
 
 const removeFilter = (type, index) => {
-  if (type === 'region') {
-    appliedFilters.value.regions.splice(index, 1)
-  } else if (type === 'area') {
-    appliedFilters.value.squareMeters.splice(index, 1)
-  } else if (type === 'price') {
-    appliedFilters.value.priceMin = null
-    appliedFilters.value.priceMax = null
-  }
+    if (type === 'region') {
+        appliedFilters.value.regions.splice(index, 1)
+    } else if (type === 'area') {
+        appliedFilters.value.squareMeters.splice(index, 1)
+    } else if (type === 'price') {
+        appliedFilters.value.priceMin = null
+        appliedFilters.value.priceMax = null
+    }
+}
+
+const handleScroll = () => {
+    showScrollTop.value = window.scrollY > 200
+}
+
+const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
 onMounted(() => {
     favoritesStore.initializeFavorites()
+    window.addEventListener('scroll', handleScroll)
+})
+
+onUnmounted(() => {
+    window.removeEventListener('scroll', handleScroll)
 })
 </script>
