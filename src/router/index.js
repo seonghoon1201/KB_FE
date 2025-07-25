@@ -12,6 +12,7 @@ import SubscriptionDetail from '@/pages/subscription/SubscriptionDetail.vue'
 import FavoriteSubscription from '@/pages/subscription/FavoriteSubscription.vue'
 import EditProfile from '@/pages/mypage/EditProfile.vue'
 import Notice from '@/pages/mypage/Notice.vue'
+import NoticeDetail from '@/pages/mypage/NoticeDetail.vue'
 import Terms from '@/pages/mypage/Terms.vue'
 import Privacy from '@/pages/mypage/PrivacyPage.vue'
 import Withdraw from '@/pages/mypage/Withdraw.vue'
@@ -47,6 +48,7 @@ const routes = [
     { path: '/mypage', name: 'Mypage', component: Mypage }, //마이페이지
     { path: '/mypage/edit', name: 'EditProfile', component: EditProfile }, // 프로필 편집
     { path: '/mypage/notice', name: 'Notice', component: Notice }, // FAQ(공지사항) 페이지
+    { path: '/mypage/notice/:id', name: 'NoticeDetail', component: NoticeDetail }, // FAQ 상세 페이지
     { path: '/mypage/terms', name: 'Terms', component: Terms }, // 약관 페이지
     { path: '/mypage/withdraw', name: 'Withdraw', component: Withdraw }, // 회원탈퇴 페이지
     { path: '/terms', name: 'Terms', component: Terms }, // 약관 페이지
