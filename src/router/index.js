@@ -14,6 +14,7 @@ import EditProfile from '@/pages/mypage/EditProfile.vue'
 import Notice from '@/pages/mypage/Notice.vue'
 import NoticeDetail from '@/pages/mypage/NoticeDetail.vue'
 import Terms from '@/pages/mypage/Terms.vue'
+import UserTerms from '@/pages/mypage/UserTerms.vue'
 import Privacy from '@/pages/mypage/PrivacyPage.vue'
 import Withdraw from '@/pages/mypage/Withdraw.vue'
 import Calendar from '@/pages/calendar/Calendar.vue'
@@ -52,6 +53,7 @@ const routes = [
     { path: '/mypage/terms', name: 'Terms', component: Terms }, // 약관 페이지
     { path: '/mypage/withdraw', name: 'Withdraw', component: Withdraw }, // 회원탈퇴 페이지
     { path: '/terms', name: 'Terms', component: Terms }, // 약관 페이지
+    { path: '/userterms', name: 'UserTerms', component: UserTerms }, // 사용자 약관 페이지
     { path: '/privacy', name: 'Privacy', component: Privacy }, // 개인정보 처리방침 페이지
 
     { path: '/login', name: 'Login', component: Login }, // 로그인 페이지
