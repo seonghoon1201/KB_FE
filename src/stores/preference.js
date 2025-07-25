@@ -1,3 +1,4 @@
+// 선호설정 스토어
 import { defineStore } from 'pinia'
 
 export const usePreferenceStore = defineStore('preference', {

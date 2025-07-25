@@ -1,4 +1,4 @@
-// stores/score.js
+// 가점 스토어
 import { defineStore } from 'pinia'
 
 export const useScoreStore = defineStore('score', {

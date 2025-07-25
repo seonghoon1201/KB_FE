@@ -2,6 +2,7 @@
     <div class="bg-white min-h-screen flex flex-col pt-[56px] pb-[60px]">
         <MainHeader />
         <main class="flex-1 px-4 py-6 space-y-6 overflow-y-auto" @click="commonStore.modalClose">
+            <!-- 계좌 등록 파트 -->
             <AccountSection
                 :hasAccount="accountStore.isRegistered"
                 :bankName="accountStore.selectedBankName"
@@ -9,13 +10,18 @@
                 :accountNumber="accountStore.accountNumber"
                 :depositRate="68"
             />
+            <!-- 점수 계산 파트 -->
             <ScoreSection
                 :isScoreCalculated="isScoreCalculated"
                 :score="score"
                 @calculate="goToScoreInput"
                 @recalculate="goToScoreInput"
             />
-            <RecommendSection :isPreferenceSet="isPreferenceSet" :recommendList="recommendList" />
+            <!-- 선호 설정 파트 -->
+             <RecommendSection
+              :isPreferenceSet="isPreferenceSet"
+              :recommendList="recommendList"
+            />
         </main>
         <BottomNavbar />
     </div>
