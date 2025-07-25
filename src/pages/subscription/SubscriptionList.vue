@@ -121,7 +121,6 @@ import { allSubscriptions } from '@/data/subscription-data'
 import { useFavoritesStore } from '@/stores/favorites'
 import { TrendingUp, Clock, ArrowDownWideNarrow, SquareUser, ListFilter} from 'lucide-vue-next'
 import { districts } from '@/data/districts'
-import { areaOptions } from '@/data/area'
 import SubscriptionFilterModal from '@/components/modal/SubscriptionFilterModal.vue'
 
 const favoritesStore = useFavoritesStore()

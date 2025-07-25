@@ -28,6 +28,7 @@ import BankLoading from '@/pages/account/BankLoading.vue'
 import BankSelect from '@/pages/account/BankSelect.vue'
 import BankComplete from '@/pages/account/BankComplete.vue'
 import NotFound from '@/pages/error/NotFound.vue'
+import Mypage from '@/pages/mypage/Mypage.vue'
 
 const routes = [
     // ✅ 모든 페이지를 평면 구조로 처리
@@ -35,7 +36,7 @@ const routes = [
     { path: '/calculator', name: 'Calculator', component: Calculator }, // 가점 계산기
     { path: '/preference', name: 'Preference', component: Preference }, // 선호지역
     { path: '/notification', name: 'Notification', component: Notification }, // 알림 페이지
-    { path: '/notification/:id', name: 'NotificationDetail', component: NotoficationDetail }, // 알림 상세 페이지   
+    { path: '/notification/:id', name: 'NotificationDetail', component: NotoficationDetail }, // 알림 상세 페이지
     { path: '/subscriptions', name: 'SubscriptionList', component: SubscriptionList }, // 청약 정보 리스트 페이지
     { path: '/subscriptions/:id', name: 'SubscriptionDetail', component: SubscriptionDetail }, // 청약 정보 상세 페이지
     { path: '/favorites', name: 'FavoriteSubscription', component: FavoriteSubscription }, // 즐겨찾기
@@ -43,6 +44,7 @@ const routes = [
     { path: '/map', name: 'Map', component: Map }, // 지도 페이지
     { path: '/chatbot', name: 'Chatbot', component: Chatbot }, // 챗봇
 
+    { path: '/mypage', name: 'Mypage', component: Mypage }, //마이페이지
     { path: '/mypage/edit', name: 'EditProfile', component: EditProfile }, // 프로필 편집
     { path: '/mypage/notice', name: 'Notice', component: Notice }, // FAQ(공지사항) 페이지
     { path: '/mypage/terms', name: 'Terms', component: Terms }, // 약관 페이지
