@@ -31,6 +31,8 @@ import BankSelect from '@/pages/account/BankSelect.vue'
 import BankComplete from '@/pages/account/BankComplete.vue'
 import NotFound from '@/pages/error/NotFound.vue'
 import Mypage from '@/pages/mypage/Mypage.vue'
+import MyPreference from '@/pages/mypage/MyPreference.vue'
+import ChangePassword from '@/pages/mypage/ChangePassword.vue'
 
 const routes = [
     // ✅ 모든 페이지를 평면 구조로 처리
@@ -47,6 +49,8 @@ const routes = [
     { path: '/chatbot', name: 'Chatbot', component: Chatbot }, // 챗봇
 
     { path: '/mypage', name: 'Mypage', component: Mypage }, //마이페이지
+    { path: '/mypage/changepw', name: 'ChangePassword', component: ChangePassword },
+    { path: '/mypage/mypreferences', name: 'MyPreference', component: MyPreference }, // 선호 정보 저장 페이지
     { path: '/mypage/edit', name: 'EditProfile', component: EditProfile }, // 프로필 편집
     { path: '/mypage/notice', name: 'Notice', component: Notice }, // FAQ(공지사항) 페이지
     { path: '/mypage/notice/:id', name: 'NoticeDetail', component: NoticeDetail }, // FAQ 상세 페이지

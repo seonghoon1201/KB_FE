@@ -11,7 +11,7 @@
 
             <div v-else class="space-y-4">
                 <SubscriptionCard
-                    v-for="subscription in favoriteSubscriptions"
+                    v-for="subscription in sortedSubscriptions"
                     :key="subscription.id"
                     :subscription="subscription"
                     :favorite-default="true"
@@ -47,6 +47,13 @@ const favoriteSubscriptions = computed(() => {
 const handleFavoriteToggle = (id) => {
     favoritesStore.toggleFavorite(id)
 }
+
+const sortedSubscriptions = computed(() => {
+    const result = [...favoriteSubscriptions.value]
+    return result.sort(
+        (a, b) => new Date(a.applicationStartDate) - new Date(b.applicationStartDate),
+    )
+})
 
 onMounted(() => {
     favoritesStore.initializeFavorites()
