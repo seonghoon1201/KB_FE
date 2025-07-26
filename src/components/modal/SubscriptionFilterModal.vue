@@ -41,7 +41,10 @@
                     :key="index"
                     class="flex items-center bg-[#E8EAFE] text-[#5A78FF] px-2 py-1 rounded-full"
                 >
-                    <span>{{ region.city }} {{ region.district === '__all__' ? '전체' : region.district }}</span>
+                    <span>
+                        {{ region.city }}
+                        {{ region.district === '__all__' ? '전체' : region.district }}
+                    </span>
                     <button
                         @click="removeSelectedRegion(index)"
                         class="ml-1 text-[#5A78FF] font-bold"
@@ -173,17 +176,11 @@ const handleDistrictChange = (e) => {
     if (district === '__all__') {
         if (!props.selectedCity) return
 
-        const allDistricts = districts[props.selectedCity] || []
-
-        const allRegions = allDistricts.map((d) => ({
-            city: props.selectedCity,
-            district: d,
-        }))
-
-        // 중복 없이 합치기
         const combined = [
+            // 다른 시의 선택은 유지하고
             ...props.selectedRegions.filter((r) => r.city !== props.selectedCity),
-            ...allRegions,
+            // 현재 시 전체를 나타내는 한 개만 추가
+            { city: props.selectedCity, district: '__all__' },
         ]
 
         emit('update', { field: 'selectedRegions', value: combined })
@@ -196,9 +193,6 @@ const handleDistrictChange = (e) => {
         addSelectedRegion()
     }, 0)
 }
-
-
-
 
 const onChangeCity = (e) => {
     emit('update', { field: 'selectedCity', value: e.target.value })

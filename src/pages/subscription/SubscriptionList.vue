@@ -35,7 +35,7 @@
         </div>
 
         <hr />
-        <!-- 필터 요약 바: 활성화된 필터가 있을 때 표시 -->
+        <!-- 필터 요약 뱃지: 활성화된 필터가 있을 때 표시 -->
         <div
             v-if="hasActiveFilters"
             class="flex flex-wrap gap-2 px-4 py-2 bg-gray-50 border-b border-gray-100 text-sm text-gray-700"
@@ -43,7 +43,10 @@
             <!-- 지역 필터 -->
             <span v-for="(region, index) in appliedFilters.regions" :key="'region-' + index">
                 <div class="flex items-center bg-blue-100 text-blue-700 px-2 py-1 rounded-full">
-                    <span>{{ region.city }} {{ region.district }}</span>
+                    <span>
+                        {{ region.city }}
+                        {{ region.district === '__all__' ? '전체' : region.district }}
+                    </span>
                     <button class="ml-1 font-bold" @click="removeFilter('region', index)">✕</button>
                 </div>
             </span>
@@ -219,10 +222,9 @@ const filteredSubscriptions = computed(() => {
         result = result.filter((item) =>
             appliedFilters.value.regions.some((region) => {
                 // 군/구 선택이 없으면 city만 비교
-                if (!region.district || region.district === '') {
+                if (!region.district || region.district === '' || region.district === '__all__') {
                     return item.city === region.city
                 }
-                // 둘 다 있으면 city + district 둘 다 비교
                 return item.city === region.city && item.district === region.district
             }),
         )
