@@ -301,11 +301,11 @@ const expandAreaRanges = (ranges) => {
 
 const toggleFilter = () => {
     if (!isFilterOpen.value) {
-        // 열 때 초기화
-        selectedRegions.value = []
-        selectedAreas.value = []
-        priceMin.value = null
-        priceMax.value = null
+        // 이전에 적용된 값은 유지
+        selectedRegions.value = [...appliedFilters.value.regions]
+        selectedAreas.value = [...appliedFilters.value.squareMeters]
+        priceMin.value = appliedFilters.value.priceMin
+        priceMax.value = appliedFilters.value.priceMax
 
         // city/district 초기화
         selectedCity.value = ''
