@@ -199,9 +199,14 @@ const filteredSubscriptions = computed(() => {
     // 지역 필터
     if (appliedFilters.value.regions.length > 0) {
         result = result.filter((item) =>
-            appliedFilters.value.regions.some(
-                (region) => item.city === region.city && item.district === region.district,
-            ),
+            appliedFilters.value.regions.some((region) => {
+                // 군/구 선택이 없으면 city만 비교
+                if (!region.district || region.district === '') {
+                    return item.city === region.city
+                }
+                // 둘 다 있으면 city + district 둘 다 비교
+                return item.city === region.city && item.district === region.district
+            }),
         )
     }
 
@@ -274,12 +279,13 @@ const expandAreaRanges = (ranges) => {
 }
 
 const toggleFilter = () => {
-    // 필터 열기 전 appliedFilters 값으로 초기화
-    selectedRegions.value = [...appliedFilters.value.regions]
-    selectedAreas.value = [...appliedFilters.value.squareMeters]
-    priceMin.value = appliedFilters.value.priceMin
-    priceMax.value = appliedFilters.value.priceMax
-
+    if (!isFilterOpen.value) {
+        // 열 때 초기화
+        selectedRegions.value = []
+        selectedAreas.value = []
+        priceMin.value = null
+        priceMax.value = null
+    }
     isFilterOpen.value = !isFilterOpen.value
 }
 
@@ -291,6 +297,11 @@ const handleFilterClick = (filter) => {
         selectedFilter.value = filter.key
         isFilterOpen.value = false // 기존 드롭다운은 닫기
     }
+}
+
+// 필터 창을 열 때 현재 적용된 값으로 초기화
+const openFilter = () => {
+    tempFilters.value = JSON.parse(JSON.stringify(appliedFilters.value))
 }
 
 const handleFavoriteChanged = (subscriptionId) => {
