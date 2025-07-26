@@ -1,6 +1,6 @@
 <template>
     <div class="flex flex-col min-h-screen bg-gray-50 pt-14">
-        <!-- 헤더 -->
+        <!-- 헤더: 뒤로 가기 버튼과 페이지 제목 -->
         <BackHeader title="청약 공고" />
 
         <!-- 필터 버튼들 (옵셔널) -->
@@ -19,6 +19,7 @@
                             : 'bg-gray-100 text-gray-600 hover:bg-gray-200',
                     ]"
                 >
+                    <!-- 정렬 아이콘 -->
                     <component :is="sortStandard.icon" class="w-4 h-4" />
                     <span>{{ sortStandard.label }}</span>
                 </button>
@@ -34,7 +35,7 @@
         </div>
 
         <hr />
-        <!-- 🔽 필터 요약 바 -->
+        <!-- 필터 요약 뱃지: 활성화된 필터가 있을 때 표시 -->
         <div
             v-if="hasActiveFilters"
             class="flex flex-wrap gap-2 px-4 py-2 bg-gray-50 border-b border-gray-100 text-sm text-gray-700"
@@ -42,7 +43,10 @@
             <!-- 지역 필터 -->
             <span v-for="(region, index) in appliedFilters.regions" :key="'region-' + index">
                 <div class="flex items-center bg-blue-100 text-blue-700 px-2 py-1 rounded-full">
-                    <span>{{ region.city }} {{ region.district }}</span>
+                    <span>
+                        {{ region.city }}
+                        {{ region.district === '__all__' ? '전체' : region.district }}
+                    </span>
                     <button class="ml-1 font-bold" @click="removeFilter('region', index)">✕</button>
                 </div>
             </span>
@@ -69,7 +73,7 @@
             </div>
         </div>
 
-        <!-- 🔽 필터 모달 -->
+        <!-- 🔽 필터 모달 컴포넌트 -->
         <SubscriptionFilterModal
             :visible="isFilterOpen"
             :selectedRegions="selectedRegions"
@@ -89,9 +93,10 @@
                 <p class="text-gray-500">현재 표시할 청약 공고가 없습니다.</p>
             </div>
 
+            <!-- 공고 리스트: SubscriptionCard 컴포넌트 반복 -->
             <div v-else class="space-y-4">
                 <SubscriptionCard
-                    v-for="subscription in filteredSubscriptions"
+                    v-for="subscription in filteredSubscriptions.slice(0, scrollIdx)"
                     :key="subscription.id"
                     :subscription="subscription"
                     :favorite-default="favoritesStore.favoriteIds.has(subscription.id)"
@@ -99,7 +104,9 @@
                 />
             </div>
         </div>
+
         <BottomNavbar />
+
         <!-- 🔝 맨 위로 이동 버튼 -->
         <button
             v-show="showScrollTop"
@@ -112,32 +119,45 @@
 </template>
 
 <script setup>
+// Vue Composition API 불러오기
 import { ref, computed, onMounted, onUnmounted } from 'vue'
+
+// 공통 컴포넌트 불러오기
 import BottomNavbar from '@/components/common/BottomNavbar.vue'
 import SubscriptionCard from '@/components/subscription/SubscriptionCard.vue'
 import BackHeader from '@/components/common/BackHeader.vue'
-import { allSubscriptions } from '@/data/subscription-data'
+// 더미 데이터 및 Pinia 스토어
+// import { allSubscriptions } from '@/data/subscription-data'
+import { allSubscriptions } from '@/data/subscription-large-data'
 import { useFavoritesStore } from '@/stores/favorites'
+// 정렬 및 필터 아이콘
 import { TrendingUp, Clock, ArrowDownWideNarrow, SquareUser, ListFilter } from 'lucide-vue-next'
+// 지역 데이터와 필터 모달
 import { districts } from '@/data/districts'
 import SubscriptionFilterModal from '@/components/modal/SubscriptionFilterModal.vue'
 
+// 즐겨찾기 스토어 초기화
 const favoritesStore = useFavoritesStore()
-
+// 전체 공고 목록
 const subscriptions = ref(allSubscriptions)
-
+// 선택된 정렬 기준 (latest 또는 deadline-first)
 const selectedFilter = ref('latest')
-
+// 필터 모달 열림 상태
 const isFilterOpen = ref(false)
 
+// 필터 데이터 초기값
 const selectedCity = ref('')
 const selectedDistrict = ref('')
 const selectedRegions = ref([])
 const priceMin = ref(null)
 const priceMax = ref(null)
 
+// 스크롤 위치에 따른 "맨 위로" 버튼 표시 여부
 const showScrollTop = ref(false)
 
+const scrollIdx = ref(5)
+
+// 정렬 기준 정의
 const sortStandards = [
     { key: 'latest', label: '최신순', icon: TrendingUp },
     { key: 'deadline-first', label: '마감임박순', icon: Clock },
@@ -168,6 +188,7 @@ const customFilter = ref({
 
 const selectedAreas = ref([])
 
+// 평수 토글 함수
 const toggleArea = (val) => {
     const valStr = val.toString()
     const exists = selectedAreas.value.some((a) => a.toString() === valStr)
@@ -178,11 +199,11 @@ const toggleArea = (val) => {
     }
 }
 
-// 필터링된 청약 공고 목록
+// 필터링 및 정렬 적용된 공고 목록 계산
 const filteredSubscriptions = computed(() => {
     let result = [...subscriptions.value]
 
-    // 정렬
+    // 정렬 처리
     switch (selectedFilter.value) {
         case 'latest':
             result.sort(
@@ -196,16 +217,20 @@ const filteredSubscriptions = computed(() => {
             break
     }
 
-    // 지역 필터
+    // 지역 필터 적용
     if (appliedFilters.value.regions.length > 0) {
         result = result.filter((item) =>
-            appliedFilters.value.regions.some(
-                (region) => item.city === region.city && item.district === region.district,
-            ),
+            appliedFilters.value.regions.some((region) => {
+                // 군/구 선택이 없으면 city만 비교
+                if (!region.district || region.district === '' || region.district === '__all__') {
+                    return item.city === region.city
+                }
+                return item.city === region.city && item.district === region.district
+            }),
         )
     }
 
-    // 평수 필터
+    // 평수 필터 적용
     if (appliedFilters.value.squareMeters.length > 0) {
         result = result.filter((item) => {
             const squareMeter = Number(item.squareMeters)
@@ -218,11 +243,10 @@ const filteredSubscriptions = computed(() => {
         })
     }
 
-    // 가격 필터
+    // 가격 필터 적용
     if (appliedFilters.value.priceMin !== null || appliedFilters.value.priceMax !== null) {
         result = result.filter((item) => {
-            const price = stringPriceToNumber(item.price) / 10000 // 만원 단위로 환산
-
+            const price = stringPriceToNumber(item.price) / 10000
             return (
                 (appliedFilters.value.priceMin === null ||
                     price >= appliedFilters.value.priceMin) &&
@@ -234,7 +258,7 @@ const filteredSubscriptions = computed(() => {
     return result
 })
 
-// 3️⃣ 필터 적용 버튼 클릭 시
+// 필터 적용 버튼 클릭 시 동작
 const applyFilters = () => {
     console.log('✅ selectedRegions before apply:', selectedRegions.value)
     const parsedAreas = selectedAreas.value.map((val) => {
@@ -255,9 +279,11 @@ const applyFilters = () => {
         priceMax: priceMax.value,
     }
 
+    // 모달 닫기
     isFilterOpen.value = false
 }
 
+// 가격 문자열을 숫자로 변환하는 헬퍼 함수
 const stringPriceToNumber = (str) => {
     if (!str) return 0
     return parseInt(str.replace(/,/g, ''), 10)
@@ -274,12 +300,17 @@ const expandAreaRanges = (ranges) => {
 }
 
 const toggleFilter = () => {
-    // 필터 열기 전 appliedFilters 값으로 초기화
-    selectedRegions.value = [...appliedFilters.value.regions]
-    selectedAreas.value = [...appliedFilters.value.squareMeters]
-    priceMin.value = appliedFilters.value.priceMin
-    priceMax.value = appliedFilters.value.priceMax
+    if (!isFilterOpen.value) {
+        // 열 때 초기화
+        selectedRegions.value = []
+        selectedAreas.value = []
+        priceMin.value = null
+        priceMax.value = null
 
+        // city/district 초기화
+        selectedCity.value = ''
+        selectedDistrict.value = ''
+    }
     isFilterOpen.value = !isFilterOpen.value
 }
 
@@ -293,6 +324,11 @@ const handleFilterClick = (filter) => {
     }
 }
 
+// 필터 창을 열 때 현재 적용된 값으로 초기화
+const openFilter = () => {
+    tempFilters.value = JSON.parse(JSON.stringify(appliedFilters.value))
+}
+
 const handleFavoriteChanged = (subscriptionId) => {
     const nowFavorite = favoritesStore.toggleFavorite(subscriptionId)
     console.log(`ID: ${subscriptionId}, 즐겨찾기 상태: ${nowFavorite}`)
@@ -303,6 +339,7 @@ const handleSortClick = (sortStandard) => {
     isFilterOpen.value = false
 }
 
+// 필터 모달에서 개별 필드 업데이트
 const handleFilterUpdate = ({ field, value }) => {
     if (field === 'selectedCity') selectedCity.value = value
     else if (field === 'selectedDistrict') selectedDistrict.value = value
@@ -312,6 +349,7 @@ const handleFilterUpdate = ({ field, value }) => {
     else if (field === 'priceMax') priceMax.value = value
 }
 
+// 활성화된 필터가 있는지 여부 계산
 const hasActiveFilters = computed(() => {
     return (
         appliedFilters.value.regions.length > 0 ||
@@ -321,6 +359,7 @@ const hasActiveFilters = computed(() => {
     )
 })
 
+// 개별 필터 제거 함수
 const removeFilter = (type, index) => {
     if (type === 'region') {
         appliedFilters.value.regions.splice(index, 1)
@@ -332,19 +371,29 @@ const removeFilter = (type, index) => {
     }
 }
 
+// 스크롤 이벤트 핸들러: 스크롤 위치에 따라 top 버튼 표시
 const handleScroll = () => {
     showScrollTop.value = window.scrollY > 200
+
+    const { scrollY, innerHeight } = window
+    const fullH = document.documentElement.scrollHeight
+    if (scrollY + innerHeight >= fullH - 10) {
+        scrollIdx.value += 5
+    }
 }
 
+// 맨 위로 스크롤 함수
 const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
+// 컴포넌트 마운트 시 즐겨찾기 초기화 및 스크롤 이벤트 등록
 onMounted(() => {
     favoritesStore.initializeFavorites()
     window.addEventListener('scroll', handleScroll)
 })
 
+// 컴포넌트 언마운트 시 스크롤 이벤트 해제
 onUnmounted(() => {
     window.removeEventListener('scroll', handleScroll)
 })
