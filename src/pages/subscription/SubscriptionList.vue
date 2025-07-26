@@ -306,6 +306,10 @@ const toggleFilter = () => {
         selectedAreas.value = []
         priceMin.value = null
         priceMax.value = null
+
+        // city/district 초기화
+        selectedCity.value = ''
+        selectedDistrict.value = ''
     }
     isFilterOpen.value = !isFilterOpen.value
 }
