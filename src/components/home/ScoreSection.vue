@@ -41,7 +41,7 @@
             class="bg-[#F5F2FD] rounded-xl p-4 text-center flex flex-col items-center gap-2"
         >
             <div class="text-3xl">🤔</div>
-            <p class="text-lg font-bold text-gray-800">가점을 계산해보세요!</p>
+            <p class="text-lg font-bold text-gray-800">가점을 계산해 보세요!</p>
             <p class="text-sm text-gray-500 leading-relaxed text-center">
                 무주택 기간, 부양가족 수,<br />
                 청약통장 가입기간을 입력하면<br />
@@ -76,6 +76,6 @@ defineProps({
 
 // 계산하기 또는 다시 계산하기 눌렀을 때 이동
 const goToScoreInput = () => {
-    router.push('/calculator')
+    router.push('/no-house')
 }
 </script>
