@@ -1,40 +1,37 @@
-// 가점 스토어
 import { defineStore } from 'pinia'
+import { calculateAllScores } from '@/utils/scoreCalculator'
 
 export const useScoreStore = defineStore('score', {
   state: () => ({
-    isCalculated: false,
-    score: {
-      total: 0,
-      percent: 0,
-      message: '',
-    },
+    noHouseInfo: {},
+    familyInfo: {},
+    accountInfo: {},
+    noHouse: 0,
+    family: 0,
+    account: 0,
+    total: 0,
+    evaluation: '',
   }),
   actions: {
-    setScore(total) {
-      const percent = (total / 84) * 100
-      let message = ''
-
-      if (total >= 70) {
-        message = '당첨 가능성이 매우 높아요!'
-      } else if (total >= 50) {
-        message = '당첨 가능성이 높은 편이에요!'
-      } else if (total >= 30) {
-        message = '보통 수준의 가점이에요.'
-      } else {
-        message = '가점을 높이기 위해 준비가 필요해요.'
-      }
-
-      this.score = { total, percent, message }
-      this.isCalculated = true
+    setNoHouseInfo(info) {
+      this.noHouseInfo = info
     },
-    resetScore() {
-      this.score = {
-        total: 0,
-        percent: 0,
-        message: '',
-      }
-      this.isCalculated = false
+    setFamilyInfo(info) {
+      this.familyInfo = info
     },
-  },
+    setAccountInfo(info) {
+      this.accountInfo = info
+    },
+    setScores({ noHouse, family, account, total, evaluation }) {
+      this.noHouse = noHouse
+      this.family = family
+      this.account = account
+      this.total = total
+      this.evaluation = evaluation
+    },
+    calculateAll() {
+      const result = calculateAllScores(this.$state)
+      this.setScores(result)
+    }
+  }
 })
