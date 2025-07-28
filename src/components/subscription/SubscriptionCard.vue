@@ -5,7 +5,7 @@
     >
         <!-- 상단: 제목, D-Day, 하트 -->
         <div class="flex items-start justify-between mb-2">
-            <h2 class="text-lg font-bold text-gray-900 flex-1 pr-4">
+            <h2 class="text-lg font-bold text-gray-900 pr-4">
                 {{ subscription.title }}
             </h2>
             <div class="flex items-center gap-2 flex-shrink-0">
