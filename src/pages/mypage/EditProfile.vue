@@ -53,8 +53,16 @@
                     class="address-input w-full border rounded-[8px] px-3 py-2 flex justify-between"
                 >
                     <input type="text" v-model="profile.address" />
-                    <button type="button">🔍</button>
+                    <button type="button" class="w-4 h-4" @click="showAddressModal = true">
+                        <Search :size="20" />
+                    </button>
                 </div>
+                <!-- 주소 검색 모달 -->
+                <SearchAddressModal
+                    :visible="showAddressModal"
+                    @close="showAddressModal = false"
+                    @selected="handleAddressSelected"
+                />
             </div>
 
             <div class="password-change mt-8 mb-8 flex justify-center">
@@ -74,11 +82,13 @@
 <script setup>
 import BackHeader from '@/components/common/BackHeader.vue'
 import { useRouter } from 'vue-router'
-import { reactive } from 'vue'
+import { ref, reactive } from 'vue'
 import PrimaryButton from '@/components/common/PrimaryButton.vue'
-import { SquarePen } from 'lucide-vue-next'
+import SearchAddressModal from '@/components/modal/SearchAddressModal.vue'
+import { SquarePen, Search } from 'lucide-vue-next'
 
 const router = useRouter()
+const showAddressModal = ref(false)
 
 const profile = reactive({
     name: '김제비',
@@ -88,13 +98,6 @@ const profile = reactive({
     address: '경기도 용인시 수지구',
 })
 
-const changeEmail = () => {
-    alert('이메일 변경 기능은 구현 예정입니다.')
-}
-
-const changePassword = () => {
-    alert('비밀번호 변경 기능은 구현 예정입니다.')
-}
 
 const saveProfile = () => {
     // 프로필 저장 구현
