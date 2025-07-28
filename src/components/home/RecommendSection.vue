@@ -6,7 +6,7 @@
     </div>
 
     <!-- ✅ 선호 설정된 경우 -->
-    <div v-if="isPreferenceSet && recommendList.length > 0" class="space-y-3">
+    <div v-if="recommendList.length > 0" class="space-y-3">
       <div
         v-for="item in recommendList"
         :key="item.id"
