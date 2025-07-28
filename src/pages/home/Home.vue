@@ -27,7 +27,7 @@
 <script setup>
 import { useRouter } from 'vue-router'
 import { computed } from 'vue'
-import { useScoreStore } from '@/stores/score'
+import { useUserStore } from '@/stores/user'
 import { useAccountStore } from '@/stores/account'
 import { useCommonStore } from '@/stores/common'
 import { usePreferenceStore } from '@/stores/preference'
@@ -39,11 +39,11 @@ import ScoreSection from '@/components/home/ScoreSection.vue'
 import RecommendSection from '@/components/home/RecommendSection.vue'
 
 const commonStore = useCommonStore()
-const scoreStore = useScoreStore()
 const accountStore = useAccountStore()
+const userStore = useUserStore()
 
-const isScoreCalculated = computed(() => scoreStore.isCalculated)
-const score = computed(() => scoreStore.score)
+const isScoreCalculated = computed(() => !!userStore.score)
+const score = computed(() => userStore.score ?? { total: 0, percent: 0, message: '' })
 
 const preferenceStore = usePreferenceStore()
 const recommendList = [
@@ -51,6 +51,7 @@ const recommendList = [
     { id: 2, name: '자이 더 리버', location: '서울 마포구', image: 'apt2.jpg' },
     { id: 3, name: '힐스테이트 센트럴', location: '경기 성남시', image: 'apt3.jpg' },
 ]
+
 const isPreferenceSet = computed(() => {
     return (
         preferenceStore.city !== '' &&
@@ -63,8 +64,7 @@ const isPreferenceSet = computed(() => {
 })
 
 const router = useRouter()
-
 const goToScoreInput = () => {
-    router.push('/calculator')
+    router.push('/score/no-house')
 }
 </script>
