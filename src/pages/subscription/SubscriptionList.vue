@@ -4,36 +4,62 @@
         <BackHeader title="청약 공고" />
 
         <!-- 필터 버튼들 (옵셔널) -->
-        <!-- 🔹 정렬 & 필터 버튼 바 -->
-        <div class="px-4 py-3 bg-white border-b border-gray-100 flex items-center relative">
-            <!-- 중앙 정렬: 정렬 기준 버튼 -->
-            <div class="absolute left-1/2 transform -translate-x-1/2 flex space-x-2">
+        <div class="px-4 py-3 bg-white border-b border-gray-100 z-50 flex justify-between items-center">
+            <!-- 정렬 기준 버튼 -->
+            <div class="relative">
                 <button
-                    v-for="sortStandard in sortStandards"
-                    :key="sortStandard.key"
-                    @click="handleSortClick(sortStandard)"
-                    :class="[
-                        'flex items-center gap-1 px-4 py-2 rounded-full text-sm whitespace-nowrap transition-colors',
-                        selectedFilter === sortStandard.key
-                            ? 'bg-blue-500 text-white'
-                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200',
-                    ]"
+                    @click="toggleSortMenu"
+                    class="flex items-center gap-2 px-4 py-2 rounded-full border border-gray-300 text-sm font-medium shadow-sm hover:shadow-md hover:border-blue-400 hover:text-blue-500 transition"
                 >
-                    <!-- 정렬 아이콘 -->
-                    <component :is="sortStandard.icon" class="w-4 h-4" />
-                    <span>{{ sortStandard.label }}</span>
+                    <component
+                        :is="sortStandards.find((s) => s.key === selectedFilter)?.icon"
+                        class="w-4 h-4"
+                    />
+                    <span>{{ sortStandards.find((s) => s.key === selectedFilter)?.label }}</span>
+                    <svg
+                        class="w-4 h-4 text-gray-500"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        viewBox="0 0 24 24"
+                    >
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                    </svg>
                 </button>
+
+                <!-- 드롭다운 메뉴 -->
+                <div
+                    v-if="showSortMenu"
+                    class="absolute left-0 mt-3 bg-white border border-gray-200 rounded-xl shadow-lg w-40 z-20 overflow-hidden"
+                >
+                    <button
+                        v-for="sortStandard in sortStandards"
+                        :key="sortStandard.key"
+                        @click="handleSortClick(sortStandard)"
+                        :class="[
+                            'w-full text-left px-4 py-2 text-sm transition',
+                            selectedFilter === sortStandard.key
+                                ? 'bg-blue-50 text-blue-600 font-semibold'
+                                : 'hover:bg-gray-100',
+                        ]"
+                    >
+                        <div class="flex items-center gap-2">
+                            <component :is="sortStandard.icon" class="w-4 h-4" />
+                            <span>{{ sortStandard.label }}</span>
+                        </div>
+                    </button>
+                </div>
             </div>
 
-            <!-- 오른쪽 끝 필터 버튼 -->
+            <!-- 필터 버튼 -->
             <button
                 @click="toggleFilter"
-                class="ml-auto z-10 flex items-center gap-1 px-3 py-2 rounded-full text-sm text-black-600 bg-gray-100 hover:bg-gray-200 transition-colors"
+                class="flex items-center gap-1 px-3 py-2 rounded-full bg-gray-100 hover:bg-gray-200 transition"
             >
                 <ListFilter class="w-4 h-4" />
+                <span class="text-sm font-medium">필터</span>
             </button>
         </div>
-
         <hr />
         <!-- 필터 요약 뱃지: 활성화된 필터가 있을 때 표시 -->
         <div
@@ -131,10 +157,12 @@ import BackHeader from '@/components/common/BackHeader.vue'
 import { allSubscriptions } from '@/data/subscription-large-data'
 import { useFavoritesStore } from '@/stores/favorites'
 // 정렬 및 필터 아이콘
-import { TrendingUp, Clock, ArrowDownWideNarrow, SquareUser, ListFilter } from 'lucide-vue-next'
+import { TrendingUp, Clock, ListFilter, ThumbsUp, ArrowDownUp } from 'lucide-vue-next'
 // 지역 데이터와 필터 모달
 import { districts } from '@/data/districts'
 import SubscriptionFilterModal from '@/components/modal/SubscriptionFilterModal.vue'
+import { useRoute } from 'vue-router'
+const route = useRoute()
 
 // 즐겨찾기 스토어 초기화
 const favoritesStore = useFavoritesStore()
@@ -157,13 +185,26 @@ const showScrollTop = ref(false)
 
 const scrollIdx = ref(5)
 
+const showSortMenu = ref(false)
+
+const toggleSortMenu = () => {
+    console.log('toggleSortMenu 호출됨')
+    showSortMenu.value = !showSortMenu.value
+}
+
+const handleSortClick = (sortStandard) => {
+    selectedFilter.value = sortStandard.key
+    showSortMenu.value = false // 메뉴 닫기
+}
+
 // 정렬 기준 정의
 const sortStandards = [
     { key: 'latest', label: '최신순', icon: TrendingUp },
     { key: 'deadline-first', label: '마감임박순', icon: Clock },
+    { key: 'recommend', label: '추천순', icon: ThumbsUp },
 ]
 
-const filters = [{ key: 'filter', label: '필터', icon: ArrowDownWideNarrow, isCustom: true }]
+// const filters = [{ key: 'filter', label: '필터', icon: ArrowDownWideNarrow, isCustom: true }]
 
 const appliedFilters = ref({
     regions: [],
@@ -214,6 +255,9 @@ const filteredSubscriptions = computed(() => {
             result.sort(
                 (a, b) => new Date(a.applicationCompleteDate) - new Date(b.applicationCompleteDate),
             )
+            break
+        case 'recommend':
+            result.sort((a, b) => b.recommendScore - a.recommendScore)
             break
     }
 
@@ -334,11 +378,6 @@ const handleFavoriteChanged = (subscriptionId) => {
     console.log(`ID: ${subscriptionId}, 즐겨찾기 상태: ${nowFavorite}`)
 }
 
-const handleSortClick = (sortStandard) => {
-    selectedFilter.value = sortStandard.key
-    isFilterOpen.value = false
-}
-
 // 필터 모달에서 개별 필드 업데이트
 const handleFilterUpdate = ({ field, value }) => {
     if (field === 'selectedCity') selectedCity.value = value
@@ -389,6 +428,9 @@ const scrollToTop = () => {
 
 // 컴포넌트 마운트 시 즐겨찾기 초기화 및 스크롤 이벤트 등록
 onMounted(() => {
+    if (route.query.sort === 'recommend') {
+        selectedFilter.value = 'recommend'
+    }
     favoritesStore.initializeFavorites()
     window.addEventListener('scroll', handleScroll)
 })
