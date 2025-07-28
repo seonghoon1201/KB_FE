@@ -1,8 +1,10 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
-// ✅ 단독 페이지들 (이제 모두 레이아웃 없이 사용)
 import Home from '@/pages/home/Home.vue'
-import Calculator from '@/pages/calculator/Calculator.vue'
+import Account from '@/pages/calculator/Account.vue'
+import Family from '@/pages/calculator/Family.vue'
+import NoHouse from '@/pages/calculator/NoHouse.vue'
+import ScoreResult from '@/pages/calculator/ScoreResult.vue'
 import Preference from '@/pages/preference/Preference.vue'
 import Chatbot from '@/pages/chatbot/Chatbot.vue'
 import Notification from '@/pages/notification/Notification.vue'
@@ -37,7 +39,10 @@ import ChangePassword from '@/pages/mypage/ChangePassword.vue'
 const routes = [
     // ✅ 모든 페이지를 평면 구조로 처리
     { path: '/', name: 'Home', component: Home }, // 홈 화면
-    { path: '/calculator', name: 'Calculator', component: Calculator }, // 가점 계산기
+    { path: '/account', name: 'Account', component: Account }, // 청약 통장 가입 기간 체크 페이지
+    { path: '/family', name: 'Family', component: Family }, // 부양 가족 수 체크 페이지
+    { path: '/no-house', name: 'NoHouse', component: NoHouse }, // 무주택 기간 체크 페이지
+    { path: '/score-result', name: 'ScoreResult', component: ScoreResult }, // 청약 점수 계산 결과 페이지
     { path: '/preference', name: 'Preference', component: Preference }, // 선호지역
     { path: '/notification', name: 'Notification', component: Notification }, // 알림 페이지
     { path: '/notification/:id', name: 'NotificationDetail', component: NotoficationDetail }, // 알림 상세 페이지

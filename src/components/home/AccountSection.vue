@@ -12,7 +12,7 @@
 
             <!-- 이미지 + 예치금 -->
             <div class="flex flex-col items-center gap-1">
-                <img :src="imagePath" alt="zibi" class="w-24 h-24" />
+                <img :src="imagePath" alt="zibi" class="w-40 h-40" />
                 <p class="text-xs text-gray-400">{{ bankName }} {{ accountNumber }}</p>
                 <p class="text-2xl font-extrabold text-black">{{ balance.toLocaleString() }} 원</p>
             </div>
@@ -82,8 +82,8 @@
         <!-- ❌ 계좌 미등록 시 -->
         <template v-else>
             <div class="flex flex-col items-center gap-2">
-                <img src="@/assets/images/zibi_0.png" alt="egg" class="w-24 h-24" />
-                <p class="text-gray-600 text-lg font-bold">계좌를 연결해 주세요!</p>
+                <img src="@/assets/images/zibi_0.png" alt="egg" class="w-40 h-40" />
+                <p class="text-gray-600 text-xl font-bold">계좌를 연결해 주세요!</p>
                 <p class="text-gray-500 text-sm text-center">
                     청약통장을 연결하면 예치금 현황과<br />목표 달성률을 실시간으로 확인할 수 있어요
                 </p>
@@ -91,7 +91,7 @@
                 <ul class="text-left text-sm text-gray-700 space-y-1 mt-4 mb-2">
                     <li>✅ 실시간 잔액 확인</li>
                     <li>✅ 목표 달성률 추적</li>
-                    <li>✅ 입금금 알림</li>
+                    <li>✅ 입금 확인</li>
                 </ul>
 
                 <PrimaryButton @click="onConnectAccount">계좌 연결하기</PrimaryButton>
