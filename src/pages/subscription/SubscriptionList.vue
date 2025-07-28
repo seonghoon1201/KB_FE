@@ -4,7 +4,7 @@
         <BackHeader title="청약 공고" />
 
         <!-- 필터 버튼들 (옵셔널) -->
-        <div class="px-4 py-3 bg-white border-b border-gray-100 z-50 flex justify-between items-center">
+        <div class="px-4 py-3 bg-white border-b border-gray-100 z-20 flex justify-between items-center">
             <!-- 정렬 기준 버튼 -->
             <div class="relative">
                 <button
@@ -220,16 +220,16 @@ const customFilter = ref({
 
 const selectedAreas = ref([])
 
-// 평수 토글 함수
-const toggleArea = (val) => {
-    const valStr = val.toString()
-    const exists = selectedAreas.value.some((a) => a.toString() === valStr)
-    if (exists) {
-        selectedAreas.value = selectedAreas.value.filter((a) => a.toString() !== valStr)
-    } else {
-        selectedAreas.value.push([...val]) // 깊은 복사해서 추가
-    }
-}
+// // 평수 토글 함수
+// const toggleArea = (val) => {
+//     const valStr = val.toString()
+//     const exists = selectedAreas.value.some((a) => a.toString() === valStr)
+//     if (exists) {
+//         selectedAreas.value = selectedAreas.value.filter((a) => a.toString() !== valStr)
+//     } else {
+//         selectedAreas.value.push([...val]) // 깊은 복사해서 추가
+//     }
+// }
 
 // 필터링 및 정렬 적용된 공고 목록 계산
 const filteredSubscriptions = computed(() => {
@@ -359,15 +359,15 @@ const handleFilterClick = (filter) => {
     }
 }
 
-// 필터 창을 열 때 현재 적용된 값으로 초기화
-const openFilter = () => {
-    tempFilters.value = JSON.parse(JSON.stringify(appliedFilters.value))
-}
+// // 필터 창을 열 때 현재 적용된 값으로 초기화
+// const openFilter = () => {
+//     tempFilters.value = JSON.parse(JSON.stringify(appliedFilters.value))
+// }
 
-const handleFavoriteChanged = (subscriptionId) => {
-    const nowFavorite = favoritesStore.toggleFavorite(subscriptionId)
-    console.log(`ID: ${subscriptionId}, 즐겨찾기 상태: ${nowFavorite}`)
-}
+// const handleFavoriteChanged = (subscriptionId) => {
+//     const nowFavorite = favoritesStore.toggleFavorite(subscriptionId)
+//     console.log(`ID: ${subscriptionId}, 즐겨찾기 상태: ${nowFavorite}`)
+// }
 
 // 필터 모달에서 개별 필드 업데이트
 const handleFilterUpdate = ({ field, value }) => {
