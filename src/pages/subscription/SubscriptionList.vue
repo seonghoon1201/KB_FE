@@ -204,8 +204,6 @@ const sortStandards = [
     { key: 'recommend', label: '추천순', icon: ThumbsUp },
 ]
 
-// const filters = [{ key: 'filter', label: '필터', icon: ArrowDownWideNarrow, isCustom: true }]
-
 const appliedFilters = ref({
     regions: [],
     squareMeters: [],
@@ -213,13 +211,6 @@ const appliedFilters = ref({
     priceMax: null,
 })
 
-const cities = Object.keys(districts)
-
-const showCustomFilter = ref(false)
-
-const removeSelectedRegion = (index) => {
-    selectedRegions.value.splice(index, 1)
-}
 
 const customFilter = ref({
     location: '',
