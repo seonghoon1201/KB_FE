@@ -66,7 +66,7 @@ const router = useRouter()
 const menuItems = [
     { label: '최근 본 공고', route: '/recent', icon: FileText },
     { label: '즐겨찾기', route: '/favorites', icon: Heart },
-    { label: '가점 계산', route: '/calculator', icon: Calculator },
+    { label: '가점 계산', route: '/no-house', icon: Calculator },
     { label: '선호 정보', route: '/mypage/mypreferences', icon: MapPin },
 ]
 
