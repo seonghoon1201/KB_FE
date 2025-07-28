@@ -5,7 +5,7 @@
     >
         <!-- 상단: 제목, D-Day, 하트 -->
         <div class="flex items-start justify-between mb-2">
-            <h2 class="text-lg font-bold text-gray-900 flex-1 pr-4">
+            <h2 class="text-lg font-bold text-gray-900 pr-4">
                 {{ subscription.title }}
             </h2>
             <div class="flex items-center gap-2 flex-shrink-0">
@@ -28,13 +28,14 @@
             </div>
         </div>
 
-        <!-- 위치 정보 -->
-        <p class="text-gray-500 text-sm mb-2 text-left">{{ subscription.city }} {{ subscription.district }}</p>
-
         <!-- 하단: 날짜, 타입, 버튼들 -->
         <div class="flex items-end justify-between">
             <!-- 좌측: 날짜와 타입 -->
-            <div class="flex flex-col gap-4">
+            <div class="flex flex-col gap-3">
+                <!-- 위치 정보 -->
+                <p class="text-gray-500 text-sm text-left">
+                    {{ subscription.city }} {{ subscription.district }}
+                </p>
                 <span class="text-gray-500 text-sm">
                     {{ subscription.applicationStartDate }} -
                     {{ subscription.applicationCompleteDate }}
@@ -49,10 +50,12 @@
             </div>
 
             <!-- 우측: 면적/가격, 상세보기 버튼 -->
-            <div class="flex flex-col gap-2 items-end">
+            <div class="flex flex-col items-end">
+                <span class="text-gray-500 text-sm">{{ formatToEok(subscription.price) }}</span>
                 <!-- 면적, 가격 -->
-                <span class="text-gray-500 text-sm">
-                    {{ subscription.squareMeters }}㎡ · <span>{{ formatToEok(subscription.price) }}</span>
+                <span class="text-gray-500 text-sm mt-2 mb-3">
+                    {{ subscription.squareMeters }}㎡ ·
+                    <span>{{ formatToPyeong(subscription.squareMeters) }}평</span>
                 </span>
                 <!-- 상세보기 버튼 -->
                 <button
@@ -150,21 +153,27 @@ const handleFavoriteClick = () => {
 
 // 상세보기 클릭
 const handleDetailClick = () => {
-  router.push(`/subscriptions/${props.subscription.id}`)
+    router.push(`/subscriptions/${props.subscription.id}`)
 }
 
 const formatToEok = (priceStr) => {
-  if (!priceStr) return ''
+    if (!priceStr) return ''
 
-  // 1. 쉼표 제거 → 문자열 → 숫자
-  const number = parseInt(priceStr.replace(/,/g, ''), 10)
+    // 1. 쉼표 제거 → 문자열 → 숫자
+    const number = parseInt(priceStr.replace(/,/g, ''), 10)
 
-  if (isNaN(number)) return ''
+    if (isNaN(number)) return ''
 
-  // 2. 억 단위로 환산 (1억 = 100,000,000)
-  const eok = number / 100000000
+    // 2. 억 단위로 환산 (1억 = 100,000,000)
+    const eok = number / 100000000
 
-  // 3. 소수점 1자리로 포맷
-  return `${eok.toFixed(1)}억`
+    // 3. 소수점 1자리로 포맷
+    return `${eok.toFixed(1)}억`
+}
+
+// 1평 = 3.30579㎡
+const formatToPyeong = (squareMeters) => {
+    if (!squareMeters || isNaN(squareMeters)) return 0
+    return (squareMeters / 3.30579).toFixed(0) // 소수점 1자리까지
 }
 </script>

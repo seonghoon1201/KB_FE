@@ -30,6 +30,7 @@
                     class="w-full border rounded px-3 py-2 text-sm"
                 >
                     <option disabled value="">군/구를 선택해주세요</option>
+                    <option value="__all__">전체</option>
                     <option v-for="gu in filteredDistricts" :key="gu">{{ gu }}</option>
                 </select>
             </div>
@@ -40,7 +41,10 @@
                     :key="index"
                     class="flex items-center bg-[#E8EAFE] text-[#5A78FF] px-2 py-1 rounded-full"
                 >
-                    <span>{{ region.city }} {{ region.district }}</span>
+                    <span>
+                        {{ region.city }}
+                        {{ region.district === '__all__' ? '전체' : region.district }}
+                    </span>
                     <button
                         @click="removeSelectedRegion(index)"
                         class="ml-1 text-[#5A78FF] font-bold"
@@ -52,7 +56,7 @@
 
             <!-- 평수 -->
             <label class="text-sm font-semibold text-gray-800 block mt-3 mb-1">선호 평수</label>
-            <div class="grid grid-cols-3 gap-2 text-sm mb-4">
+            <div class="grid grid-cols-3 gap-2 text-xs mb-4">
                 <button
                     v-for="option in areaOptions"
                     :key="option.value"
@@ -65,6 +69,8 @@
                     ]"
                 >
                     {{ option.label }}
+
+                    <!-- {{ option.label }}<br> ({{ option.pyeong }}) -->
                 </button>
             </div>
 
@@ -121,54 +127,81 @@ const close = () => emit('update:visible', false)
 
 const cities = Object.keys(districts)
 const filteredDistricts = computed(() => districts[props.selectedCity] || [])
-// const selectedCity = ref('')
-// const selectedDistrict = ref('')
-// const selectedRegions = ref([])
-
-// const priceMin = ref(null) // 만 원 단위
-// const priceMax = ref(null)
 
 const addSelectedRegion = () => {
     console.log('📍 city:', props.selectedCity, 'district:', props.selectedDistrict)
 
-    if (!props.selectedCity || !props.selectedDistrict) {
-        console.warn('🚫 시/군 정보가 비어있음')
+    if (!props.selectedCity) {
+        console.warn('🚫 시 정보가 비어있음')
         return
     }
 
+    // 군/구를 선택하지 않은 경우 district는 빈 문자열로 처리
+    const district = props.selectedDistrict || ''
+
     const duplicate = props.selectedRegions.some(
-        (item) => item.city === props.selectedCity && item.district === props.selectedDistrict,
+        (item) => item.city === props.selectedCity && item.district === district,
     )
+
     if (!duplicate) {
         emit('update', {
             field: 'selectedRegions',
-            value: [
-                ...props.selectedRegions,
-                { city: props.selectedCity, district: props.selectedDistrict },
-            ],
+            value: [...props.selectedRegions, { city: props.selectedCity, district }],
         })
     }
 
+    // 군/구 초기화
     emit('update', { field: 'selectedDistrict', value: '' })
 }
 
+// const handleDistrictChange = (e) => {
+//   const district = e.target.value
+//   emit('update', { field: 'selectedDistrict', value: district })
+
+//   // 약간의 지연 후 호출
+//   setTimeout(() => {
+//     addSelectedRegion()
+//   }, 0)
+// }
+
 const handleDistrictChange = (e) => {
-  const district = e.target.value
-  emit('update', { field: 'selectedDistrict', value: district })
+    const district = e.target.value
+    emit('update', { field: 'selectedDistrict', value: district })
 
-  // 약간의 지연 후 호출
-  setTimeout(() => {
-    addSelectedRegion()
-  }, 0)
+    // 전체 선택인 경우
+    if (district === '__all__') {
+        if (!props.selectedCity) return
+
+        const combined = [
+            // 다른 시의 선택은 유지하고
+            ...props.selectedRegions.filter((r) => r.city !== props.selectedCity),
+            // 현재 시 전체를 나타내는 한 개만 추가
+            { city: props.selectedCity, district: '__all__' },
+        ]
+
+        emit('update', { field: 'selectedRegions', value: combined })
+
+        return
+    }
+
+    // 일반 구 선택
+    setTimeout(() => {
+        addSelectedRegion()
+    }, 0)
 }
 
-const onChangeCity = (e) => {
-    emit('update', { field: 'selectedCity', value: e.target.value })
-}
+// const onChangeCity = (e) => {
+//     emit('update', { field: 'selectedCity', value: e.target.value })
 
-const onChangeRegion = (e) => {
-    emit('update', { field: 'selectedRegion', value: e.target.value })
-}
+//     // 약간의 지연 후 호출
+//     setTimeout(() => {
+//         addSelectedRegion()
+//     }, 0)
+// }
+
+// const onChangeRegion = (e) => {
+//     emit('update', { field: 'selectedRegion', value: e.target.value })
+// }
 
 const removeSelectedRegion = (index) => {
     const updated = [...props.selectedRegions]

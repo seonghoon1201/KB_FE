@@ -11,24 +11,28 @@
                 선호하는 지역과 평수를 설정하면<br />더 정확한 청약 추천을 받을 수 있어요.
             </p>
         </div>
- 
+
         <!-- 선호 지역 -->
         <div class="mb-5">
-            <label class="text-sm font-semibold text-gray-800 mb-1 block"
-                >선호 지역 (복수 선택 가능)</label
-            >
+            <label class="text-sm font-semibold text-gray-800 mb-1 block">
+                선호 지역 (복수 선택 가능)
+                <span class="text-red-500">*</span>
+                <span class="text-xs text-red-500">(필수)</span>
+            </label>
             <div class="space-y-2">
                 <select v-model="selectedCity" class="w-full border rounded px-3 py-2 text-sm">
                     <option disabled value="">시/도를 선택해주세요</option>
                     <option v-for="city in cities" :key="city">{{ city }}</option>
                 </select>
+                <!-- 군/구 선택 -->
                 <select
                     v-model="selectedDistrict"
                     class="w-full border rounded px-3 py-2 text-sm"
                     @change="addSelectedRegion"
                 >
                     <option disabled value="">군/구를 선택해주세요</option>
-                    <option v-for="gu in filteredDistricts" :key="gu">{{ gu }}</option>
+                    <option value="전체">전체</option>
+                    <option v-for="gu in filteredDistricts" :key="gu" :value="gu">{{ gu }}</option>
                 </select>
             </div>
 
@@ -49,6 +53,11 @@
                 </div>
                 <span class="text-gray-400 ml-2">{{ selectedRegions.length }}개 선택됨</span>
             </div>
+
+            <!-- ❗ 필수 에러 메시지 -->
+            <p v-if="showRegionError" class="text-red-500 text-xs mt-2">
+                선호 지역은 반드시 한 곳 이상 선택해야 합니다.
+            </p>
         </div>
 
         <!-- 선호 평수 -->
@@ -129,13 +138,11 @@
 
 <script setup>
 import { ref, computed } from 'vue'
-import { Cog } from 'lucide-vue-next'
-import { usePreferenceStore } from '@/stores/preference'
 import { useRouter } from 'vue-router'
 import BackHeader from '@/components/common/BackHeader.vue'
+import { usePreferenceStore } from '@/stores/preference'
 import { districts } from '@/data/districts'
 import { areaOptions } from '@/data/area'
-
 
 const router = useRouter()
 const preferenceStore = usePreferenceStore()
@@ -146,41 +153,66 @@ const selectedCity = ref('')
 const selectedDistrict = ref('')
 const selectedRegions = ref([])
 const filteredDistricts = computed(() => districts[selectedCity.value] || [])
+const showRegionError = ref(false)
 
 const addSelectedRegion = () => {
     if (!selectedCity.value || !selectedDistrict.value) return
-    const duplicate = selectedRegions.value.some(
-        (item) => item.city === selectedCity.value && item.district === selectedDistrict.value,
+
+    // 🔹 이미 'OO 전체' 선택된 경우 → 개별 구 추가 X
+    const hasCityAll = selectedRegions.value.some(
+        (item) => item.city === selectedCity.value && item.district === '전체',
     )
-    if (!duplicate) {
-        selectedRegions.value.push({ city: selectedCity.value, district: selectedDistrict.value })
+    if (hasCityAll && selectedDistrict.value !== '전체') {
+        alert(`이미 ${selectedCity.value} 전체가 선택되어 있어요.`)
+        return
     }
+
+    // 🔹 '전체' 선택 시 → 기존 해당 시의 개별 구 모두 제거 후 '전체' 하나만 추가
+    if (selectedDistrict.value === '전체') {
+        // 기존 같은 시의 개별 구 제거
+        selectedRegions.value = selectedRegions.value.filter(
+            (item) => item.city !== selectedCity.value,
+        )
+
+        // '전체'가 이미 있지 않다면 추가
+        const alreadyAll = selectedRegions.value.some(
+            (item) => item.city === selectedCity.value && item.district === '전체',
+        )
+        if (!alreadyAll) {
+            selectedRegions.value.push({ city: selectedCity.value, district: '전체' })
+        }
+    } else {
+        // 🔹 개별 구 추가 (단, 같은 시의 전체가 이미 있으면 막음은 위에서 처리)
+        const duplicate = selectedRegions.value.some(
+            (item) => item.city === selectedCity.value && item.district === selectedDistrict.value,
+        )
+        if (!duplicate) {
+            selectedRegions.value.push({
+                city: selectedCity.value,
+                district: selectedDistrict.value,
+            })
+        }
+    }
+
     selectedDistrict.value = ''
 }
 
 const removeSelectedRegion = (index) => {
     selectedRegions.value.splice(index, 1)
 }
-6
+
 const selectedAreas = ref([])
 const toggleArea = (val) => {
-    const key = val.toString()
-    const exists = selectedAreas.value.find((a) => a.toString() === key)
+    const exists = selectedAreas.value.includes(val)
     if (exists) {
-        selectedAreas.value = selectedAreas.value.filter((a) => a.toString() !== key)
+        selectedAreas.value = selectedAreas.value.filter((a) => a !== val)
     } else {
         selectedAreas.value.push(val)
     }
 }
 
 const expandAreaRanges = (ranges) => {
-    const allSizes = []
-    ranges.forEach(([min, max]) => {
-        for (let i = min + 1; i <= max; i++) {
-            allSizes.push(i)
-        }
-    })
-    return allSizes
+    return ranges.map((val) => Number(val))
 }
 
 const priceMin = ref(null)
@@ -197,20 +229,31 @@ const toggleType = (type) => {
 }
 
 const onSubmit = () => {
-    const expandedSizes = expandAreaRanges(selectedAreas.value)
-
-    const preferenceData = {
-        regions: selectedRegions.value,
-        areas: expandedSizes,
-        priceRange: [priceMin.value, priceMax.value],
-        types: selectedTypes.value,
+    if (selectedRegions.value.length === 0) {
+        showRegionError.value = true
+        return
     }
 
-    console.log('저장된 선호 설정:', preferenceData) // 🔍 콘솔에 정보 출력
+    showRegionError.value = false
 
-    preferenceStore.setPreference(preferenceData)
+    const expandedSizes = expandAreaRanges(selectedAreas.value)
+    const region = selectedRegions.value[0]
+
+    // ✅ 디폴트 보정
+    const finalAreas = expandedSizes.length > 0 ? expandedSizes : [] // 선택 없으면 전체
+    const finalPriceRange =
+        priceMin.value || priceMax.value ? [priceMin.value, priceMax.value] : [null, null]
+    const finalTypes = selectedTypes.value.length > 0 ? selectedTypes.value : [] // 전체 포함
+
+    preferenceStore.setPreference({
+        city: region.city,
+        district: region.district,
+        areas: finalAreas,
+        priceRange: finalPriceRange,
+        types: finalTypes,
+    })
+
     alert('설정이 저장되었습니다.')
-
     router.push('/')
 }
 </script>
