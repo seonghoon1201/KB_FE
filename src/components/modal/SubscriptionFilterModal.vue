@@ -56,7 +56,7 @@
 
             <!-- 평수 -->
             <label class="text-sm font-semibold text-gray-800 block mt-3 mb-1">선호 평수</label>
-            <div class="grid grid-cols-3 gap-2 text-sm mb-4">
+            <div class="grid grid-cols-3 gap-2 text-xs mb-4">
                 <button
                     v-for="option in areaOptions"
                     :key="option.value"
@@ -69,6 +69,8 @@
                     ]"
                 >
                     {{ option.label }}
+
+                    <!-- {{ option.label }}<br> ({{ option.pyeong }}) -->
                 </button>
             </div>
 
@@ -125,12 +127,6 @@ const close = () => emit('update:visible', false)
 
 const cities = Object.keys(districts)
 const filteredDistricts = computed(() => districts[props.selectedCity] || [])
-// const selectedCity = ref('')
-// const selectedDistrict = ref('')
-// const selectedRegions = ref([])
-
-// const priceMin = ref(null) // 만 원 단위
-// const priceMax = ref(null)
 
 const addSelectedRegion = () => {
     console.log('📍 city:', props.selectedCity, 'district:', props.selectedDistrict)
@@ -194,18 +190,18 @@ const handleDistrictChange = (e) => {
     }, 0)
 }
 
-const onChangeCity = (e) => {
-    emit('update', { field: 'selectedCity', value: e.target.value })
+// const onChangeCity = (e) => {
+//     emit('update', { field: 'selectedCity', value: e.target.value })
 
-    // 약간의 지연 후 호출
-    setTimeout(() => {
-        addSelectedRegion()
-    }, 0)
-}
+//     // 약간의 지연 후 호출
+//     setTimeout(() => {
+//         addSelectedRegion()
+//     }, 0)
+// }
 
-const onChangeRegion = (e) => {
-    emit('update', { field: 'selectedRegion', value: e.target.value })
-}
+// const onChangeRegion = (e) => {
+//     emit('update', { field: 'selectedRegion', value: e.target.value })
+// }
 
 const removeSelectedRegion = (index) => {
     const updated = [...props.selectedRegions]
