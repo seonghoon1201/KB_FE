@@ -1,5 +1,5 @@
 <template>
-    <div class="bg-gray-50 min-h-screen pt-20">
+    <div class="bg-gray-50 min-h-screen pt-12">
         <!-- 상단 헤더 -->
         <BackHeader title="청약 상세" />
 
