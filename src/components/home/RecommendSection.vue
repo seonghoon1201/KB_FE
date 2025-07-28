@@ -54,34 +54,10 @@ const router = useRouter()
 
 const props = defineProps({
   isPreferenceSet: Boolean,
-})
-
-const recommendList = ref([])
-
-onMounted(() => {
-  if (props.isPreferenceSet) {
-    // ✅ 더미 추천 데이터
-    recommendList.value = [
-      {
-        id: 1,
-        name: '힐스테이트 강남역',
-        location: '서울 강남구',
-        image: 'apt_1.jpg',
-      },
-      {
-        id: 2,
-        name: '래미안 서초',
-        location: '서울 서초구',
-        image: 'apt_2.jpg',
-      },
-      {
-        id: 3,
-        name: '자이 송파',
-        location: '서울 송파구',
-        image: 'apt_3.jpg',
-      },
-    ]
-  }
+  recommendList: {
+    type: Array,
+    default: () => [],
+  },
 })
 
 const goToPreference = () => {
