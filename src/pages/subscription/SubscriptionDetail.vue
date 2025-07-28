@@ -28,7 +28,7 @@
             </p>
             <p class="mt-2 text-lg font-bold text-blue-600">{{ subscription.price }}</p>
 
-           <!-- 지도 영역 -->
+            <!-- 지도 영역 -->
             <div ref="mapRef" class="rounded-lg mt-4 w-full aspect-video" />
         </section>
 
@@ -70,14 +70,23 @@
             <PossibilitySection />
         </section>
 
-        <!-- 청약 신청 버튼 -->
-        <section class="px-4 mt-6">
+        <!-- 버튼 그룹 -->
+        <section class="px-4 mt-6 space-y-3">
+            <!-- 청약 신청 버튼 -->
             <button
-                class="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-lg py-3 font-semibold text-base"
+                class="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-green-400 to-teal-500 text-white rounded-xl py-3 text-base font-semibold shadow hover:brightness-110 transition-all"
             >
-                청약 신청하기
+                <Building2 class="w-5 h-5" /> 청약 신청하기
             </button>
-            <p class="text-center text-xs text-gray-400 mt-1">* 청약Home 사이트로 이동합니다.</p>
+            <p class="text-xs text-gray-400 text-center">* 청약Home 사이트로 이동합니다.</p>
+
+            <!-- 분양 정보 보기 버튼 -->
+            <button
+                class="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-orange-400 to-yellow-400 text-white rounded-xl py-3 text-base font-semibold shadow hover:brightness-110 transition-all"
+            >
+                <FileText class="w-5 h-5" /> 분양 정보 보기
+            </button>
+            <p class="text-xs text-gray-400 text-center">* 분양 정보 페이지로 이동합니다.</p>
         </section>
 
         <!-- 주변 시설 -->
@@ -114,6 +123,8 @@ import {
     GraduationCap,
     Stethoscope,
     ShoppingBag,
+    FileText,
+    Building2,
 } from 'lucide-vue-next'
 import { onMounted, ref, computed } from 'vue'
 import BackHeader from '@/components/common/BackHeader.vue'
@@ -125,17 +136,17 @@ import { loadKakaoMapScript } from '@/utils/KakaoMapLoader'
 const mapRef = ref(null)
 
 onMounted(async () => {
-  const kakao = await loadKakaoMapScript()
+    const kakao = await loadKakaoMapScript()
 
-  const map = new kakao.maps.Map(mapRef.value, {
-    center: new kakao.maps.LatLng(subscription.lat, subscription.lng),
-    level: 4,
-  })
+    const map = new kakao.maps.Map(mapRef.value, {
+        center: new kakao.maps.LatLng(subscription.lat, subscription.lng),
+        level: 4,
+    })
 
-  new kakao.maps.Marker({
-    position: new kakao.maps.LatLng(subscription.lat, subscription.lng),
-    map: map,
-  })
+    new kakao.maps.Marker({
+        position: new kakao.maps.LatLng(subscription.lat, subscription.lng),
+        map: map,
+    })
 })
 
 // 임시 subscription 데이터
@@ -147,10 +158,9 @@ const subscription = {
     householdCount: 175,
     address: '서울시 강남구 역삼동 123-45',
     price: '7억',
-    lat: 37.50098,      // 위도
-    lng: 127.03654,     // 경도
+    lat: 37.50098, // 위도
+    lng: 127.03654, // 경도
 }
-
 
 // 다중 평수를 문자열로 포맷
 const areaList = computed(() => subscription.area.map((a) => `${a}㎡`).join(' / '))
@@ -227,5 +237,9 @@ const isFavorite = computed(() => favoritesStore.isFavorite(subscription.id))
 
 const handleFavoriteClick = () => {
     favoritesStore.toggleFavorite(subscription.id)
+}
+
+const openPromotionLink = () => {
+    window.open('https://www.applyhome.co.kr/co/coa/selectMainView.do', '_blank')
 }
 </script>
