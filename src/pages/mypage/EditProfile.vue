@@ -3,7 +3,31 @@
         <BackHeader title="프로필 수정" />
 
         <form @submit.prevent="saveProfile" class="m-4 p-2 mt-16 w-full">
-            <div class="mb-4 text-left w-full">
+            <div class="mb-2 text-left w-full">
+                <label class="block font-semibold mb-1 text-[14px]">e-mail / 아이디</label>
+                <div
+                    class="email-input w-full border rounded-[8px] px-3 py-2 flex justify-between bg-gray-100"
+                >
+                    <input
+                        type="email"
+                        v-model="profile.email"
+                        readonly
+                        class="bg-gray-100 cursor-not-allowed w-full focus:outline-none"
+                    />
+                </div>
+            </div>
+
+            <div class="mb-2 text-left w-full">
+                <label class="block font-semibold mb-1 text-[14px]">계좌</label>
+                <input
+                    type="text"
+                    v-model="profile.account"
+                    class="w-full border rounded-[8px] px-3 py-2 bg-gray-100 cursor-not-allowed focus:outline-none"
+                    readonly
+                />
+            </div>
+
+            <div class="mb-2 text-left w-full">
                 <label class="block font-semibold mb-1 text-[14px]">이름</label>
                 <input
                     type="text"
@@ -12,7 +36,7 @@
                 />
             </div>
 
-            <div class="mb-4 text-left w-full">
+            <div class="mb-2 text-left w-full">
                 <label class="block font-semibold mb-1 text-[14px]">생년월일</label>
                 <input
                     type="date"
@@ -21,30 +45,7 @@
                 />
             </div>
 
-            <div class="mb-4 text-left w-full">
-                <label class="block font-semibold mb-1 text-[14px]">계좌</label>
-                <input
-                    type="text"
-                    v-model="profile.account"
-                    class="w-full border rounded-[8px] px-3 py-2"
-                />
-            </div>
-
-            <div class="mb-4 text-left w-full">
-                <label class="block font-semibold mb-1 text-[14px]">e-mail / 아이디</label>
-                <div class="email-input w-full border rounded-[8px] px-3 py-2 flex justify-between">
-                    <input type="email" v-model="profile.email" />
-                    <button
-                        type="button"
-                        @click="changeEmail"
-                        class="text-gray-400 underline text-sm"
-                    >
-                        변경하기
-                    </button>
-                </div>
-            </div>
-
-            <div class="mb-4 text-left w-full">
+            <div class="mb-2 text-left w-full">
                 <label class="block font-semibold mb-1 text-[14px]"
                     >거주지(주민등록 상 거주지)</label
                 >
@@ -96,6 +97,7 @@ const changePassword = () => {
 }
 
 const saveProfile = () => {
+    // 프로필 저장 구현
     alert('저장되었습니다!')
 }
 const navigateTo = (path) => {
