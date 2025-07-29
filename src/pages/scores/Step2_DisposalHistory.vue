@@ -1,5 +1,9 @@
 <template>
     <ScoreStepWrapper>
+        <!-- 단계 표시 -->
+        <div class="flex justify-start pb-4">
+            <span class="text-lg text-gray-500">2/6</span>
+        </div>
         <div class="flex items-center mb-6">
             <h2 class="text-lg font-bold">주택 혹은 분양권을 처분한 적이 있나요?</h2>
             <InfoTooltip title="주택 및 분양권 처분 내역">
