@@ -230,6 +230,38 @@ const routes = [
         component: () => import('@/pages/scores/ScoreInfo.vue'),
     },
 
+    // **수정 전용 페이지** (edit routes)
+    {
+        path: '/score/edit/step1',
+        name: 'EditStep1',
+        component: () => import('@/pages/scores/EditStep1_HouseOwnership.vue'),
+    },
+    {
+        path: '/score/edit/step2',
+        name: 'EditStep2',
+        component: () => import('@/pages/scores/EditStep2_DisposalHistory.vue'),
+    },
+    {
+        path: '/score/edit/step3',
+        name: 'EditStep3',
+        component: () => import('@/pages/scores/EditStep3_HouseholdHead.vue'),
+    },
+    {
+        path: '/score/edit/step4',
+        name: 'EditStep4',
+        component: () => import('@/pages/scores/EditStep4.vue'),
+    },
+    {
+        path: '/score/edit/step5',
+        name: 'EditStep5',
+        component: () => import('@/pages/scores/EditStep5_DependentFamily.vue'),
+    },
+    {
+        path: '/score/edit/step6',
+        name: 'EditStep6',
+        component: () => import('@/pages/scores/EditStep6_ResidenceInfo.vue'),
+    },
+
     // 404 에러 페이지
     {
         path: '/:pathMatch(.*)*',
