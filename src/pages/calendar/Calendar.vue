@@ -5,9 +5,9 @@
             class="fixed top-0 left-0 w-full px-1 py-6 space-y-6 pt-[70px] pb-[70px] flex flex-col inset-0"
         >
             <div class="flex-none w-full overflow-hidden">
-                <div class="flex items-center mb-2">
+                <div class="flex items-center mt-1 mb-2">
                     <div
-                        class="relative w-full h-6 rounded flex justify-between items-center m-1"
+                        class="relative w-full h-6 rounded flex justify-between items-center m-1 mt-4"
                         v-if="currentView === 'dayGridMonth'"
                     >
                         <button
@@ -18,7 +18,7 @@
                         </button>
 
                         <span
-                            class="flex flex-col items-center px-4 py-2 font-medium rounded-lg shadow focus:outline-none focus:ring-2 transition"
+                            class="flex flex-col items-center px-4 py-2 font-medium rounded-lg shadow focus:outline-none focus:ring-2 transition z-50"
                             @click="monthMove('today')"
                         >
                             <span class="text-sm text-center">{{ todayMonth }}</span>
