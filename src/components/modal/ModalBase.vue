@@ -94,10 +94,7 @@
                         <p class="text-sm">사용자약관</p>
                         <ChevronRight />
                     </div>
-                    <div
-                        class="w-full h-8 mb-4 flex justify-between border-b-2"
-                        @click="movePage('/login')"
-                    >
+                    <div class="w-full h-8 mb-4 flex justify-between border-b-2" @click="logOut">
                         <p class="text-sm">로그아웃</p>
                         <ChevronRight />
                     </div>
@@ -117,6 +114,7 @@
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { useCommonStore } from '@/stores/common' // 모달창 제어 피니아
+import { useUserStore } from '@/stores/user'
 // import { useUserStore } from '@/stores/user' // 유저 정보 피니아
 import {
     X,
@@ -138,5 +136,13 @@ const username = '테스트테스'
 const movePage = (page) => {
     modalStore.modalOnOff()
     router.push(page)
+}
+
+const logOut = () => {
+    const useStore = useUserStore()
+    useStore.logout()
+
+    modalStore.modalOnOff()
+    router.replace('/login')
 }
 </script>
