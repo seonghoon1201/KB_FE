@@ -1,10 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
 import Home from '@/pages/home/Home.vue'
-import Account from '@/pages/calculator/Account.vue'
-import Family from '@/pages/calculator/Family.vue'
-import NoHouse from '@/pages/calculator/NoHouse.vue'
-import ScoreResult from '@/pages/calculator/ScoreResult.vue'
 import Preference from '@/pages/preference/Preference.vue'
 import Chatbot from '@/pages/chatbot/Chatbot.vue'
 import Notification from '@/pages/notification/Notification.vue'
@@ -35,14 +31,11 @@ import NotFound from '@/pages/error/NotFound.vue'
 import Mypage from '@/pages/mypage/Mypage.vue'
 import MyPreference from '@/pages/mypage/MyPreference.vue'
 import ChangePassword from '@/pages/mypage/ChangePassword.vue'
+import { combineEventUis } from '@fullcalendar/core/internal'
 
 const routes = [
     // ✅ 모든 페이지를 평면 구조로 처리
     { path: '/', name: 'Home', component: Home }, // 홈 화면
-    { path: '/account', name: 'Account', component: Account }, // 청약 통장 가입 기간 체크 페이지
-    { path: '/family', name: 'Family', component: Family }, // 부양 가족 수 체크 페이지
-    { path: '/no-house', name: 'NoHouse', component: NoHouse }, // 무주택 기간 체크 페이지
-    { path: '/score-result', name: 'ScoreResult', component: ScoreResult }, // 청약 점수 계산 결과 페이지
     { path: '/preference', name: 'Preference', component: Preference }, // 선호지역
     { path: '/notification', name: 'Notification', component: Notification }, // 알림 페이지
     { path: '/notification/:id', name: 'NotificationDetail', component: NotoficationDetail }, // 알림 상세 페이지
@@ -79,14 +72,41 @@ const routes = [
 
     // 404
     { path: '/:pathMatch(.*)*', name: 'NotFound', component: NotFound }, // 에러 페이지
+
+    {
+        path: '/score/step1',
+        component: () => import('@/pages/scores/Step1_HouseOwnership.vue'),
+    },
+    {
+        path: '/score/step2',
+        component: () => import('@/pages/scores/Step2_DisposalHistory.vue'),
+    },
+    {
+        path: '/score/step3',
+        component: () => import('@/pages/scores/Step3_HouseholdHead.vue'),
+    },
+    { path: '/score/step4', component: () => import('@/pages/scores/Step4.vue') },
+    {
+        path: '/score/step5',
+        component: () => import('@/pages/scores/Step5_DependentFamily.vue'),
+    },
+    {
+        path: '/score/step6',
+        component: () => import('@/pages/scores/Step6_ResidenceInfo.vue'),
+    },
+    {
+        path: '/score/result',
+        component: () => import('@/pages/scores/ScoreResult.vue'),
+    },
+    { path: '/score/info', component: () => import('@/pages/scores/ScoreInfo.vue') },
 ]
 
 const router = createRouter({
     history: createWebHistory(),
     routes,
     scrollBehavior(to, from, savedPosition) {
-    return { top: 0 }
-  }
+        return { top: 0 }
+    },
 })
 
 export default router
