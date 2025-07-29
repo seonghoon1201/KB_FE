@@ -1,5 +1,5 @@
 <template>
-    <div class="bg-gray-50 min-h-screen pt-20">
+    <div class="bg-gray-50 min-h-screen pt-12">
         <!-- 상단 헤더 -->
         <BackHeader title="청약 상세" />
 
@@ -25,6 +25,15 @@
             </p>
             <p class="mt-1 text-sm text-gray-500">
                 <MapPin class="inline mr-1" :size="16" />{{ subscription.address }}
+            </p>
+
+            <p class="flex items-center mt-1 text-sm text-gray-500">
+                <Heart class="inline mr-1" :size="16" stroke-width="1.5" />{{
+                    subscription.favoriteCount
+                }}
+                / <Eye class="inline ml-1 mr-1" :size="16" stroke-width="1.5" />{{
+                    subscription.viewCount
+                }}
             </p>
             <p class="mt-2 text-lg font-bold text-blue-600">{{ subscription.price }}</p>
 
@@ -117,6 +126,7 @@
 <script setup>
 import {
     Heart,
+    Eye,
     MapPin,
     Calendar,
     TrainFront,
@@ -157,6 +167,8 @@ const subscription = {
     area: ['59', '74', '84'],
     householdCount: 175,
     address: '서울시 강남구 역삼동 123-45',
+    viewCount: 10,
+    favoriteCount: 100,
     price: '7억',
     lat: 37.50098, // 위도
     lng: 127.03654, // 경도

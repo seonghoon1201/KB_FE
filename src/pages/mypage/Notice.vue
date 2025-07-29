@@ -17,7 +17,7 @@
                 </button>
                 <button
                     :class="[
-                        'w-[70px] h-10  border border-gray-300 rounded-full mr-4 ml-4',
+                        'w-[70px] h-10  border border-gray-300 rounded-full ml-4',
                         filter === 'notice' && 'bg-blue-500 font-bold text-white',
                     ]"
                     @click="filterChange('notice')"
@@ -26,12 +26,21 @@
                 </button>
                 <button
                     :class="[
-                        'w-[70px] h-10  border border-gray-300 rounded-full',
+                        'w-[70px] h-10  border border-gray-300 rounded-full ml-4',
                         filter === 'event' && 'bg-blue-500 font-bold text-white',
                     ]"
                     @click="filterChange('event')"
                 >
                     이벤트
+                </button>
+                <button
+                    :class="[
+                        'w-[70px] h-10  border border-gray-300 rounded-full ml-4',
+                        filter === 'event' && 'bg-blue-500 font-bold text-white',
+                    ]"
+                    @click="filterChange('info')"
+                >
+                    정보
                 </button>
             </div>
             <div class="w-full flex flex-col items-center overflow-scroll">
@@ -63,15 +72,7 @@
 <script setup>
 import { ref, reactive, watch, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import {
-    Circle,
-    Flag,
-    MessageCircleWarning,
-    MessageSquareWarning,
-    CircleAlert,
-    Calendar,
-    ChevronRight,
-} from 'lucide-vue-next'
+import { Circle, Flag, Calendar, ChevronRight, Info } from 'lucide-vue-next'
 
 import BackHeader from '@/components/common/BackHeader.vue'
 import BottomNavbar from '@/components/common/BottomNavbar.vue'
