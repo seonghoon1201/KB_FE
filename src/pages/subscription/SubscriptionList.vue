@@ -153,7 +153,6 @@ import BottomNavbar from '@/components/common/BottomNavbar.vue'
 import SubscriptionCard from '@/components/subscription/SubscriptionCard.vue'
 import BackHeader from '@/components/common/BackHeader.vue'
 // 더미 데이터 및 Pinia 스토어
-// import { allSubscriptions } from '@/data/subscription-data'
 import { allSubscriptions } from '@/data/subscription-large-data'
 import { useFavoritesStore } from '@/stores/favorites'
 // 정렬 및 필터 아이콘
@@ -211,25 +210,7 @@ const appliedFilters = ref({
     priceMax: null,
 })
 
-
-const customFilter = ref({
-    location: '',
-    squareMeter: '',
-    price: '',
-})
-
 const selectedAreas = ref([])
-
-// // 평수 토글 함수
-// const toggleArea = (val) => {
-//     const valStr = val.toString()
-//     const exists = selectedAreas.value.some((a) => a.toString() === valStr)
-//     if (exists) {
-//         selectedAreas.value = selectedAreas.value.filter((a) => a.toString() !== valStr)
-//     } else {
-//         selectedAreas.value.push([...val]) // 깊은 복사해서 추가
-//     }
-// }
 
 // 필터링 및 정렬 적용된 공고 목록 계산
 const filteredSubscriptions = computed(() => {
@@ -295,7 +276,6 @@ const filteredSubscriptions = computed(() => {
 
 // 필터 적용 버튼 클릭 시 동작
 const applyFilters = () => {
-    console.log('✅ selectedRegions before apply:', selectedRegions.value)
     const parsedAreas = selectedAreas.value.map((val) => {
         if (typeof val === 'string') {
             const [min, max] = val.split(',').map(Number)
@@ -303,9 +283,6 @@ const applyFilters = () => {
         }
         return val
     })
-
-    console.log('🟡 selectedAreas.value:', selectedAreas.value)
-    console.log('🟢 parsedAreas:', parsedAreas)
 
     appliedFilters.value = {
         regions: [...selectedRegions.value],
@@ -324,15 +301,6 @@ const stringPriceToNumber = (str) => {
     return parseInt(str.replace(/,/g, ''), 10)
 }
 
-const expandAreaRanges = (ranges) => {
-    const allSizes = []
-    ranges.forEach(([min, max]) => {
-        for (let i = min + 1; i <= max; i++) {
-            allSizes.push(i)
-        }
-    })
-    return allSizes
-}
 
 const toggleFilter = () => {
     if (!isFilterOpen.value) {
@@ -348,26 +316,6 @@ const toggleFilter = () => {
     }
     isFilterOpen.value = !isFilterOpen.value
 }
-
-// 필터 클릭 핸들러
-const handleFilterClick = (filter) => {
-    if (filter.isCustom) {
-        toggleFilter()
-    } else {
-        selectedFilter.value = filter.key
-        isFilterOpen.value = false // 기존 드롭다운은 닫기
-    }
-}
-
-// // 필터 창을 열 때 현재 적용된 값으로 초기화
-// const openFilter = () => {
-//     tempFilters.value = JSON.parse(JSON.stringify(appliedFilters.value))
-// }
-
-// const handleFavoriteChanged = (subscriptionId) => {
-//     const nowFavorite = favoritesStore.toggleFavorite(subscriptionId)
-//     console.log(`ID: ${subscriptionId}, 즐겨찾기 상태: ${nowFavorite}`)
-// }
 
 // 필터 모달에서 개별 필드 업데이트
 const handleFilterUpdate = ({ field, value }) => {

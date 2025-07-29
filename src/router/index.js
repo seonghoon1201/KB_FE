@@ -1,92 +1,281 @@
+// src/router/index.js
 import { createRouter, createWebHistory } from 'vue-router'
 
-import Home from '@/pages/home/Home.vue'
-import Account from '@/pages/calculator/Account.vue'
-import Family from '@/pages/calculator/Family.vue'
-import NoHouse from '@/pages/calculator/NoHouse.vue'
-import ScoreResult from '@/pages/calculator/ScoreResult.vue'
-import Preference from '@/pages/preference/Preference.vue'
-import Chatbot from '@/pages/chatbot/Chatbot.vue'
-import Notification from '@/pages/notification/Notification.vue'
-import NotoficationDetail from '@/pages/notification/NotoficationDetail.vue'
-import SubscriptionList from '@/pages/subscription/SubscriptionList.vue'
-import SubscriptionDetail from '@/pages/subscription/SubscriptionDetail.vue'
-import FavoriteSubscription from '@/pages/subscription/FavoriteSubscription.vue'
-import EditProfile from '@/pages/mypage/EditProfile.vue'
-import Notice from '@/pages/mypage/Notice.vue'
-import NoticeDetail from '@/pages/mypage/NoticeDetail.vue'
-import Terms from '@/pages/mypage/Terms.vue'
-import UserTerms from '@/pages/mypage/UserTerms.vue'
-import Privacy from '@/pages/mypage/PrivacyPage.vue'
-import Withdraw from '@/pages/mypage/Withdraw.vue'
-import Calendar from '@/pages/calendar/Calendar.vue'
-import Map from '@/pages/map/Map.vue'
-
-import Login from '@/pages/auth/Login.vue'
-import SignUp from '@/pages/auth/SignUp.vue'
-import FindPassword from '@/pages/auth/FindPassword.vue'
-import VerifyCode from '@/pages/auth/VerifyCode.vue'
-import ResetPassword from '@/pages/auth/ResetPassword.vue'
-import BankAuth from '@/pages/account/BankAuth.vue'
-import BankLoading from '@/pages/account/BankLoading.vue'
-import BankSelect from '@/pages/account/BankSelect.vue'
-import BankComplete from '@/pages/account/BankComplete.vue'
-import NotFound from '@/pages/error/NotFound.vue'
-import Mypage from '@/pages/mypage/Mypage.vue'
-import MyPreference from '@/pages/mypage/MyPreference.vue'
-import ChangePassword from '@/pages/mypage/ChangePassword.vue'
-
 const routes = [
-    // ✅ 모든 페이지를 평면 구조로 처리
-    { path: '/', name: 'Home', component: Home }, // 홈 화면
-    { path: '/account', name: 'Account', component: Account }, // 청약 통장 가입 기간 체크 페이지
-    { path: '/family', name: 'Family', component: Family }, // 부양 가족 수 체크 페이지
-    { path: '/no-house', name: 'NoHouse', component: NoHouse }, // 무주택 기간 체크 페이지
-    { path: '/score-result', name: 'ScoreResult', component: ScoreResult }, // 청약 점수 계산 결과 페이지
-    { path: '/preference', name: 'Preference', component: Preference }, // 선호지역
-    { path: '/notification', name: 'Notification', component: Notification }, // 알림 페이지
-    { path: '/notification/:id', name: 'NotificationDetail', component: NotoficationDetail }, // 알림 상세 페이지
-    { path: '/subscriptions', name: 'SubscriptionList', component: SubscriptionList }, // 청약 정보 리스트 페이지
-    { path: '/subscriptions/:id', name: 'SubscriptionDetail', component: SubscriptionDetail }, // 청약 정보 상세 페이지
-    { path: '/favorites', name: 'FavoriteSubscription', component: FavoriteSubscription }, // 즐겨찾기
-    { path: '/calendar', name: 'Calendar', component: Calendar }, // 달력 페이지
-    { path: '/map', name: 'Map', component: Map }, // 지도 페이지
-    { path: '/chatbot', name: 'Chatbot', component: Chatbot }, // 챗봇
+    // 홈 화면
+    { path: '/', name: 'Home', component: () => import('@/pages/home/Home.vue') },
+    // 선호 설정 화면
+    {
+        path: '/preference',
+        name: 'Preference',
+        component: () => import('@/pages/preference/Preference.vue'),
+    },
+    // 공지사항 화면
+    {
+        path: '/notification',
+        name: 'Notification',
+        component: () => import('@/pages/notification/Notification.vue'),
+    },
+    // 공지사항 디테일 화면
+    {
+        path: '/notification/:id',
+        name: 'NotificationDetail',
+        component: () => import('@/pages/notification/NotoficationDetail.vue'),
+    },
+    // 청약 정보 리스트 화면
+    {
+        path: '/subscriptions',
+        name: 'SubscriptionList',
+        component: () => import('@/pages/subscription/SubscriptionList.vue'),
+    },
+    // 청약 정보 디테일 화면
+    {
+        path: '/subscriptions/:id',
+        name: 'SubscriptionDetail',
+        component: () => import('@/pages/subscription/SubscriptionDetail.vue'),
+    },
+    // 즐겨찾기 화면
+    {
+        path: '/favorites',
+        name: 'FavoriteSubscription',
+        component: () => import('@/pages/subscription/FavoriteSubscription.vue'),
+    },
+    // 최근 본 공고 화면
+    {
+        path: '/recent',
+        name: 'RecentlyViewedSubscription',
+        component: () => import('@/pages/subscription/RecentlyViewedSubscription.vue'),
+    },
+    // 달력 화면
+    {
+        path: '/calendar',
+        name: 'Calendar',
+        component: () => import('@/pages/calendar/Calendar.vue'),
+    },
+    // 지도 화면
+    {
+        path: '/map',
+        name: 'Map',
+        component: () => import('@/pages/map/Map.vue'),
+    },
+    // 챗봇 화면(아직 구현 X)
+    {
+        path: '/chatbot',
+        name: 'Chatbot',
+        component: () => import('@/pages/chatbot/Chatbot.vue'),
+    },
 
-    { path: '/mypage', name: 'Mypage', component: Mypage }, //마이페이지
-    { path: '/mypage/changepw', name: 'ChangePassword', component: ChangePassword },
-    { path: '/mypage/mypreferences', name: 'MyPreference', component: MyPreference }, // 선호 정보 저장 페이지
-    { path: '/mypage/edit', name: 'EditProfile', component: EditProfile }, // 프로필 편집
-    { path: '/mypage/notice', name: 'Notice', component: Notice }, // FAQ(공지사항) 페이지
-    { path: '/mypage/notice/:id', name: 'NoticeDetail', component: NoticeDetail }, // FAQ 상세 페이지
-    { path: '/mypage/terms', name: 'Terms', component: Terms }, // 약관 페이지
-    { path: '/mypage/withdraw', name: 'Withdraw', component: Withdraw }, // 회원탈퇴 페이지
-    { path: '/terms', name: 'Terms', component: Terms }, // 약관 페이지
-    { path: '/userterms', name: 'UserTerms', component: UserTerms }, // 사용자 약관 페이지
-    { path: '/privacy', name: 'Privacy', component: Privacy }, // 개인정보 처리방침 페이지
+    // 로그인 & 회원가입 파트
+    // 로그인 화면
+    {
+        path: '/login',
+        name: 'Login',
+        component: () => import('@/pages/auth/Login.vue'),
+    },
+    // 회원가입 화면
+    {
+        path: '/signup',
+        name: 'SignUp',
+        component: () => import('@/pages/auth/SignUp.vue'),
+    },
+    // 비밀번호 찾기 화면
+    {
+        path: '/find-password',
+        name: 'FindPassword',
+        component: () => import('@/pages/auth/FindPassword.vue'),
+    },
+    // 인증코드 확인 화면
+    {
+        path: '/find-password/verify',
+        name: 'VerifyCode',
+        component: () => import('@/pages/auth/VerifyCode.vue'),
+    },
+    // 비밀번호 재설정 화면
+    {
+        path: '/find/reset-password',
+        name: 'ResetPassword',
+        component: () => import('@/pages/auth/ResetPassword.vue'),
+    },
 
-    { path: '/login', name: 'Login', component: Login }, // 로그인 페이지
-    { path: '/signup', name: 'SignUp', component: SignUp }, // 회원가입 페이지
+    // 은행 연결 관련 파트
+    // 은행 로그인 화면
+    {
+        path: '/bank/auth',
+        name: 'BankAuth',
+        component: () => import('@/pages/account/BankAuth.vue'),
+    },
+    // 은행 선택 화면
+    {
+        path: '/bank/select',
+        name: 'BankSelect',
+        component: () => import('@/pages/account/BankSelect.vue'),
+    },
+    // 은행 로그인 로딩 화면
+    {
+        path: '/bank/loading',
+        name: 'BankLoading',
+        component: () => import('@/pages/account/BankLoading.vue'),
+    },
+    // 은행 로그인 완료 화면
+    {
+        path: '/bank/complete',
+        name: 'BankComplete',
+        component: () => import('@/pages/account/BankComplete.vue'),
+    },
 
-    { path: '/find-password', name: 'FindPassword', component: FindPassword }, // 패스워드 찾기 페이지
-    { path: '/find-password/verify', name: 'VerifyCode', component: VerifyCode }, // 패스워드 인증코드 페이지
-    { path: '/find/reset-password', name: 'ResetPassword', component: ResetPassword }, // 패스워드 초기화 페이지
+    // 마이페이지 파트
+    // 마이페이지 화면
+    { path: '/mypage', name: 'Mypage', component: () => import('@/pages/mypage/Mypage.vue') },
+    {
+        path: '/mypage/edit',
+        name: 'EditProfile',
+        component: () => import('@/pages/mypage/EditProfile.vue'),
+    },
+    // FAQ 화면
+    {
+        path: '/mypage/notice',
+        name: 'Notice',
+        component: () => import('@/pages/mypage/Notice.vue'),
+    },
+    // FAQ 상세 화면
+    {
+        path: '/mypage/notice/:id',
+        name: 'NoticeDetail',
+        component: () => import('@/pages/mypage/NoticeDetail.vue'),
+    },
+    // 이용약관 화면
+    {
+        path: '/mypage/terms',
+        name: 'Terms',
+        component: () => import('@/pages/mypage/Terms.vue'),
+    },
+    // 사용자 약관 화면
+    {
+        path: '/mypage/userterms',
+        name: 'UserTerms',
+        component: () => import('@/pages/mypage/UserTerms.vue'),
+    },
+    // 개인 정보 제공 동의 화면
+    {
+        path: '/mypage/privacy',
+        name: 'Privacy',
+        component: () => import('@/pages/mypage/PrivacyPage.vue'),
+    },
+    // 마이페이지 수정 화면
+    {
+        path: '/mypage/withdraw',
+        name: 'Withdraw',
+        component: () => import('@/pages/mypage/Withdraw.vue'),
+    },
+    // 비밀번호 변경 화면
+    {
+        path: '/mypage/changepw',
+        name: 'ChangePassword',
+        component: () => import('@/pages/mypage/ChangePassword.vue'),
+    },
+    // 선호 설정 변경 화면
+    {
+        path: '/mypage/mypreferences',
+        name: 'MyPreference',
+        component: () => import('@/pages/mypage/MyPreference.vue'),
+    },
 
-    { path: '/bank/auth', name: 'BankAuth', component: BankAuth }, // 은행 인증 페이지
-    { path: '/bank/select', name: 'BankSelect', component: BankSelect }, // 은행 선택 페이지
-    { path: '/bank/loading', name: 'BankLoading', component: BankLoading }, // 은행 로딩 페이지
-    { path: '/bank/complete', name: 'BankComplete', component: BankComplete }, // 은행 연동 완료 페이지
+    // 가점 정보 등록 파트
+    // 가점 정보 1단계(무주택/주택)
+    {
+        path: '/score/step1',
+        name: 'ScoreStep1',
+        component: () => import('@/pages/scores/Step1_HouseOwnership.vue'),
+    },
+    // 가점 정보 2단계(분양권 처분 유무)
+    {
+        path: '/score/step2',
+        name: 'ScoreStep2',
+        component: () => import('@/pages/scores/Step2_DisposalHistory.vue'),
+    },
+    // 가점 정보 3단계(세대주 유무)
+    {
+        path: '/score/step3',
+        name: 'ScoreStep3',
+        component: () => import('@/pages/scores/Step3_HouseholdHead.vue'),
+    },
+    // 가점 정보 4단계(혼인 유무)
+    {
+        path: '/score/step4',
+        name: 'ScoreStep4',
+        component: () => import('@/pages/scores/Step4.vue'),
+    },
+    // 가점 정보 5단계(부양 가족 수)
+    {
+        path: '/score/step5',
+        name: 'ScoreStep5',
+        component: () => import('@/pages/scores/Step5_DependentFamily.vue'),
+    },
+    // 가점 정보 6단계(거주지 설정)
+    {
+        path: '/score/step6',
+        name: 'ScoreStep6',
+        component: () => import('@/pages/scores/Step6_ResidenceInfo.vue'),
+    },
+    // 가점 정보 결과 확인 페이지
+    {
+        path: '/score/result',
+        name: 'ScoreResult',
+        component: () => import('@/pages/scores/ScoreResult.vue'),
+    },
+    // 가점 정보 세부 정보 페이지이자 수정 페이지
+    {
+        path: '/score/info',
+        name: 'ScoreInfo',
+        component: () => import('@/pages/scores/ScoreInfo.vue'),
+    },
 
-    // 404
-    { path: '/:pathMatch(.*)*', name: 'NotFound', component: NotFound }, // 에러 페이지
+    // **수정 전용 페이지** (edit routes)
+    {
+        path: '/score/edit/step1',
+        name: 'EditStep1',
+        component: () => import('@/pages/scores/EditStep1_HouseOwnership.vue'),
+    },
+    {
+        path: '/score/edit/step2',
+        name: 'EditStep2',
+        component: () => import('@/pages/scores/EditStep2_DisposalHistory.vue'),
+    },
+    {
+        path: '/score/edit/step3',
+        name: 'EditStep3',
+        component: () => import('@/pages/scores/EditStep3_HouseholdHead.vue'),
+    },
+    {
+        path: '/score/edit/step4',
+        name: 'EditStep4',
+        component: () => import('@/pages/scores/EditStep4.vue'),
+    },
+    {
+        path: '/score/edit/step5',
+        name: 'EditStep5',
+        component: () => import('@/pages/scores/EditStep5_DependentFamily.vue'),
+    },
+    {
+        path: '/score/edit/step6',
+        name: 'EditStep6',
+        component: () => import('@/pages/scores/EditStep6_ResidenceInfo.vue'),
+    },
+
+    // 404 에러 페이지
+    {
+        path: '/:pathMatch(.*)*',
+        name: 'NotFound',
+        component: () => import('@/pages/error/NotFound.vue'),
+    },
 ]
 
 const router = createRouter({
     history: createWebHistory(),
     routes,
-    scrollBehavior(to, from, savedPosition) {
-    return { top: 0 }
-  }
+    scrollBehavior() {
+        return { top: 0 }
+    },
 })
 
 export default router

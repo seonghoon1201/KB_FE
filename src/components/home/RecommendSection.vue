@@ -51,7 +51,7 @@ import { useRouter } from 'vue-router'
 import { Cog, Settings } from 'lucide-vue-next'
 
 const router = useRouter()
-
+ 
 const props = defineProps({
   isPreferenceSet: Boolean,
   recommendList: {
