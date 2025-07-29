@@ -2,10 +2,10 @@
     <div>
         <button
             @click="toggle"
-            class="w-4 h-4 flex items-center justify-center rounded-full bg-white text-black border border-black transition-colors ml-3"
-            aria-label="자세히 보기"
+            class="w-5 h-5 flex items-center justify-center bg-white text-black transition-colors ml-3"
+            aria-label="정보 보기"
         >
-            i
+            <Info />
         </button>
 
         <teleport to="body">
@@ -18,15 +18,15 @@
                     <div
                         class="bg-white w-full max-w-md mx-auto rounded-t-2xl sm:rounded-xl p-6 shadow-xl text-[17px] leading-relaxed text-gray-900"
                     >
-                        <!-- ⬇️ 제목 (props 기반) -->
-                        <h2 class="text-xl font-bold mb-4">{{ title }}</h2>
+                        <!-- 제목 -->
+                        <h2 class="text-xl font-bold mb-6">{{ title }}</h2>
 
-                        <!-- ⬇️ 내용 -->
+                        <!-- 내용 -->
                         <div class="text-sm text-gray-800 leading-relaxed">
                             <slot />
                         </div>
 
-                        <!-- ⬇️ 닫기 버튼 -->
+                        <!-- 닫기 버튼 -->
                         <button
                             class="mt-6 w-full text-base font-semibold text-center text-blue-600 hover:underline"
                             @click="visible = false"
@@ -42,6 +42,7 @@
 
 <script setup>
 import { ref } from 'vue'
+import { Info } from 'lucide-vue-next'
 defineProps({
     title: {
         type: String,
