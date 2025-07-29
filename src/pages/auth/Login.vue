@@ -1,6 +1,6 @@
 <template>
     <div class="h-screen w-screen bg-white flex items-center justify-center px-6">
-        <div class="w-full max-w-[328px] flex flex-col items-center gap-6">
+        <div class="w-full max-w-[328px] flex flex-col items-center gap-2">
             <img
                 src="@/assets/images/logo.png"
                 alt="로고"
@@ -8,7 +8,7 @@
             />
 
             <!-- form 태그 + @submit.prevent 로 단 한 번만 호출 -->
-            <form @submit.prevent="handleLogin" class="w-full flex flex-col gap-4">
+            <form @submit.prevent="handleLogin" class="w-full flex flex-col gap-6">
                 <div>
                     <label class="text-xs text-[#8D8D8D] mb-1 block">이메일</label>
                     <input

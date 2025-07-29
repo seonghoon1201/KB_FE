@@ -48,6 +48,7 @@ export const useUserStore = defineStore('user', {
             const res = await api.post('/auth/refresh', {
                 refreshToken: this.refreshToken,
             })
+
             const { accessToken } = res.data
             this.accessToken = accessToken
             localStorage.setItem('accessToken', accessToken)
