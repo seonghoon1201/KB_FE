@@ -30,8 +30,8 @@
             </div>
 
             <!-- 버튼 -->
-            <PrimaryButton customClass="bg-[#A48BFF] mt-2 text-lg" @click="goToScoreInput">
-                📝 가점 다시 계산하기
+            <PrimaryButton customClass="bg-[#A48BFF] mt-2 text-lg" @click="goToInfo">
+                🧐 현재 정보 확인하기
             </PrimaryButton>
         </div>
 
@@ -76,6 +76,10 @@ defineProps({
 
 // 계산하기 또는 다시 계산하기 눌렀을 때 이동
 const goToScoreInput = () => {
-    router.push('/no-house')
+    router.push('/score/step1')
+}
+
+const goToInfo = () => {
+    router.push('score/result')
 }
 </script>
