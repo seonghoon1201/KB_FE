@@ -31,6 +31,7 @@ import NotFound from '@/pages/error/NotFound.vue'
 import Mypage from '@/pages/mypage/Mypage.vue'
 import MyPreference from '@/pages/mypage/MyPreference.vue'
 import ChangePassword from '@/pages/mypage/ChangePassword.vue'
+import RecentlyViewedSubscription from '@/pages/subscription/RecentlyViewedSubscription.vue'
 import { combineEventUis } from '@fullcalendar/core/internal'
 
 const routes = [
@@ -47,6 +48,7 @@ const routes = [
     { path: '/chatbot', name: 'Chatbot', component: Chatbot }, // 챗봇
 
     { path: '/mypage', name: 'Mypage', component: Mypage }, //마이페이지
+  { path: '/recent', name: 'RecentlyViewedSubscription', component: RecentlyViewedSubscription },
     { path: '/mypage/changepw', name: 'ChangePassword', component: ChangePassword },
     { path: '/mypage/mypreferences', name: 'MyPreference', component: MyPreference }, // 선호 정보 저장 페이지
     { path: '/mypage/edit', name: 'EditProfile', component: EditProfile }, // 프로필 편집
