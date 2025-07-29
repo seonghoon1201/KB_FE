@@ -36,8 +36,8 @@
         </div>
 
         <div class="space-y-4">
-            <button @click="select('yes')" :class="btnClass('yes')">네</button>
-            <button @click="select('no')" :class="btnClass('no')">아니요</button>
+            <button @click="select('no')" :class="btnClass('no')">네</button>
+            <button @click="select('yes')" :class="btnClass('yes')">아니요</button>
         </div>
 
         <PrimaryButton class="mt-8" @click="next">다음</PrimaryButton>
