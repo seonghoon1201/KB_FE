@@ -98,7 +98,6 @@ import BackHeader from '@/components/common/BackHeader.vue'
 import { useRouter } from 'vue-router'
 import { ref, reactive } from 'vue'
 import PrimaryButton from '@/components/common/PrimaryButton.vue'
-import SearchAddressModal from '@/components/modal/SearchAddressModal.vue'
 import { SquarePen, Search } from 'lucide-vue-next'
 
 const router = useRouter()
