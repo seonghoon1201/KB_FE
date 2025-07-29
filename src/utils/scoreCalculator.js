@@ -1,3 +1,5 @@
+// 📄 src/utils/scoreCalculator.js
+
 export function calculateAllScores(state) {
     const noHouse = calculateNoHouseScore(state.noHouseInfo)
     const family = calculateFamilyScore(state.familyInfo)
@@ -13,26 +15,55 @@ export function calculateAllScores(state) {
     return { noHouse, family, account, total, evaluation }
 }
 
-function calculateNoHouseScore({ ownHouse, familyOwnHouse, age, isMarried, noHouseStartDate }) {
+export function calculateNoHouseScore({
+    ownHouse,
+    familyOwnHouse,
+    birthDate,
+    isMarried,
+    marriageDate,
+}) {
     if (ownHouse || familyOwnHouse) return 0
-    if (!noHouseStartDate) return 0
+    if (!birthDate) return 0
 
-    const start = new Date(noHouseStartDate)
+    const age30Date = new Date(birthDate)
+    age30Date.setFullYear(age30Date.getFullYear() + 30)
+
+    let startDate = age30Date
+    if (isMarried && marriageDate) {
+        const marryDate = new Date(marriageDate)
+        startDate = marryDate < age30Date ? marryDate : age30Date
+    }
+
     const now = new Date()
-    const years = (now - start) / (1000 * 60 * 60 * 24 * 365)
+    const years = (now - startDate) / (1000 * 60 * 60 * 24 * 365)
+    // 연당 2점, 최대 32점
     return Math.min(Math.floor(years * 2), 32)
 }
 
-function calculateFamilyScore({ hasSpouse, familyCounts }) {
+export function calculateFamilyScore({ hasSpouse, familyCounts }) {
     let count = 0
     if (hasSpouse) count += 1
-    count += parseInt(familyCounts.spouse || 0)
     count += parseInt(familyCounts.ascendant || 0)
     count += parseInt(familyCounts.descendant || 0)
+    // 기본 5점 + 1명당 5점, 최대 35점
     return Math.min(5 + count * 5, 35)
 }
 
-function calculateAccountScore({ hasAccount, accountStartDate, depositCount }) {
-    if (!hasAccount || !accountStartDate || !depositCount) return 0
-    return Math.min(Math.floor(depositCount / 6), 17)
+export function calculateAccountScore({ accountStartDate, depositCount }) {
+    // 가입일 또는 횟수가 없으면 0점
+    if (!accountStartDate || !depositCount) return 0
+
+    // "납입 개월 수" 기준이라고 가정
+    // 6개월 미만 → 1점
+    if (depositCount < 6) return 1
+
+    // 6개월 이상 then (납입개월수 / 12년) → 년수
+    // 예: 8개월 → floor(8/12)=0 + 2 = 2점
+    //     14개월 → floor(14/12)=1 + 2 = 3점
+    //     96개월 → floor(96/12)=8 + 2 = 10점
+    const years = Math.floor(depositCount / 12)
+    const points = 2 + years * 2
+
+    // 최대 17점
+    return Math.min(points, 17)
 }
