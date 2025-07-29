@@ -31,11 +31,11 @@
                 <div class="flex justify-start">
                     <div
                         class="w-[30%] flex flex-col items-center mr-3"
-                        @click="movePage('/calculator')"
+                        @click="movePage('/score/result')"
                     >
                         <Calculator stroke-width="1.5" size="36" />
                         <p class="text-sm">가점</p>
-                        <p class="text-sm">계산기</p>
+                        <p class="text-sm">확인하기</p>
                     </div>
                     <div
                         class="w-[30%] flex flex-col items-center mr-3"
@@ -82,14 +82,14 @@
                     </div>
                     <div
                         class="w-full h-8 mb-4 flex justify-between border-b-2"
-                        @click="movePage('/terms')"
+                        @click="movePage('/mypage/terms')"
                     >
                         <p class="text-sm">이용약관</p>
                         <ChevronRight />
                     </div>
                     <div
                         class="w-full h-8 mb-4 flex justify-between border-b-2"
-                        @click="movePage('/userterms')"
+                        @click="movePage('/mypage/userterms')"
                     >
                         <p class="text-sm">사용자약관</p>
                         <ChevronRight />

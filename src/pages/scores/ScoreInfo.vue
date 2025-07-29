@@ -31,7 +31,7 @@
                     </div>
                 </div>
                 <button
-                    @click="pushStep(6)"
+                    @click="pushEdit(6)"
                     class="px-3 py-1 bg-gray-100 text-gray-600 text-sm rounded-full hover:bg-gray-200 transition"
                 >
                     수정
@@ -50,7 +50,7 @@
                     </div>
                 </div>
                 <button
-                    @click="pushStep(3)"
+                    @click="pushEdit(3)"
                     class="px-3 py-1 bg-gray-100 text-gray-600 text-sm rounded-full hover:bg-gray-200 transition"
                 >
                     수정
@@ -69,7 +69,7 @@
                     </div>
                 </div>
                 <button
-                    @click="pushStep(1)"
+                    @click="pushEdit(1)"
                     class="px-3 py-1 bg-gray-100 text-gray-600 text-sm rounded-full hover:bg-gray-200 transition"
                 >
                     수정
@@ -92,7 +92,7 @@
                     </div>
                 </div>
                 <button
-                    @click="pushStep(2)"
+                    @click="pushEdit(2)"
                     class="px-3 py-1 bg-gray-100 text-gray-600 text-sm rounded-full hover:bg-gray-200 transition"
                 >
                     수정
@@ -115,7 +115,7 @@
                     </div>
                 </div>
                 <button
-                    @click="pushStep(4)"
+                    @click="pushEdit(4)"
                     class="px-3 py-1 bg-gray-100 text-gray-600 text-sm rounded-full hover:bg-gray-200 transition"
                 >
                     수정
@@ -132,7 +132,7 @@
                     </div>
                 </div>
                 <button
-                    @click="pushStep(5)"
+                    @click="pushEdit(5)"
                     class="px-3 py-1 bg-gray-100 text-gray-600 text-sm rounded-full hover:bg-gray-200 transition"
                 >
                     수정
@@ -208,5 +208,5 @@ const totalDependents = computed(
 )
 
 // 수정하기 스텝 이동
-const pushStep = (step) => router.push(`/score/step${step}`)
+const pushEdit = (step) => router.push(`/score/edit/step${step}`)
 </script>
