@@ -1,8 +1,12 @@
 <template>
     <ScoreStepWrapper>
+        <!-- 단계 표시 -->
+        <div class="flex justify-start pb-4">
+            <span class="text-lg text-gray-500">4/6</span>
+        </div>
         <div class="flex items-center mb-6">
             <h2 class="text-lg font-bold">혼인 하셨나요?</h2>
-            <InfoTooltip>
+            <InfoTooltip title="혼인 여부">
                 <p>혼인 여부는 서류상 기준이며, 사실혼도 인정받을 수 있어요.</p>
             </InfoTooltip>
         </div>

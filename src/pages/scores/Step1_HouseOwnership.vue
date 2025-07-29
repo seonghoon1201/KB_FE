@@ -1,12 +1,16 @@
 <template>
     <ScoreStepWrapper>
+        <!-- 단계 표시 -->
+        <div class="flex justify-start pb-4">
+            <span class="text-lg text-gray-500">1/6</span>
+        </div>
         <div class="flex items-center mb-6">
             <div>
                 <h1 class="text-xl font-extrabold mb-1">주택 소유 기준</h1>
                 <div class="flex items-center">
                     <h2 class="text-lg font-bold">현재 주택을 소유하고 있나요?</h2>
                     <InfoTooltip title="주택 소유 기준">
-                        <ul class="text-base list-disc list-inside text-gray-600">
+                        <ul class="text-base list-disc list-inside text-gray-600 space-y-2">
                             <li><strong>본인 및 세대원 전원</strong>이 주택 소유가 없어야 해요</li>
                             <li>
                                 본인 또는 배우자의 직계존속 중 <strong>만 60세 이상</strong>이
