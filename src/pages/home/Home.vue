@@ -31,6 +31,7 @@ import { useUserStore } from '@/stores/user'
 import { useAccountStore } from '@/stores/account'
 import { useCommonStore } from '@/stores/common'
 import { usePreferenceStore } from '@/stores/preference'
+import { useScoreStore } from '@/stores/scoreStore'
 
 import MainHeader from '@/components/common/MainHeader.vue'
 import BottomNavbar from '@/components/common/BottomNavbar.vue'
@@ -42,8 +43,10 @@ const commonStore = useCommonStore()
 const accountStore = useAccountStore()
 const userStore = useUserStore()
 
-const isScoreCalculated = computed(() => !!userStore.score)
-const score = computed(() => userStore.score ?? { total: 0, percent: 0, message: '' })
+// scoreStore 에서 읽어옵니다
+const scoreStore = useScoreStore()
+const isScoreCalculated = computed(() => scoreStore.isCalculated)
+const score = computed(() => scoreStore.lastScore)
 
 const preferenceStore = usePreferenceStore()
 const recommendList = [
