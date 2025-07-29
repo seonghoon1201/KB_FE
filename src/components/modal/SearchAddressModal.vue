@@ -56,6 +56,14 @@ const applyAddress = () => {
     emit('close')
 }
 
+const searchAddress = () => {
+  new window.daum.Postcode({
+    oncomplete: function (data) {
+      address.value = data.address
+    },
+  }).open()
+}
+
 watch(
     () => props.visible,
     (v) => {

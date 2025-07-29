@@ -46,23 +46,37 @@
             </div>
 
             <div class="mb-2 text-left w-full">
-                <label class="block font-semibold mb-1 text-[14px]"
-                    >거주지(주민등록 상 거주지)</label
-                >
-                <div
-                    class="address-input w-full border rounded-[8px] px-3 py-2 flex justify-between"
-                >
-                    <input type="text" v-model="profile.address" />
-                    <button type="button" class="w-4 h-4" @click="showAddressModal = true">
-                        <Search :size="20" />
+                <label class="block font-semibold mb-1 text-[14px]">
+                    거주지(주민등록 상 거주지)
+                </label>
+                <div class="relative w-full">
+                    <input
+                        v-model="profile.address"
+                        type="text"
+                        class="w-full border rounded-[8px] px-3 py-2 pr-10 bg-white"
+                        readonly
+                    />
+                    <button
+                        type="button"
+                        @click="searchAddress"
+                        class="absolute top-1/2 right-1 -translate-y-1/2 flex items-center justify-center w-12 h-12 transition"
+                    >
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            class="w-5 h-5 text-gray-600"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z"
+                            />
+                        </svg>
                     </button>
                 </div>
-                <!-- 주소 검색 모달 -->
-                <SearchAddressModal
-                    :visible="showAddressModal"
-                    @close="showAddressModal = false"
-                    @selected="handleAddressSelected"
-                />
             </div>
 
             <div class="password-change mt-8 mb-8 flex justify-center">
@@ -89,6 +103,7 @@ import { SquarePen, Search } from 'lucide-vue-next'
 
 const router = useRouter()
 const showAddressModal = ref(false)
+const address = ref('')
 
 const profile = reactive({
     name: '김제비',
@@ -98,6 +113,13 @@ const profile = reactive({
     address: '경기도 용인시 수지구',
 })
 
+const searchAddress = () => {
+    new window.daum.Postcode({
+        oncomplete: function (data) {
+            profile.address = data.address // ✅ 여기에 직접 넣어야 함!
+        },
+    }).open()
+}
 
 const saveProfile = () => {
     // 프로필 저장 구현
