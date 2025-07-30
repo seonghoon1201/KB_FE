@@ -1,4 +1,3 @@
-<!-- src/pages/LoginPage.vue -->
 <template>
     <div class="h-screen w-screen bg-white flex items-center justify-center px-6">
         <div class="w-full max-w-[328px] flex flex-col items-center gap-2">
@@ -10,7 +9,7 @@
 
             <form @submit.prevent="handleLogin" class="w-full flex flex-col gap-6">
                 <div>
-                    <label class="text-xs text-[#8D8D8D] mb-1 block">이메일</label>
+                    <label class="text-xs text-[#8D8D9] mb-1 block">이메일</label>
                     <input
                         v-model="email"
                         type="email"
@@ -19,7 +18,7 @@
                     />
                 </div>
                 <div>
-                    <label class="text-xs text-[#8D8D8D] mb-1 block">비밀번호</label>
+                    <label class="text-xs text-[#8D8D9] mb-1 block">비밀번호</label>
                     <input
                         v-model="password"
                         type="password"
@@ -46,11 +45,11 @@
             </button>
 
             <div class="text-[12px] text-[#7E7E7E] flex justify-center gap-6 w-full">
-                <span class="cursor-pointer hover:underline" @click="goToFindPassword"
-                    >비밀번호 찾기</span
-                >
+                <span class="cursor-pointer hover:underline" @click="goToFindPassword">
+                    비밀번호 찾기
+                </span>
                 <span class="text-[#D9D9D9]">|</span>
-                <span class="cursor-pointer hover:underline" @click="goToSignUp">회원가입</span>
+                <span class="cursor-pointer hover:underline" @click="goToSignUp"> 회원가입 </span>
             </div>
         </div>
     </div>
@@ -60,7 +59,7 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import PrimaryButton from '@/components/common/PrimaryButton.vue'
-import AuthApi from '@/api/authApi'
+import authApi from '@/api/authApi'
 import { useUserStore } from '@/stores/user'
 
 const email = ref('')
@@ -74,17 +73,26 @@ async function handleLogin() {
         alert('이메일과 비밀번호를 모두 입력해주세요.')
         return
     }
+
     loading.value = true
     try {
-        const res = await AuthApi.login({
+        // ① 로그인 API 호출
+        const res = await authApi.login({
             user_id: email.value,
             password: password.value,
         })
-        const { access_token, refresh_token, user, users } = res.data
-        const u = user ?? users
-        if (!u) throw new Error('서버에서 사용자 정보를 찾을 수 없습니다.')
 
-        userStore.setAuth({ access_token, refresh_token, user: u })
+        // ② 응답 구조에 맞춰서 분해
+        const { access_token, refresh_token, user } = res.data
+
+        // ③ Pinia 스토어에 저장
+        userStore.setAuth({
+            access_token,
+            refresh_token,
+            user,
+        })
+
+        // ④ 홈으로 이동
         router.push('/')
     } catch (err) {
         console.error(err)
@@ -97,9 +105,11 @@ async function handleLogin() {
 function handleKakaoLogin() {
     console.log('카카오 로그인 (추후 SDK 연동)')
 }
+
 function goToSignUp() {
     router.push('/signup')
 }
+
 function goToFindPassword() {
     router.push('/find-password')
 }
