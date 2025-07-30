@@ -1,6 +1,6 @@
 <template>
     <div class="h-screen w-screen bg-white flex items-center justify-center px-6">
-        <div class="w-full max-w-[328px] flex flex-col items-center gap-6">
+        <div class="w-full max-w-[328px] flex flex-col items-center gap-2">
             <img
                 src="@/assets/images/logo.png"
                 alt="로고"
@@ -8,7 +8,7 @@
             />
 
             <!-- form 태그 + @submit.prevent 로 단 한 번만 호출 -->
-            <form @submit.prevent="handleLogin" class="w-full flex flex-col gap-4">
+            <form @submit.prevent="handleLogin" class="w-full flex flex-col gap-6">
                 <div>
                     <label class="text-xs text-[#8D8D8D] mb-1 block">이메일</label>
                     <input
@@ -81,11 +81,12 @@ async function handleLogin() {
             user_id: email.value,
             password: password.value,
         })
-        const { accessToken, refreshToken, user, users } = res.data
+        const { access_token, refresh_token, user, users } = res.data
+        console.log(access_token, refresh_token)
         const u = user ?? users
         if (!u) throw new Error('서버에서 사용자 정보를 찾을 수 없습니다.')
 
-        userStore.setAuth({ accessToken, refreshToken, user: u })
+        userStore.setAuth({ access_token, refresh_token, user: u })
         router.push('/')
     } catch (err) {
         console.error(err)
