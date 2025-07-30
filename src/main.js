@@ -4,11 +4,8 @@ import router from './router'
 import { createPinia } from 'pinia'
 import './assets/main.css'
 
-// axios 인스턴스
 import api from '@/api/axios'
-// 유저 스토어
 import { useUserStore } from '@/stores/user'
-// lucide 아이콘
 import * as lucide from 'lucide-vue-next'
 
 const app = createApp(App)
@@ -18,21 +15,22 @@ for (const [key, comp] of Object.entries(lucide)) {
     app.component(key, comp)
 }
 
-// Pinia, Router 적용
 const pinia = createPinia()
 app.use(pinia)
 app.use(router)
 
-// — 토큰 복원 로직 —
+// — 로그인 유지(새로고침 복원) 로직 —
 const userStore = useUserStore()
 const at = localStorage.getItem('accessToken')
 const rt = localStorage.getItem('refreshToken')
-if (at && rt) {
-    userStore.accessToken = at
-    userStore.refreshToken = rt
-    userStore.isLoggedIn = true
-    api.defaults.headers.common.Authorization = `Bearer ${at}`
+const rawUser = localStorage.getItem('user')
+if (at && rt && rawUser) {
+    const user = JSON.parse(rawUser)
+    userStore.setAuth({
+        access_token: at,
+        refresh_token: rt,
+        user,
+    })
 }
-// ——————————————
 
 app.mount('#app')

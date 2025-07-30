@@ -99,17 +99,19 @@ import { useRouter } from 'vue-router'
 import { ref, reactive } from 'vue'
 import PrimaryButton from '@/components/common/PrimaryButton.vue'
 import { SquarePen, Search } from 'lucide-vue-next'
+import { useUserStore } from '@/stores/user'
 
 const router = useRouter()
 const showAddressModal = ref(false)
 const address = ref('')
+const userStore = useUserStore()
 
 const profile = reactive({
-    name: '김제비',
-    birthdate: '2001-01-01',
-    account: '3333-1234-5678',
-    email: 'zibi1234@gmail.com',
-    address: '경기도 용인시 수지구',
+    name: userStore.name,
+    birthdate: userStore.birthDate,
+    account: '3333-1234-5678', // 임시 계좌
+    email: userStore.email,
+    address: userStore.address,
 })
 
 const searchAddress = () => {
@@ -120,10 +122,19 @@ const searchAddress = () => {
     }).open()
 }
 
-const saveProfile = () => {
-    // 프로필 저장 구현
-    alert('저장되었습니다!')
+const saveProfile = async () => {
+    try {
+        await userStore.updateProfile({
+            address: profile.address,
+            birthdate: profile.birthdate,
+            user_name: profile.name,
+        })
+        alert('저장되었습니다!')
+    } catch (err) {
+        alert('저장 실패')
+    }
 }
+
 const navigateTo = (path) => {
     router.push(path)
 }

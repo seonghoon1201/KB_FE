@@ -1,7 +1,6 @@
-// 청약 리스트 스토어
-
 import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
+import api from '@/api/axios'
 
 export const useSubscriptionsStore = defineStore('subscription', () => {
     const count = ref(0)
@@ -10,72 +9,70 @@ export const useSubscriptionsStore = defineStore('subscription', () => {
         count.value++
     }
 
-    // 샘플 청약 공고 데이터
-const subscriptions = ref([
-    {
-        id: 1,
-        title: '힐스테이트 청라 국제도시',
-        location: '인천광역시 서구',
-        totalUnits: 1284,
-        applicationStartDate: '2025.08.15',
-        applicationCompleteDate: '2025.08.17',
-        status: 'available',
-        type: '아파트',
-        squareMeters: 104,
-        price: '12억',
-        completionDate: '2027.03',
-    },
-    {
-        id: 2,
-        title: '래미안 원베일리',
-        location: '서울특별시 강동구',
-        totalUnits: 758,
-        applicationStartDate: '2025.07.21',
-        applicationCompleteDate: '2025.07.22',
-        type: '오피스텔',
-        squareMeters: 74,
-        price: '18억',
-        completionDate: '2027.06',
-    },
-    {
-        id: 3,
-        title: '푸르지오 시티 동탄',
-        location: '경기도 화성시',
-        totalUnits: 2156,
-        applicationStartDate: '2025.08.08',
-        applicationCompleteDate: '2025.08.10',
-        type: '아파트',
-        squareMeters: 83,
-        price: '15억',
-        completionDate: '2027.09',
-    },
-    {
-        id: 4,
-        title: '자이 평촌 센트럴파크',
-        location: '경기도 안양시 동안구',
-        totalUnits: 924,
-        applicationStartDate: '2025.08.25',
-        applicationCompleteDate: '2025.08.27',
-        status: 'upcoming',
-        type: '도시형 생활주택',
-        squareMeters: 104,
-        price: '20억',
-        completionDate: '2027.12',
-    },
-    {
-        id: 5,
-        title: '롯데캐슬 베네시티',
-        location: '대구광역시 달서구',
-        totalUnits: 1456,
-        applicationStartDate: '2025.08.12',
-        applicationCompleteDate: '2025.08.14',
-        status: 'available',
-        type: '아파트',
-        squareMeters: 104,
-        price: '9억',
-        completionDate: '2027.08',
-    },
-])
+    const subscriptions = ref([])
+    const loading = ref(false)
 
-    return { count, doubleCount, increment, subscriptions }
+    function parseAddress(addr) {
+        // 예: "경기도 의정부시 가능동 123-45"
+        if (!addr) return { city: '', district: '' }
+        const parts = addr.split(' ')
+        return {
+            city: parts[0] || '',
+            district: parts[1] || '',
+        }
+    }
+
+    // 서버에서 청약 공고 불러오기
+    async function fetchSubscriptions() {
+        loading.value = true
+        try {
+            console.log('API 호출 시작') // <-- 추가
+            const res = await api.get('/subscriptions')
+            console.log('API 응답:', res) // <-- 추가
+
+            subscriptions.value = res.data.map((item, index) => {
+                console.log('원본 item:', item) // <-- 추가
+                const { city, district } = parseAddress(item.hssply_adres)
+                // 잘됨
+                console.log(parseAddress('경기도 의정부시 가능동 123-45'))
+
+                let start_date = ''
+                let end_date = ''
+                if (item.application_period) {
+                    const parts = item.application_period.split('~')
+                    start_date = parts[0]?.trim()
+                    end_date = parts[1]?.trim()
+                }
+                return {
+                    id: item.notice_idx ?? item.apt_idx ?? item.offi_idx,
+                    house_nm: item.house_nm,
+                    house_type: item.house_type,
+                    city,
+                    district,
+                    hssply_adres: item.hssply_adres,
+                    application_start_date: start_date,
+                    application_end_date: end_date,
+                    suply_ar: item.suply_ar,
+                    lttot_top_amount: item.lttot_top_amount,
+                }
+            })
+
+            // 로그 2번 찍기 (Proxy 그대로 vs 실제 배열)
+            console.log('최종 가공된 데이터(Proxy):', subscriptions.value)
+            console.log('toRaw:', JSON.parse(JSON.stringify(subscriptions.value)))
+        } catch (err) {
+            console.error('청약 목록 로드 실패:', err)
+        } finally {
+            loading.value = false
+        }
+    }
+
+    return {
+        count,
+        doubleCount,
+        increment,
+        subscriptions,
+        loading,
+        fetchSubscriptions,
+    }
 })

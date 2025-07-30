@@ -1,4 +1,3 @@
-// src/stores/user.js
 import { defineStore } from 'pinia'
 import authApi from '@/api/authApi'
 import api from '@/api/axios'
@@ -9,12 +8,14 @@ export const useUserStore = defineStore('user', {
         name: '',
         email: '',
         phone: '',
-        address: '', 
+        address: '',
         birthDate: '',
         roles: [],
+
         accessToken: '',
         refreshToken: '',
         isLoggedIn: false,
+
         // 가점 계산 관련
         score: null,
         isMarried: false,
@@ -38,21 +39,26 @@ export const useUserStore = defineStore('user', {
             this.address = user.address || ''
             this.birthDate = user.birthdate || ''
             this.roles = user.roles || []
-            // phone / 결혼정보 등은 백엔드에서 내려주지 않으면 기본값 유지
 
-            // 3) 로컬스토리지 & axios header
+            // 3) localStorage & axios header
             localStorage.setItem('accessToken', access_token)
             localStorage.setItem('refreshToken', refresh_token)
+            // 유저 정보도 저장
+            localStorage.setItem('user', JSON.stringify(user))
+
             api.defaults.headers.common.Authorization = `Bearer ${access_token}`
         },
 
-        /** refreshToken 으로 accessToken 재발급 */
+        /** refreshToken 으로 새 accessToken 받아오기 */
         async refreshAccessToken() {
             const res = await authApi.refreshToken(this.refreshToken)
-            this.accessToken = res.data.access_token
-            localStorage.setItem('accessToken', this.accessToken)
-            api.defaults.headers.common.Authorization = `Bearer ${this.accessToken}`
-            return this.accessToken
+            const newToken = res.data.access_token
+
+            this.accessToken = newToken
+            localStorage.setItem('accessToken', newToken)
+            api.defaults.headers.common.Authorization = `Bearer ${newToken}`
+
+            return newToken
         },
 
         /** 로그아웃 */
@@ -66,19 +72,32 @@ export const useUserStore = defineStore('user', {
             this.$reset()
             localStorage.removeItem('accessToken')
             localStorage.removeItem('refreshToken')
+            localStorage.removeItem('user')
             delete api.defaults.headers.common.Authorization
         },
 
-        async signout() {
-            // 스토어 클리어78
-            this.$reset()
-            localStorage.removeItem('accessToken')
-            localStorage.removeItem('refreshToken')
-            delete api.defaults.headers.common.Authorization
+        /** (선택) 회원탈퇴 */
+        async signout(payload) {
+            await authApi.signout(payload)
+            return this.logout()
         },
+
         /** (선택) 가점 계산 결과 저장 */
         saveScore(scoreObj) {
             this.score = scoreObj
+        },
+
+        /** 프로필 수정 */
+        async updateProfile(payload) {
+            try {
+                await api.put('/auth/update', payload)
+                this.name = payload.user_name
+                this.birthDate = payload.birthdate
+                this.address = payload.address
+            } catch (err) {
+                console.error('프로필 수정 실패:', err)
+                throw err
+            }
         },
     },
 })
