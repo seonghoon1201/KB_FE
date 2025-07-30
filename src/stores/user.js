@@ -19,13 +19,13 @@ export const useUserStore = defineStore('user', {
     }),
     actions: {
         /**
-         * 로그인 성공 후 호출
-         * @param {{ accessToken: string, refreshToken: string, user: object }} param0
-         */
-        setAuth({ accessToken, refreshToken, user }) {
+          로그인 성공 후 호출
+          @param {{ accessToken: string, refreshToken: string, user: object }} param0
+         **/
+        setAuth({ access_token, refresh_token, user }) {
             // 1) 토큰 저장
-            this.accessToken = accessToken
-            this.refreshToken = refreshToken
+            this.accessToken = access_token
+            this.refreshToken = refresh_token
             this.isLoggedIn = true
 
             // 2) 유저 정보 저장
@@ -38,21 +38,21 @@ export const useUserStore = defineStore('user', {
             this.marriageDate = user.marriageDate || ''
 
             // 3) 로컬 스토리지 & axios header 세팅
-            localStorage.setItem('accessToken', accessToken)
-            localStorage.setItem('refreshToken', refreshToken)
-            api.defaults.headers.common.Authorization = `Bearer ${accessToken}`
+            localStorage.setItem('accessToken', this.accessToken)
+            localStorage.setItem('refreshToken', this.refreshToken)
+            api.defaults.headers.common.Authorization = `Bearer ${this.accessToken}`
         },
 
         /** refreshToken 으로 accessToken 재발급 */
         async refreshAccessToken() {
             const res = await api.post('/auth/refresh', {
-                refreshToken: this.refreshToken,
+                refresh_token: this.refreshToken,
             })
 
-            const { accessToken } = res.data
-            this.accessToken = accessToken
-            localStorage.setItem('accessToken', accessToken)
-            api.defaults.headers.common.Authorization = `Bearer ${accessToken}`
+            const { access_token } = res.data
+            this.accessToken = access_token
+            localStorage.setItem('accessToken', this.accessToken)
+            api.defaults.headers.common.Authorization = `Bearer ${this.accessToken}`
         },
 
         /** 로그아웃 */

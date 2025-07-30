@@ -81,11 +81,12 @@ async function handleLogin() {
             user_id: email.value,
             password: password.value,
         })
-        const { accessToken, refreshToken, user, users } = res.data
+        const { access_token, refresh_token, user, users } = res.data
+        console.log(access_token, refresh_token)
         const u = user ?? users
         if (!u) throw new Error('서버에서 사용자 정보를 찾을 수 없습니다.')
 
-        userStore.setAuth({ accessToken, refreshToken, user: u })
+        userStore.setAuth({ access_token, refresh_token, user: u })
         router.push('/')
     } catch (err) {
         console.error(err)
