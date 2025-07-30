@@ -1,18 +1,19 @@
 <template>
     <div class="flex flex-col min-h-screen bg-gray-50 pt-14">
-        <!-- 헤더 -->
         <BackHeader title="즐겨찾기" />
 
-        <!-- 즐겨찾기 공고 목록 -->
         <div class="flex-1 px-4 py-6 pb-20">
-            <div v-if="favoriteSubscriptions.length === 0" class="text-center py-20 text-gray-500">
+            <div
+                v-if="!favorites || favorites.length === 0"
+                class="text-center py-20 text-gray-500"
+            >
                 즐겨찾기한 청약 공고가 없습니다.
             </div>
 
             <div v-else class="space-y-4">
                 <SubscriptionCard
-                    v-for="subscription in sortedSubscriptions"
-                    :key="subscription.id"
+                    v-for="subscription in sortedFavorites"
+                    :key="subscription.apt_idx"
                     :subscription="subscription"
                     :favorite-default="true"
                     @favorite-changed="handleFavoriteToggle"
@@ -20,7 +21,6 @@
             </div>
         </div>
 
-        <!-- 하단 네비게이션 -->
         <BottomNavbar />
     </div>
 </template>
@@ -32,30 +32,26 @@ import BackHeader from '@/components/common/BackHeader.vue'
 import BottomNavbar from '@/components/common/BottomNavbar.vue'
 import SubscriptionCard from '@/components/subscription/SubscriptionCard.vue'
 
-// 스토어
 const favoritesStore = useFavoritesStore()
 
-// 전체 청약 공고 (예: 외부에서 받아오거나 import)
-import { allSubscriptions } from '@/data/subscription-data' // 또는 props로 전달
+// store의 favorites 배열 직접 사용
+const favorites = computed(() => favoritesStore.favorites)
 
-// 즐겨찾기된 공고 필터링
-const favoriteSubscriptions = computed(() => {
-    return favoritesStore.getFavoriteSubscriptions(allSubscriptions)
+const sortedFavorites = computed(() => {
+    return [...favorites.value].sort((a, b) => {
+        // TODO: 정렬 기준: apt_type 안에 신청 시작일 필드가 있으면 거기 사용
+        return (a.apt_idx ?? 0) - (b.apt_idx ?? 0)
+    })
 })
 
-// 즐겨찾기 토글 핸들러
-const handleFavoriteToggle = (id) => {
-    favoritesStore.toggleFavorite(id)
+const handleFavoriteToggle = async (subscription) => {
+  // 서버가 사용하는 실제 PK 필드로 넘겨줍니다.
+  const id = subscription.apt_idx ?? subscription.offi_idx
+  await favoritesStore.toggleFavorite(id)
 }
 
-const sortedSubscriptions = computed(() => {
-    const result = [...favoriteSubscriptions.value]
-    return result.sort(
-        (a, b) => new Date(a.applicationStartDate) - new Date(b.applicationStartDate),
-    )
-})
-
-onMounted(() => {
-    favoritesStore.initializeFavorites()
+onMounted(async () => {
+    await favoritesStore.initializeFavorites()
+    await favoritesStore.fetchFavoritesFromServer()
 })
 </script>
