@@ -83,13 +83,15 @@ export const useUserStore = defineStore('user', {
 
         async updateProfile(payload) {
             try {
-                const res = await api.put('/me/profile', payload)
-                // 서버에서 변경된 데이터를 다시 state에 반영
+                // payload는 { address, birthdate, user_name }
+                await api.put('/auth/update', payload)
+
+                // 로컬 상태 갱신
                 this.name = payload.user_name
                 this.birthDate = payload.birthdate
-                // address도 관리하려면 state에 추가해야 함
+                this.address = payload.address
             } catch (err) {
-                console.error('프로필 업데이트 실패:', err)
+                console.error('프로필 수정 실패:', err)
                 throw err
             }
         },

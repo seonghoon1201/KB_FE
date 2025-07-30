@@ -111,7 +111,7 @@ const profile = reactive({
     birthdate: userStore.birthDate,
     account: '3333-1234-5678', // 임시 계좌
     email: userStore.email,
-    address: '',
+    address: userStore.address,
 })
 
 const searchAddress = () => {
