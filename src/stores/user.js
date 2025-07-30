@@ -9,9 +9,9 @@ export const useUserStore = defineStore('user', {
         name: '',
         email: '',
         phone: '',
-        address: '', // ← 추가
+        address: '', 
         birthDate: '',
-        roles: [], // ← 추가
+        roles: [],
         accessToken: '',
         refreshToken: '',
         isLoggedIn: false,
@@ -70,7 +70,7 @@ export const useUserStore = defineStore('user', {
         },
 
         async signout() {
-            // 스토어 클리어
+            // 스토어 클리어78
             this.$reset()
             localStorage.removeItem('accessToken')
             localStorage.removeItem('refreshToken')
