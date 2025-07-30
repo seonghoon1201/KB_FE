@@ -80,5 +80,20 @@ export const useUserStore = defineStore('user', {
         saveScore(scoreObj) {
             this.score = scoreObj
         },
+
+        async updateProfile(payload) {
+            try {
+                // payload는 { address, birthdate, user_name }
+                await api.put('/auth/update', payload)
+
+                // 로컬 상태 갱신
+                this.name = payload.user_name
+                this.birthDate = payload.birthdate
+                this.address = payload.address
+            } catch (err) {
+                console.error('프로필 수정 실패:', err)
+                throw err
+            }
+        },
     },
 })

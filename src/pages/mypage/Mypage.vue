@@ -1,13 +1,15 @@
 <template>
-    <div class="flex flex-col items-center min-h-screen bg-white text-center px-6 ">
+    <div class="flex flex-col items-center min-h-screen bg-white text-center px-6">
         <BackHeader title="마이페이지" />
 
         <!-- User Info Card -->
-        <div class="bg-[#EEF8FD] rounded-xl m-4 p-4 mt-20 flex items-center justify-between w-full"
-        @click="navigateTo('/mypage/edit')">
+        <div
+            class="bg-[#EEF8FD] rounded-xl m-4 p-4 mt-20 flex items-center justify-between w-full"
+            @click="navigateTo('/mypage/edit')"
+        >
             <div>
-                <p class="text-lg font-bold text-left">{{ userName }}님, 안녕하세요!</p>
-                <p class="text-sm text-gray-600 text-left">{{ userEmail }}</p>
+                <p class="text-lg font-bold text-left">{{ userStore.name }}님, 안녕하세요!</p>
+                <p class="text-sm text-gray-600 text-left">{{ userStore.email }}</p>
             </div>
             <!-- 프로필 이미지 (흰색 배경 처리) -->
             <div class="flex flex-row items-center justify-center">
@@ -30,7 +32,7 @@
                 v-for="(item, index) in menuItems"
                 :key="index"
                 @click="navigateTo(item.route)"
-                class="flex items-center justify-between px-4 py-4 border-b cursor-pointer hover:bg-gray-50 transition "
+                class="flex items-center justify-between px-4 py-4 border-b cursor-pointer hover:bg-gray-50 transition"
             >
                 <div class="flex items-center gap-3">
                     <component :is="item.icon" class="w-5 h-5 text-gray-700" />
@@ -60,8 +62,10 @@
 import BackHeader from '@/components/common/BackHeader.vue'
 import { useRouter } from 'vue-router'
 import { ChevronRight, FileText, Heart, Calculator, MapPin } from 'lucide-vue-next'
+import { useUserStore } from '@/stores/user'
 
 const router = useRouter()
+const userStore = useUserStore()
 
 const menuItems = [
     { label: '최근 본 공고', route: '/recent', icon: FileText },
@@ -74,6 +78,5 @@ const navigateTo = (path) => {
     router.push(path)
 }
 
-const userName = '김제비'
-const userEmail = 'zibi1234@gmail.com'
+
 </script>
