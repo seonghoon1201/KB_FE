@@ -25,7 +25,11 @@ export default {
     },
     // 비밀번호 재설정
     refreshPassword({ user_id, new_password }) {
-        return api.put('/auth/password', { user_id, new_password })
+        return api.put('/auth/resetpassword', { user_id, new_password })
+    },
+    // 비밀번호 변경
+    changepassword({ new_password, old_password }) {
+        return api.put('/auth/changepassword', { old_password, new_password })
     },
     // 액세스 토큰 만료 시 리프레시 토큰 보내기
     refreshToken(refresh_token) {
