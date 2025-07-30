@@ -1,3 +1,4 @@
+<!-- src/pages/LoginPage.vue -->
 <template>
     <div class="h-screen w-screen bg-white flex items-center justify-center px-6">
         <div class="w-full max-w-[328px] flex flex-col items-center gap-2">
@@ -7,7 +8,6 @@
                 class="w-full max-w-[280px] sm:max-w-[300px]"
             />
 
-            <!-- form 태그 + @submit.prevent 로 단 한 번만 호출 -->
             <form @submit.prevent="handleLogin" class="w-full flex flex-col gap-6">
                 <div>
                     <label class="text-xs text-[#8D8D8D] mb-1 block">이메일</label>
@@ -46,11 +46,11 @@
             </button>
 
             <div class="text-[12px] text-[#7E7E7E] flex justify-center gap-6 w-full">
-                <span class="cursor-pointer hover:underline" @click="goToFindPassword">
-                    비밀번호 찾기
-                </span>
+                <span class="cursor-pointer hover:underline" @click="goToFindPassword"
+                    >비밀번호 찾기</span
+                >
                 <span class="text-[#D9D9D9]">|</span>
-                <span class="cursor-pointer hover:underline" @click="goToSignUp"> 회원가입 </span>
+                <span class="cursor-pointer hover:underline" @click="goToSignUp">회원가입</span>
             </div>
         </div>
     </div>
@@ -60,7 +60,7 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import PrimaryButton from '@/components/common/PrimaryButton.vue'
-import api from '@/api/axios'
+import AuthApi from '@/api/authApi'
 import { useUserStore } from '@/stores/user'
 
 const email = ref('')
@@ -76,13 +76,11 @@ async function handleLogin() {
     }
     loading.value = true
     try {
-        // 프록시 덕분에 '/v1/auth/login' → 백엔드로 전달
-        const res = await api.post('/auth/login', {
+        const res = await AuthApi.login({
             user_id: email.value,
             password: password.value,
         })
         const { access_token, refresh_token, user, users } = res.data
-        console.log(access_token, refresh_token)
         const u = user ?? users
         if (!u) throw new Error('서버에서 사용자 정보를 찾을 수 없습니다.')
 
