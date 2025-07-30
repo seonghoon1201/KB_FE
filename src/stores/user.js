@@ -37,12 +37,24 @@ export const useUserStore = defineStore('user', {
         },
 
         async refreshAccessToken() {
-            const res = await AuthApi.refreshToken(this.refreshToken)
-            const { access_token } = res.data
-            this.accessToken = access_token
-            localStorage.setItem('accessToken', access_token)
-            api.defaults.headers.common.Authorization = `Bearer ${access_token}`
-            return access_token
+            try {
+                const res = await api.post('/auth/refresh', {
+                    refreshToken: this.refreshToken,
+                })
+                const newToken = res.data.accessToken
+                this.accessToken = newToken
+                localStorage.setItem('accessToken', newToken)
+                api.defaults.headers.common.Authorization = `Bearer ${newToken}`
+                console.log('토큰 갱신 성공')
+            } catch (err) {
+                console.error('토큰 갱신 실패', err)
+                this.isLoggedIn = false
+                this.accessToken = null
+                this.refreshToken = null
+                localStorage.removeItem('accessToken')
+                localStorage.removeItem('refreshToken')
+                throw err
+            }
         },
 
         async logout() {
@@ -71,6 +83,19 @@ export const useUserStore = defineStore('user', {
 
         saveScore(scoreObj) {
             this.score = scoreObj
+        },
+
+        async updateProfile(payload) {
+            try {
+                const res = await api.put('/me/profile', payload)
+                // 서버에서 변경된 데이터를 다시 state에 반영
+                this.name = payload.user_name
+                this.birthDate = payload.birthdate
+                // address도 관리하려면 state에 추가해야 함
+            } catch (err) {
+                console.error('프로필 업데이트 실패:', err)
+                throw err
+            }
         },
     },
 })
