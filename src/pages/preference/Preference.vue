@@ -254,7 +254,7 @@ const onSubmit = () => {
     })
 
     alert('설정이 저장되었습니다.')
-    router.push('/')
+    router.push('/home')
 }
 </script>
 

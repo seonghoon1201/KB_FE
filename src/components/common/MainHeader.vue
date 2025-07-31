@@ -35,7 +35,7 @@ const showAlarm = ref(true)
 const router = useRouter()
 
 const goHome = () => {
-    router.push('/')
+    router.push('/home')
 }
 
 const alarmClick = () => {

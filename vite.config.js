@@ -10,23 +10,21 @@ export default defineConfig({
         vueDevTools(),
         VitePWA({
             registerType: 'autoUpdate',
-            includeAssets: ['favicon.svg', 'robots.txt', 'apple-touch-icon.png'],
             manifest: {
                 name: '지비',
                 short_name: '지비',
-                description: '청약 도우미 웹앱',
-                theme_color: '#ffffff',
-                background_color: '#ffffff',
                 display: 'standalone',
-                orientation: 'portrait',
+                start_url: '/',
+                background_color: '#ffffff',
+                theme_color: '#ffffff',
                 icons: [
                     {
-                        src: '/pwa.png',
+                        src: '/pwa-192x192.png',
                         sizes: '192x192',
                         type: 'image/png',
                     },
                     {
-                        src: '/pwa.png',
+                        src: '/pwa-512x512.png',
                         sizes: '512x512',
                         type: 'image/png',
                     },

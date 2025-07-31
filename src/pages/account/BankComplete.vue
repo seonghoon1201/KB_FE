@@ -68,6 +68,6 @@ const router = useRouter()
 const accountStore = useAccountStore()
 
 const goHome = () => {
-    router.push('/')
+    router.push('/home')
 }
 </script>
