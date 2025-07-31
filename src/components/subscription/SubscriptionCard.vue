@@ -5,7 +5,7 @@
     >
         <!-- 상단: 제목, D-Day, 하트 -->
         <div class="flex items-start justify-between mb-2">
-            <h2 class="text-lg font-bold text-gray-900 pr-4 truncate whitespace-nowrap ">
+            <h2 class="text-lg font-bold text-gray-900 pr-4 truncate whitespace-nowrap">
                 {{ subscription.house_nm }}
             </h2>
             <div class="flex items-center gap-2 flex-shrink-0">
@@ -34,7 +34,6 @@
             <div class="flex flex-col gap-3">
                 <!-- 위치 정보 -->
                 <p class="text-gray-500 text-sm text-left">
-                    <!-- {{ extractCityDistrict(subscription.hssplyAdres) }} -->
                     {{ subscription.city }} {{ subscription.district }}
                 </p>
                 <span class="text-gray-500 text-sm">
@@ -46,19 +45,21 @@
                     :class="houseTypeBadgeClass"
                     class="text-sm font-medium px-3 py-1 rounded-full w-fit"
                 >
-                    {{ subscription.house_type }}
+                    {{ houseTypeLabel }}
                 </span>
             </div>
 
             <!-- 우측: 면적/가격, 상세보기 버튼 -->
             <div class="flex flex-col items-end">
-                <span class="text-gray-500 text-sm">{{
-                    formatToEok(subscription.lttot_top_amount)
-                }}</span>
+                <span class="text-gray-500 text-sm mr-2"
+                    >{{ formatToEok(subscription.min_price) }} ~</span
+                >
                 <!-- 면적, 가격 -->
-                <span class="text-gray-500 text-sm mt-2 mb-3">
-                    {{ subscription.suply_ar }}㎡ ·
-                    <span>{{ formatToPyeong(subscription.suply_ar) }}평</span>
+                <span class="text-gray-500 text-sm mt-2 mb-3 mr-2">
+                    {{ formatToNum(subscription.min_area) }}㎡ ~
+                    <!-- <span
+                        > ·{{ formatToPyeong(subscription.min_area) }}평
+                    </span> -->
                 </span>
                 <!-- 상세보기 버튼 -->
                 <button
@@ -94,7 +95,10 @@ const props = defineProps({
     },
 })
 
-const isFavorite = computed(() => favoritesStore.isFavorite(props.subscription.id))
+const isFavorite = computed(() => {
+    if (!favoritesStore.favorites || !Array.isArray(favoritesStore.favorites)) return false
+    return favoritesStore.isFavorite(props.subscription.house_type, props.subscription.pblanc_no)
+})
 
 // D-Day 계산 (computed)
 const dDayInfo = computed(() => {
@@ -148,6 +152,17 @@ const houseTypeBadgeClass = computed(() => {
     return styleMap[type] || 'bg-gray-100 text-gray-700'
 })
 
+// 주택 타입 표시 텍스트
+const houseTypeLabel = computed(() => {
+    const type = props.subscription.house_type
+    const labelMap = {
+        APT: '아파트',
+        도시형생활주택: '도시형 생활주택',
+        오피스텔: '오피스텔',
+    }
+    return labelMap[type] || type
+})
+
 function extractCityDistrict(fullAddr) {
     if (!fullAddr) return ''
     const parts = fullAddr.split(' ')
@@ -157,13 +172,27 @@ function extractCityDistrict(fullAddr) {
 // 이벤트 emith
 const emit = defineEmits(['favorite-changed', 'detail-click'])
 
-// 즐겨찾기 토글
-const handleFavoriteClick = async () => {
-    await favoritesStore.toggleFavorite(props.subscription)
+const handleFavoriteClick = () => {
+    const { house_type, pblanc_no } = props.subscription
+    if (favoritesStore.isFavorite(house_type, pblanc_no)) {
+        favoritesStore.removeFavorite({ house_type, pblanc_no })
+    } else {
+        favoritesStore.addFavorite({ house_type, pblanc_no })
+    }
 }
+
 // 상세보기 클릭
 const handleDetailClick = () => {
-    router.push(`/subscriptions/${props.subscription.id}`)
+    router.push(`/subscriptions/${props.subscription.pblanc_no}`)
+}
+
+const formatToNum = (strValue) => {
+    if (strValue == null || strValue === '') return 0 // null/빈 문자열 처리
+
+    const num = parseFloat(strValue)
+    if (isNaN(num)) return 0 // 숫자로 변환 불가하면 0
+
+    return parseFloat(num.toFixed(1)) // 소수점 첫째자리까지
 }
 
 const formatToEok = (priceValue) => {
@@ -184,7 +213,8 @@ const formatToEok = (priceValue) => {
 
 // 1평 = 3.30579㎡
 const formatToPyeong = (squareMeters) => {
-    if (!squareMeters || isNaN(squareMeters)) return 0
-    return (squareMeters / 3.30579).toFixed(1) // 소수점 1자리까지
+    const num = parseFloat(squareMeters)
+    if (isNaN(num)) return 0
+    return (num / 3.30579).toFixed(0)
 }
 </script>

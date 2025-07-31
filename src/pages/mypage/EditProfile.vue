@@ -89,7 +89,9 @@
                 </button>
             </div>
 
-            <PrimaryButton>저장</PrimaryButton>
+            <PrimaryButton type="submit" :disabled="loading">{{
+                loading ? '저장 중...' : '저장'
+            }}</PrimaryButton>
         </form>
     </div>
 </template>
