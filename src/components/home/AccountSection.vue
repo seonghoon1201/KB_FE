@@ -245,11 +245,16 @@ onMounted(async () => {
     }
 })
 
-// 핸들러
-const disconnectAccount = () => {
-    accountStore.reset()
-    showConfirmModal.value = false
+// 계좌 해지 핸들러
+const disconnectAccount = async () => {
+    try {
+        await accountStore.disconnectAccount()
+        showConfirmModal.value = false
+    } catch (e) {
+        alert('계좌 해지에 실패했습니다. 다시 시도해주세요.')
+    }
 }
+
 const onConnectAccount = () => {
     router.push('/bank/select')
 }

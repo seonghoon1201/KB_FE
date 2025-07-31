@@ -71,5 +71,15 @@ export const useAccountStore = defineStore('account', {
             this.resAccountTrDate = d.res_account_tr_date
             this.isPayment = d.is_payment
         },
+        /** 계좌 해지 요청 */
+        async disconnectAccount() {
+            try {
+                await accountApi.disconnect()
+                this.reset() // 상태 초기화
+            } catch (error) {
+                console.error('계좌 해지 실패:', error)
+                throw error
+            }
+        },
     },
 })
