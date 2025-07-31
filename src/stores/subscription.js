@@ -39,6 +39,7 @@ export const useSubscriptionsStore = defineStore('subscription', () => {
                     max_area: item.max_area,
                     min_price: item.min_price,
                     max_price: item.max_price,
+                    is_favorite: item.is_favorite
                 }
             })
 
