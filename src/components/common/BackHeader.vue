@@ -50,7 +50,7 @@ const backClick = () => {
     console.log('currentPath : ', currentPath)
     const backPath = ['subscriptions', 'mypage']
     if (backPath.filter((item) => item === currentPath[0]) && currentPath.length > 1) router.back()
-    else router.push('/')
+    else router.push('/home')
 }
 
 const titleClick = () => {

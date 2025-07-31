@@ -2,8 +2,9 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
 const routes = [
+    { path: '/', name: 'First', component: () => import('@/pages/auth/Login.vue') },
     // 홈 화면
-    { path: '/', name: 'Home', component: () => import('@/pages/home/Home.vue') },
+    { path: '/home', name: 'Home', component: () => import('@/pages/home/Home.vue') },
     // 선호 설정 화면
     {
         path: '/preference',
