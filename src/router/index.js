@@ -28,11 +28,17 @@ const routes = [
         name: 'SubscriptionList',
         component: () => import('@/pages/subscription/SubscriptionList.vue'),
     },
-    // 청약 정보 디테일 화면
+    // 아파트 청약 정보 디테일 화면
     {
         path: '/subscriptions/:id',
         name: 'SubscriptionDetail',
         component: () => import('@/pages/subscription/SubscriptionDetail.vue'),
+    },
+    // 아파트 제외 청약 정보 디테일 화면
+    {
+        path: '/etcsubscriptions/:id',
+        name: 'EtcSubscriptionDetail',
+        component: () => import('@/pages/subscription/EtcSubscriptionDetail.vue'),
     },
     // 즐겨찾기 화면
     {
