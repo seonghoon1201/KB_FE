@@ -1,39 +1,75 @@
-// 계좌 등록 관련 상태와 메서드를 관리하는 Pinia 스토어 정의
+// src/stores/account.js
 import { defineStore } from 'pinia'
+import accountApi from '@/api/accountApi'
 
 export const useAccountStore = defineStore('account', {
-    // 상태 정의
     state: () => ({
-        selectedBankName: '', // 선택된 은행 이름
-        selectedBankCode: '', // 선택된 은행 코드
-        selectedBankLogo: '', // 선택된 은행 로고 이미지 경로
-        accountNumber: '', // 계좌번호 (현재는 더미 데이터)
+        // --- 은행 선택용 ---
+        selectedBankName: '',
+        selectedBankCode: '',
+        selectedBankLogo: '',
+        // --- API 응답 계좌 정보 ---
+        accountDisplay: '',
+        accountBalance: 0,
+        accountStartDate: '',
+        resAccount: '',
+        resAccountName: '',
+        resFinalRoundNo: '',
+        resAccountTrDate: '',
+        isPayment: false,
     }),
-    // 상태를 변경하는 메서드 정의
+    getters: {
+        // 계좌가 이미 연결되어 있는지 여부
+        isRegistered: (state) => !!state.resAccount,
+    },
     actions: {
-        /**
-         * 사용자가 은행을 선택했을 때 상태를 갱신하는 메서드
-         * @param name 은행 이름
-         * @param code 은행 코드
-         * @param logo 은행 로고 이미지 경로
-         */
+        /** 은행 선택 */
         setSelectedBank(name, code, logo) {
             this.selectedBankName = name
             this.selectedBankCode = code
             this.selectedBankLogo = logo
-            this.accountNumber = '123-45-678901' // 더미 계좌번호 (추후 API로 대체)
         },
-        // 계좌 관련 상태 초기화
+
+        /** 스토어 초기화 */
         reset() {
             this.selectedBankName = ''
             this.selectedBankCode = ''
             this.selectedBankLogo = ''
-            this.accountNumber = ''
+            this.accountDisplay = ''
+            this.accountBalance = 0
+            this.accountStartDate = ''
+            this.resAccount = ''
+            this.resAccountName = ''
+            this.resFinalRoundNo = ''
+            this.resAccountTrDate = ''
+            this.isPayment = false
         },
-    },
-    // 상태 기반 파생값을 계산하는 getter 정의
-    getters: {
-        // 계좌가 등록되어 있는지 여부를 boolean 값으로 반환
-        isRegistered: (state) => !!state.selectedBankName,
+
+        /**
+         * 1) POST /account/connect
+         *    → 계좌 연결 요청
+         */
+        async connectAccount({ id, organization, bank_name, password }) {
+            await accountApi.connect({ id, organization, bank_name, password })
+            // 연결 성공 후 즉시 정보 조회
+            await this.fetchAccount()
+        },
+
+        /**
+         * 2) GET /account
+         *    → 연결된 계좌 정보 가져오기
+         */
+        async fetchAccount() {
+            const res = await accountApi.fetch()
+            const d = res.data
+            this.accountDisplay = d.account_display
+            this.accountBalance = d.account_balance
+            this.accountStartDate = d.account_start_date
+            this.resAccount = d.res_account
+            this.resAccountName = d.res_account_name
+            this.resFinalRoundNo = d.res_final_round_no
+            this.resAccountTrDate = d.res_account_tr_date
+            this.isPayment = d.is_payment
+        },
     },
 })

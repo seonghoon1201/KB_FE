@@ -10,17 +10,25 @@
         <!-- 완료 텍스트 -->
         <h2 class="text-[18px] font-bold text-gray-800 mb-[6px]">계좌 연결 완료!</h2>
         <p class="text-[12px] text-gray-500 mb-[24px] leading-tight">
-            {{ name }} 계좌와 안전하게 연결이 완료되었어요
+            {{ accountStore.selectedBankName }} 계좌와 안전하게 연결이 완료되었어요
         </p>
 
         <!-- 연결된 계좌 박스 -->
         <div
             class="flex items-center w-full max-w-[320px] px-[16px] py-[14px] mb-[24px] bg-[#F5F8FF] rounded-md border border-[#D6E4FF]"
         >
-            <img :src="logo" alt="은행 로고" class="w-[40px] h-[40px] object-contain mr-[12px]" />
+            <img
+                :src="accountStore.selectedBankLogo"
+                alt="은행 로고"
+                class="w-[40px] h-[40px] object-contain mr-[12px]"
+            />
             <div>
-                <p class="text-[14px] font-semibold text-gray-800 leading-snug">{{ name }}</p>
-                <p class="text-[12px] text-gray-500">청약통장 · 123-45-678901</p>
+                <p class="text-[14px] font-semibold text-gray-800 leading-snug">
+                    {{ accountStore.resAccountName }}
+                </p>
+                <p class="text-[12px] text-gray-500">
+                    {{ accountStore.resAccount }}
+                </p>
             </div>
         </div>
 
@@ -44,22 +52,20 @@
         <PrimaryButton
             customClass="w-full max-w-[320px] h-[44px] text-[14px] font-medium"
             @click="goHome"
-            >홈으로 돌아가기</PrimaryButton
         >
+            홈으로 돌아가기
+        </PrimaryButton>
     </div>
 </template>
 
 <script setup>
-import { useAccountStore } from '@/stores/account'
-import { useRouter } from 'vue-router'
 import PrimaryButton from '@/components/common/PrimaryButton.vue'
 import { Check, CheckCircle } from 'lucide-vue-next'
+import { useRouter } from 'vue-router'
+import { useAccountStore } from '@/stores/account'
 
-const accountStore = useAccountStore()
 const router = useRouter()
-
-const name = accountStore.selectedBankName
-const logo = accountStore.selectedBankLogo
+const accountStore = useAccountStore()
 
 const goHome = () => {
     router.push('/')

@@ -1,12 +1,12 @@
 <template>
-    <div class="bg-white min-h-screen px-4 py-6 flex flex-col pt-[70px] ">
-        <BackHeader title="계좌 등록"/>
+    <div class="bg-white min-h-screen px-4 py-6 flex flex-col pt-[70px]">
+        <BackHeader title="계좌 등록" />
 
         <!-- 은행 리스트 -->
-        <div class="grid grid-cols-3 gap-4">
+        <div class="grid grid-cols-3 gap-4 mt-4">
             <div
                 v-for="bank in banks"
-                :key="bank.name"
+                :key="bank.code"
                 class="flex flex-col items-center space-y-1 cursor-pointer border rounded-md p-2 transition"
                 :class="{
                     'border-[#7B61FF] bg-[#F5F2FD]': isSelected(bank),
@@ -41,9 +41,9 @@
 
 <script setup>
 import PrimaryButton from '@/components/common/PrimaryButton.vue'
+import BackHeader from '@/components/common/BackHeader.vue'
 import { useRouter } from 'vue-router'
 import { useAccountStore } from '@/stores/account'
-import BackHeader from '@/components/common/BackHeader.vue'
 
 const router = useRouter()
 const accountStore = useAccountStore()
@@ -122,17 +122,12 @@ const banks = [
     },
 ]
 
-// 선택된 은행 저장
 const selectBank = (bank) => {
     accountStore.setSelectedBank(bank.name, bank.code, bank.logo)
 }
 
-// 선택 상태 체크
-const isSelected = (bank) => {
-    return accountStore.selectedBankCode === bank.code
-}
+const isSelected = (bank) => accountStore.selectedBankCode === bank.code
 
-// 다음 페이지 이동
 const goNext = () => {
     if (!accountStore.selectedBankName) {
         alert('은행을 선택해주세요.')
