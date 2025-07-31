@@ -18,4 +18,12 @@ export default {
     fetch() {
         return api.get('/account')
     },
+
+    /**
+     * 계좌 해지
+     * @returns Promise<AxiosResponse>
+     */
+    disconnect() {
+        return api.delete('/account')
+    },
 }

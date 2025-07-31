@@ -109,6 +109,9 @@ const dDayInfo = computed(() => {
     const parts = period.split('~')
     if (parts.length < 2) return { dDay: 0, text: 'D-Day' }
 
+    // // 날짜 없으면 기본값
+    // if (!end) return { dDay: 0, text: '일정없음' }
+
     const endDateStr = parts[1].trim().replace(/\./g, '-') // "2025-08-06"
     const endDate = new Date(endDateStr)
     const today = new Date()
@@ -181,10 +184,16 @@ const handleFavoriteClick = () => {
     }
 }
 
-// 상세보기 클릭
+// 아파트와 기타 주택 디테일 페이지 분리
 const handleDetailClick = () => {
-    router.push(`/subscriptions/${props.subscription.pblanc_no}`)
+  const { pblanc_no, house_type } = props.subscription
+  if (house_type === 'APT') {
+    router.push(`/subscriptions/${pblanc_no}`)
+  } else {
+    router.push(`/etcsubscriptions/${pblanc_no}`)
+  }
 }
+
 
 const formatToNum = (strValue) => {
     if (strValue == null || strValue === '') return 0 // null/빈 문자열 처리
