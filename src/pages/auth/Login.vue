@@ -93,7 +93,7 @@ async function handleLogin() {
         })
 
         // ④ 홈으로 이동
-        router.push('/')
+        router.push('/home')
     } catch (err) {
         console.error(err)
         alert('로그인에 실패했습니다. 아이디/비밀번호를 확인해주세요.')
