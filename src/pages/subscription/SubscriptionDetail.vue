@@ -34,7 +34,7 @@
 
                 <p class="flex items-center mt-1 text-sm text-gray-500">
                     <Heart class="inline mr-1" :size="16" stroke-width="1.5" />{{
-                        subscription.favoriteCount
+                        subscription.favorite_count
                     }}
                     / <Eye class="inline ml-1 mr-1" :size="16" stroke-width="1.5" />{{
                         subscription.view_count
@@ -90,6 +90,7 @@
             <section class="px-4 mt-6 space-y-3">
                 <!-- 청약 신청 버튼 -->
                 <button
+                    @click="goToApply"
                     class="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-green-400 to-teal-500 text-white rounded-xl py-3 text-base font-semibold shadow hover:brightness-110 transition-all"
                 >
                     <Building2 class="w-5 h-5" /> 청약 신청하기
@@ -98,6 +99,7 @@
 
                 <!-- 분양 정보 보기 버튼 -->
                 <button
+                    @click="viewSubscriptionInfo"
                     class="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-orange-400 to-yellow-400 text-white rounded-xl py-3 text-base font-semibold shadow hover:brightness-110 transition-all"
                 >
                     <FileText class="w-5 h-5" /> 분양 정보 보기
@@ -250,7 +252,9 @@ onMounted(async () => {
             address: d.hssply_adres,
             price: d.apt_type?.[0]?.LTTOT_TOP_AMOUNT ? d.apt_type[0].LTTOT_TOP_AMOUNT : '',
             householdCount: d.tot_suply_hshldco,
+            favorite_count: d.favorite_count,
             view_count: d.view_count,
+            pblanc_url: d.pblanc_url,
         }
         await nextTick() // DOM 업데이트 기다림
         await initMap(subscription.value.address)
@@ -330,43 +334,43 @@ function calcBadge(start, end) {
 }
 
 const scheduleItems = computed(() => {
-  if (!subscription.value) return []
+    if (!subscription.value) return []
 
-  const d = subscription.value
+    const d = subscription.value
 
-  // 헬퍼 함수: 날짜 문자열 두 개가 null이면 안내 문구 반환
-  function makeDateText(start, end) {
-    if (!start && !end) return '일정이 정해지지 않았습니다!'
-    return `${start || '-'} ~ ${end || '-'}`
-  }
+    // 헬퍼 함수: 날짜 문자열 두 개가 null이면 안내 문구 반환
+    function makeDateText(start, end) {
+        if (!start && !end) return '일정이 정해지지 않았습니다!'
+        return `${start || '-'} ~ ${end || '-'}`
+    }
 
-  return [
-    {
-      label: '특별공급',
-      date: makeDateText(d.spsply_rcept_bgnde, d.spsply_rcept_endde),
-      badge: calcBadge(d.spsply_rcept_bgnde, d.spsply_rcept_endde),
-    },
-    {
-      label: '1순위 해당 지역',
-      date: makeDateText(d.gnrl_rnk1_crsparea_rcptde, d.gnrl_rnk1_crsparea_endde),
-      badge: calcBadge(d.gnrl_rnk1_crsparea_rcptde, d.gnrl_rnk1_crsparea_endde),
-    },
-    {
-      label: '1순위 기타 지역',
-      date: makeDateText(d.gnrl_rnk1_etc_area_rcptde, d.gnrl_rnk1_etc_area_endde),
-      badge: calcBadge(d.gnrl_rnk1_etc_area_rcptde, d.gnrl_rnk1_etc_area_endde),
-    },
-    {
-      label: '2순위 해당 지역',
-      date: makeDateText(d.gnrl_rnk2_crsparea_rcptde, d.gnrl_rnk2_crsparea_endde),
-      badge: calcBadge(d.gnrl_rnk2_crsparea_rcptde, d.gnrl_rnk2_crsparea_endde),
-    },
-    {
-      label: '2순위 기타 지역',
-      date: makeDateText(d.gnrl_rnk2_etc_area_rcptde, d.gnrl_rnk2_etc_area_endde),
-      badge: calcBadge(d.gnrl_rnk2_etc_area_rcptde, d.gnrl_rnk2_etc_area_endde),
-    },
-  ]
+    return [
+        {
+            label: '특별공급',
+            date: makeDateText(d.spsply_rcept_bgnde, d.spsply_rcept_endde),
+            badge: calcBadge(d.spsply_rcept_bgnde, d.spsply_rcept_endde),
+        },
+        {
+            label: '1순위 해당 지역',
+            date: makeDateText(d.gnrl_rnk1_crsparea_rcptde, d.gnrl_rnk1_crsparea_endde),
+            badge: calcBadge(d.gnrl_rnk1_crsparea_rcptde, d.gnrl_rnk1_crsparea_endde),
+        },
+        {
+            label: '1순위 기타 지역',
+            date: makeDateText(d.gnrl_rnk1_etc_area_rcptde, d.gnrl_rnk1_etc_area_endde),
+            badge: calcBadge(d.gnrl_rnk1_etc_area_rcptde, d.gnrl_rnk1_etc_area_endde),
+        },
+        {
+            label: '2순위 해당 지역',
+            date: makeDateText(d.gnrl_rnk2_crsparea_rcptde, d.gnrl_rnk2_crsparea_endde),
+            badge: calcBadge(d.gnrl_rnk2_crsparea_rcptde, d.gnrl_rnk2_crsparea_endde),
+        },
+        {
+            label: '2순위 기타 지역',
+            date: makeDateText(d.gnrl_rnk2_etc_area_rcptde, d.gnrl_rnk2_etc_area_endde),
+            badge: calcBadge(d.gnrl_rnk2_etc_area_rcptde, d.gnrl_rnk2_etc_area_endde),
+        },
+    ]
 })
 
 function badgeColor(label) {
@@ -455,7 +459,16 @@ function getAddressUpToRi(addr) {
     return addr
 }
 
-const openPromotionLink = () => {
-    window.open('https://www.applyhome.co.kr/co/coa/selectMainView.do', '_blank')
+// const openPromotionLink = () => {
+//     window.open('https://www.applyhome.co.kr/co/coa/selectMainView.do', '_blank')
+// }
+
+function goToApply() {
+    window.open('https://www.applyhome.co.kr/ap/aph/reqst/selectSubscrtReqstAptMainView.do', '_blank')
+}
+
+function viewSubscriptionInfo() {
+    if (!subscription.value?.pblanc_url) return
+    window.open(subscription.value.pblanc_url, '_blank')
 }
 </script>

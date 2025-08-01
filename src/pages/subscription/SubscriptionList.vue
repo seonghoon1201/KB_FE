@@ -127,7 +127,7 @@
                     v-for="subscription in finalSubscriptions.slice(0, scrollIdx)"
                     :key="subscription.pblanc_no"
                     :subscription="subscription"
-                    :showExpired="false"
+
                 />
             </div>
         </div>
@@ -253,16 +253,16 @@ const finalSubscriptions = computed(() => {
     const today = new Date()
     today.setHours(0, 0, 0, 0)
 
-    // 1. 마감 공고 제거
-    if (!props.showExpired) {
-        result = result.filter((item) => {
-            if (!item.application_period) return false
-            const [, endStrRaw] = item.application_period.split('~') || []
-            if (!endStrRaw) return false
-            const endDate = new Date(endStrRaw.trim().replace(/\./g, '-'))
-            return endDate >= today
-        })
-    }
+    // // 1. 마감 공고 제거
+    // if (!props.showExpired) {
+    //     result = result.filter((item) => {
+    //         if (!item.application_period) return false
+    //         const [, endStrRaw] = item.application_period.split('~') || []
+    //         if (!endStrRaw) return false
+    //         const endDate = new Date(endStrRaw.trim().replace(/\./g, '-'))
+    //         return endDate >= today
+    //     })
+    // }
 
     // 2. 지역 필터
     if (appliedFilters.value.regions.length > 0) {
