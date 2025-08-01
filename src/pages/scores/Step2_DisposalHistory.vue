@@ -1,3 +1,4 @@
+<!-- src/pages/score/Step2.vue -->
 <template>
     <ScoreStepWrapper>
         <!-- 단계 표시 -->
@@ -13,6 +14,7 @@
                 </p>
             </InfoTooltip>
         </div>
+
         <div class="space-y-4">
             <button @click="select('yes')" :class="btnClass('yes')">네</button>
             <button @click="select('no')" :class="btnClass('no')">아니요</button>
@@ -40,32 +42,54 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useScoreStore } from '@/stores/scoreStore'
 import ScoreStepWrapper from '@/components/score/ScoreStepWrapper.vue'
-import PrimaryButton from '@/components/common/PrimaryButton.vue'
 import InfoTooltip from '@/components/score/InfoTooltip.vue'
+import PrimaryButton from '@/components/common/PrimaryButton.vue'
 
 const router = useRouter()
 const scoreStore = useScoreStore()
 
-const selected = ref(scoreStore.houseDisposed || '')
-const disposedDate = ref('')
+// 초기 값: store.houseDisposal === 1 → 'yes', === 0 → 'no', else ''
+const selected = ref(
+    scoreStore.houseDisposal === 1 ? 'yes' : scoreStore.houseDisposal === 0 ? 'no' : '',
+)
+// 로컬로 입력할 처분 연월
+const disposedDate = ref(scoreStore.disposalDate || '')
 
-const select = (val) => {
+function select(val) {
     selected.value = val
-    scoreStore.houseDisposed = val
+    // 'yes' → 1, 'no' → 0
+    scoreStore.houseDisposal = val === 'yes' ? 1 : 0
+    // 만약 'no' 선택 시 이전 날짜 삭제
+    if (val === 'no') {
+        disposedDate.value = ''
+        scoreStore.disposalDate = ''
+    }
 }
 
-const btnClass = (val) => [
-    'w-full px-4 py-3 rounded-md border font-semibold',
-    val === selected.value ? 'bg-blue-500 text-white' : 'bg-white text-gray-700 border-gray-300',
-]
+function btnClass(val) {
+    return [
+        'w-full px-4 py-3 rounded-md border font-semibold',
+        val === selected.value
+            ? 'bg-blue-500 text-white'
+            : 'bg-white text-gray-700 border-gray-300',
+    ]
+}
 
-const next = () => {
+function next() {
     if (!selected.value) return
-    if (selected.value === 'yes' && !disposedDate.value) {
-        alert('처분한 연월을 입력해주세요.')
-        return
+
+    if (selected.value === 'yes') {
+        if (!disposedDate.value) {
+            alert('처분한 연월을 입력해주세요.')
+            return
+        }
+        // store에 반영
+        scoreStore.disposalDate = disposedDate.value
+    } else {
+        // 'no' 선택 시 빈값
+        scoreStore.disposalDate = null
     }
-    scoreStore.disposedDate = disposedDate.value
+
     router.push('/score/step3')
 }
 </script>

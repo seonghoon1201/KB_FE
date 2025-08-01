@@ -13,7 +13,7 @@
             <!-- 점수 계산 파트 -->
             <ScoreSection
                 :isScoreCalculated="isScoreCalculated"
-                :score="score"
+                :score="computedScore"
                 @calculate="goToScoreInput"
                 @recalculate="goToScoreInput"
             />
@@ -46,7 +46,13 @@ const userStore = useUserStore()
 // scoreStore 에서 읽어옵니다
 const scoreStore = useScoreStore()
 const isScoreCalculated = computed(() => scoreStore.isCalculated)
-const score = computed(() => scoreStore.lastScore)
+const computedScore = computed(() => {
+    const r = scoreStore.result // ← 여기엔 .value 가 없습니다
+    const total = Number(r.total_ga_score || 0)
+    const percent = total > 0 ? (total / 84) * 100 : 0
+    const message = r.evaluation || ''
+    return { total, percent, message }
+})
 
 const preferenceStore = usePreferenceStore()
 const recommendList = [
@@ -68,6 +74,6 @@ const isPreferenceSet = computed(() => {
 
 const router = useRouter()
 const goToScoreInput = () => {
-    router.push('/score/no-house')
+    router.push('/score/step1')
 }
 </script>

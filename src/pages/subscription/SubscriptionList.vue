@@ -125,8 +125,9 @@
             <div v-else class="space-y-4">
                 <SubscriptionCard
                     v-for="subscription in finalSubscriptions.slice(0, scrollIdx)"
-                    :key="subscription.house_nm"
+                    :key="subscription.pblanc_no"
                     :subscription="subscription"
+
                 />
             </div>
         </div>
@@ -178,6 +179,10 @@ const appliedFilters = ref({
 })
 const selectedAreas = ref([])
 
+const props = defineProps({
+    showExpired: { type: Boolean, default: false }, // 기본은 false
+})
+
 const sortStandards = [
     { key: 'latest', label: '최신순', icon: TrendingUp },
     { key: 'deadline-first', label: '마감임박순', icon: Clock },
@@ -218,12 +223,20 @@ const removeFilter = (type, index) => {
         appliedFilters.value.priceMax = null
     }
 }
+
+// 필터 적용 부분
 const applyFilters = () => {
     const parsedAreas = selectedAreas.value.map((val) =>
         typeof val === 'string' ? val.split(',').map(Number) : val,
     )
     appliedFilters.value = {
-        regions: [...selectedRegions.value],
+        regions: selectedRegions.value.map((r) => {
+            if (typeof r === 'string') {
+                const [city, district] = r.split(' ')
+                return { city, district: district || '__all__' }
+            }
+            return r
+        }),
         squareMeters: parsedAreas,
         priceMin: priceMin.value,
         priceMax: priceMax.value,
@@ -237,128 +250,94 @@ const finalSubscriptions = computed(() => {
         return []
 
     let result = [...subscriptionsStore.subscriptions]
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
 
-    // 1. 정렬
-    switch (selectedFilter.value) {
-        case 'latest':
-            result.sort((a, b) => {
-                const today = new Date()
-                today.setHours(0, 0, 0, 0)
+    // // 1. 마감 공고 제거
+    // if (!props.showExpired) {
+    //     result = result.filter((item) => {
+    //         if (!item.application_period) return false
+    //         const [, endStrRaw] = item.application_period.split('~') || []
+    //         if (!endStrRaw) return false
+    //         const endDate = new Date(endStrRaw.trim().replace(/\./g, '-'))
+    //         return endDate >= today
+    //     })
+    // }
 
-                const endA = new Date(a.application_end_date)
-                const endB = new Date(b.application_end_date)
-                const startA = new Date(a.application_start_date)
-                const startB = new Date(b.application_start_date)
-
-                const isExpiredA = endA < today
-                const isExpiredB = endB < today
-
-                if (isExpiredA && !isExpiredB) return 1
-                if (!isExpiredA && isExpiredB) return -1
-
-                return startA - startB
-            })
-            break
-        case 'deadline-first':
-            result.sort(
-                (a, b) => new Date(a.application_end_date) - new Date(b.application_end_date),
-            )
-            break
-        case 'recommend':
-            // 임시로 가격순 정렬
-            result.sort(
-                (a, b) =>
-                    (parseFloat(b.lttot_top_amount) || 0) - (parseFloat(a.lttot_top_amount) || 0),
-            )
-            break
-    }
-
-    // 2. 필터 - 지역
+    // 2. 지역 필터
     if (appliedFilters.value.regions.length > 0) {
         result = result.filter((item) =>
             appliedFilters.value.regions.some((region) => {
-                const addr = item.hssply_adres || ''
-                const cityMatch = addr.includes(region.city)
+                const city = item.city || ''
+                const district = item.district || ''
+
+                // city 이름 일부만 포함되어도 매칭되도록
+                const cityMatch = city.includes(region.city)
+
                 if (!region.district || region.district === '' || region.district === '__all__') {
                     return cityMatch
                 }
-                return cityMatch && addr.includes(region.district)
+
+                // district 이름도 유연하게 포함 여부 체크
+                return cityMatch && district.includes(region.district)
             }),
         )
     }
 
-    // 3. 필터 - 면적
+    // 3. 면적 필터
     if (appliedFilters.value.squareMeters.length > 0) {
         result = result.filter((item) => {
-            const m2 = Number(item.suply_ar)
-            return appliedFilters.value.squareMeters.some(([min, max]) => m2 >= min && m2 <= max)
-        })
-    }
-
-    // 4. 필터 - 가격
-    if (appliedFilters.value.priceMin !== null || appliedFilters.value.priceMax !== null) {
-        result = result.filter((item) => {
-            const price = (parseFloat(item.lttot_top_amount) || 0) 
-            return (
-                (appliedFilters.value.priceMin === null ||
-                    price >= appliedFilters.value.priceMin) &&
-                (appliedFilters.value.priceMax === null || price <= appliedFilters.value.priceMax)
+            const min = Number(item.min_area) || 0
+            const max = Number(item.max_area) || 0
+            return appliedFilters.value.squareMeters.some(
+                ([rangeMin, rangeMax]) => max >= rangeMin && min <= rangeMax,
             )
         })
     }
 
-    // 5. 그룹화
-    const map = new Map()
-    result.forEach((item) => {
-        const key = item.house_nm
-        const suplyAr = parseFloat(item.suply_ar) || 0
-        const amount = parseFloat(String(item.lttot_top_amount).replace(/,/g, '')) || 0
+    // 4. 가격 필터
+    if (appliedFilters.value.priceMin !== null || appliedFilters.value.priceMax !== null) {
+        result = result.filter((item) => {
+            const minP = parseFloat(item.min_price) || 0
+            const maxP = parseFloat(item.max_price) || 0
+            return (
+                (appliedFilters.value.priceMin === null || maxP >= appliedFilters.value.priceMin) &&
+                (appliedFilters.value.priceMax === null || minP <= appliedFilters.value.priceMax)
+            )
+        })
+    }
 
-        if (!map.has(key)) {
-            map.set(key, {
-                house_nm: item.house_nm,
-                house_type: item.house_type,
-                city: item.city,
-                district: item.district,
-                hssply_adres: item.hssply_adres,
-                start_date: item.application_start_date,
-                end_date: item.application_end_date,
+    // 5. 정렬
+    const parseEndDate = (period) => {
+        if (!period) return new Date(0)
+        const [, endRaw] = period.split('~') || []
+        return new Date((endRaw || '').trim().replace(/\./g, '-'))
+    }
+    const parseStartDate = (period) => {
+        if (!period) return new Date(0)
+        const [startRaw] = period.split('~') || []
+        return new Date((startRaw || '').trim().replace(/\./g, '-'))
+    }
 
-                suply_ar_sum: suplyAr,
-                lttot_top_amount_sum: amount,
-                count: 1,
-            })
-        } else {
-            const obj = map.get(key)
-            // 날짜 업데이트
-            if (item.application_start_date && obj.start_date > item.application_start_date)
-                obj.start_date = item.application_start_date
-            if (item.application_end_date && obj.end_date < item.application_end_date)
-                obj.end_date = item.application_end_date
+    switch (selectedFilter.value) {
+        case 'latest':
+            result.sort(
+                (a, b) =>
+                    parseStartDate(b.application_period) - parseStartDate(a.application_period),
+            )
+            break
+        case 'deadline-first':
+            result.sort(
+                (a, b) => parseEndDate(a.application_period) - parseEndDate(b.application_period),
+            )
+            break
+        case 'recommend':
+            result.sort((a, b) => (parseFloat(b.max_price) || 0) - (parseFloat(a.max_price) || 0))
+            break
+    }
 
-            // 누적
-            obj.suply_ar_sum += suplyAr
-            obj.lttot_top_amount_sum += amount
-            obj.count += 1
-        }
-    })
-
-    // 평균값 계산해서 반환
-    return Array.from(map.values()).map((obj) => {
-        const avgSuplyAr = obj.suply_ar_sum / obj.count
-        const avgAmount = obj.lttot_top_amount_sum / obj.count
-
-        return {
-            ...obj,
-            application_start_date: obj.start_date,
-            application_end_date: obj.end_date,
-            application_period: `${obj.start_date} ~ ${obj.end_date}`,
-            suply_ar: avgSuplyAr.toFixed(0),
-            lttot_top_amount: avgAmount, // 정수화
-        }
-    })
+    return result
 })
-
 // --- 스크롤 / 초기화 ---
 const hasActiveFilters = computed(
     () =>
