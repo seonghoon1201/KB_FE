@@ -107,38 +107,44 @@ import BottomNavbar from '@/components/common/BottomNavbar.vue'
 import SubscriptionCard from '@/components/subscription/SubscriptionCard.vue'
 import { districts } from '@/data/districts'
 import { ListFilter, CircleAlert } from 'lucide-vue-next'
+import api from '@/api/axios'
 
-// 더미 청약 데이터
-const dummyList = [
-    {
-        id: 1,
-        title: '힐스테이트 청약',
-        lat: 37.5658,
-        lng: 126.978,
-        city: '서울시',
-        district: '강남구',
-        applicationStartDate: '2025.08.10',
-        applicationCompleteDate: '2025.08.12',
-        squareMeters: 104,
-        price: '800000000',
-        type: '아파트',
-        isFavorite: false,
-    },
-    {
-        id: 2,
-        title: '자이 청약',
-        lat: 37.57,
-        lng: 126.982,
-        city: '서울시',
-        district: '마포구',
-        applicationStartDate: '2025.09.01',
-        applicationCompleteDate: '2025.09.05',
-        squareMeters: 84,
-        price: '600000000',
-        type: '아파트',
-        isFavorite: true,
-    },
-]
+const subscriptionList = ref([])
+const coordsCache = {}
+
+onMounted(async () => {
+    const kakao = await loadKakaoMapScript()
+    map.value = new kakao.maps.Map(mapRef.value, {
+        center: new kakao.maps.LatLng(37.5665, 126.978),
+        level: 6,
+    })
+
+    const res = await api.get('/subscriptions')
+    subscriptionList.value = res.data
+
+    // 좌표를 먼저 준비 (한 번만)
+    await prepareCoords(subscriptionList.value)
+
+    await centerMapToTopCity(subscriptionList.value, map.value)
+
+    let idleTimer = null
+    kakao.maps.event.addListener(map.value, 'idle', () => {
+        if (idleTimer) clearTimeout(idleTimer)
+        idleTimer = setTimeout(() => {
+            const bounds = map.value.getBounds()
+            const visible = subscriptionList.value.filter((item) => {
+                const addr = `${item.si} ${item.sigungu}`
+                const coords = coordsCache[addr]
+                if (coords) {
+                    const pos = new kakao.maps.LatLng(coords.lat, coords.lng)
+                    return bounds.contains(pos)
+                }
+                return false // 좌표 없는 건 다음에 찍히게
+            })
+            renderMarkers(visible)
+        }, 500)
+    })
+})
 
 const mapRef = ref(null)
 const map = ref(null)
@@ -154,6 +160,70 @@ const selectedDistrict = ref('')
 
 const cities = Object.keys(districts)
 const filteredDistricts = computed(() => districts[selectedCity.value] || [])
+
+function getCoordsForAddress(addr, callback) {
+    // 캐시에 있으면 바로 사용
+    if (coordsCache[addr]) {
+        callback(coordsCache[addr])
+        return
+    }
+
+    const geocoder = new kakao.maps.services.Geocoder()
+    geocoder.addressSearch(addr, (result, status) => {
+        if (status === kakao.maps.services.Status.OK) {
+            const lat = parseFloat(result[0].y)
+            const lng = parseFloat(result[0].x)
+            coordsCache[addr] = { lat, lng }
+            callback({ lat, lng })
+        }
+    })
+}
+
+// 청약 많은 시/도 찾기
+function getTopCity(list) {
+    const countMap = {}
+
+    list.forEach((item) => {
+        const city = item.si
+        countMap[city] = (countMap[city] || 0) + 1
+    })
+
+    let maxCount = 0
+    let topCity = null
+    for (const city in countMap) {
+        if (countMap[city] > maxCount) {
+            maxCount = countMap[city]
+            topCity = city
+        }
+    }
+
+    // 디버깅 출력
+    console.log('청약 공고 수:', countMap)
+    console.log(`가장 많은 청약 공고가 있는 시/도: ${topCity} (${maxCount}개)`)
+
+    return topCity // 예: "서울특별시"
+}
+
+// 청약 많은 시/도를 중심으로
+async function centerMapToTopCity(list, map) {
+    const topCity = getTopCity(list)
+    if (!topCity) return
+
+    // topCity 공고만 출력
+    const topCityItems = list.filter((item) => item.si === topCity)
+    console.log(`"${topCity}" 공고 목록:`, topCityItems)
+
+    const geocoder = new kakao.maps.services.Geocoder()
+    geocoder.addressSearch(topCity, (result, status) => {
+        if (status === kakao.maps.services.Status.OK) {
+            const coords = new kakao.maps.LatLng(result[0].y, result[0].x)
+            map.setCenter(coords)
+
+            // 초기에는 topCity만 마커 찍기
+            renderMarkers(topCityItems)
+        }
+    })
+}
 
 // 필터 적용 버튼 클릭 시 동작
 const applyFilters = async () => {
@@ -194,38 +264,56 @@ const mapHeightStyle = computed(() => {
     }
 })
 
-onMounted(async () => {
-    const kakao = await loadKakaoMapScript()
-
-    map.value = new kakao.maps.Map(mapRef.value, {
-        center: new kakao.maps.LatLng(37.5665, 126.978),
-        level: 6,
-    })
-
-    renderMarkers()
-})
-
-// 마커 렌더링
-const renderMarkers = () => {
+function renderMarkers(list) {
     const kakao = window.kakao
     markers.value.forEach((marker) => marker.setMap(null))
     markers.value = []
 
-    const filtered =
-        activeTab.value === 'favorite' ? dummyList.filter((item) => item.isFavorite) : dummyList
+    list.forEach((item) => {
+        const addr = `${item.si} ${item.sigungu}`
+        const coords = coordsCache[addr]
+        if (!coords) return // 좌표 없는 건 스킵
 
-    filtered.forEach((item) => {
-        const marker = new kakao.maps.Marker({
-            position: new kakao.maps.LatLng(item.lat, item.lng),
-            map: map.value,
-        })
+        const position = new kakao.maps.LatLng(coords.lat, coords.lng)
+        if (!map.value.getBounds().contains(position)) return
 
+        const marker = new kakao.maps.Marker({ position, map: map.value })
         kakao.maps.event.addListener(marker, 'click', () => {
             selectedItem.value = item
         })
-
         markers.value.push(marker)
     })
+}
+
+function addMarkerIfInBounds(item, lat, lng) {
+    const kakao = window.kakao
+    const position = new kakao.maps.LatLng(lat, lng)
+    if (!map.value.getBounds().contains(position)) return
+
+    const marker = new kakao.maps.Marker({ position, map: map.value })
+    kakao.maps.event.addListener(marker, 'click', () => {
+        selectedItem.value = item
+    })
+    markers.value.push(marker)
+}
+
+async function prepareCoords(list) {
+    const geocoder = new kakao.maps.services.Geocoder()
+    for (const item of list) {
+        const addr = `${item.si} ${item.sigungu}`
+        if (!coordsCache[addr]) {
+            await new Promise((resolve) => {
+                geocoder.addressSearch(addr, (result, status) => {
+                    if (status === kakao.maps.services.Status.OK) {
+                        const lat = parseFloat(result[0].y)
+                        const lng = parseFloat(result[0].x)
+                        coordsCache[addr] = { lat, lng }
+                    }
+                    resolve()
+                })
+            })
+        }
+    }
 }
 
 // 즐겨찾기 toggle

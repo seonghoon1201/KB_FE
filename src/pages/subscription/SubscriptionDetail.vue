@@ -25,7 +25,7 @@
                         />
                     </button>
                 </div>
-                <p class="text-sm text-gray-500">아파트· {{ subscription.householdCount }}세대</p>
+                <p class="text-sm text-gray-500">아파트 · {{ subscription.householdCount }}세대</p>
                 <p class="text-sm text-gray-500">{{ areaList }}</p>
                 <p class="mt-1 text-sm text-gray-500">
                     <MapPin class="inline mr-1" :size="16" />{{ subscription.address }}

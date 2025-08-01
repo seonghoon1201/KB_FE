@@ -22,6 +22,7 @@
         </div>
       </div> -->
 
+            <!-- 선호 불러오기 api완성되면 정보 넣기! -->
             <SubscriptionCard v-for="item in recommendList" :key="item.id" :subscription="item" />
         </div>
 
