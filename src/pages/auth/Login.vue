@@ -7,10 +7,9 @@
                 class="w-full max-w-[280px] sm:max-w-[300px]"
             />
 
-            <!-- form 태그 + @submit.prevent 로 단 한 번만 호출 -->
             <form @submit.prevent="handleLogin" class="w-full flex flex-col gap-6">
                 <div>
-                    <label class="text-xs text-[#8D8D8D] mb-1 block">이메일</label>
+                    <label class="text-xs text-[#8D8D9] mb-1 block">이메일</label>
                     <input
                         v-model="email"
                         type="email"
@@ -19,7 +18,7 @@
                     />
                 </div>
                 <div>
-                    <label class="text-xs text-[#8D8D8D] mb-1 block">비밀번호</label>
+                    <label class="text-xs text-[#8D8D9] mb-1 block">비밀번호</label>
                     <input
                         v-model="password"
                         type="password"
@@ -60,7 +59,7 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import PrimaryButton from '@/components/common/PrimaryButton.vue'
-import api from '@/api/axios'
+import authApi from '@/api/authApi'
 import { useUserStore } from '@/stores/user'
 
 const email = ref('')
@@ -74,19 +73,27 @@ async function handleLogin() {
         alert('이메일과 비밀번호를 모두 입력해주세요.')
         return
     }
+
     loading.value = true
     try {
-        // 프록시 덕분에 '/v1/auth/login' → 백엔드로 전달
-        const res = await api.post('/auth/login', {
+        // ① 로그인 API 호출
+        const res = await authApi.login({
             user_id: email.value,
             password: password.value,
         })
-        const { accessToken, refreshToken, user, users } = res.data
-        const u = user ?? users
-        if (!u) throw new Error('서버에서 사용자 정보를 찾을 수 없습니다.')
 
-        userStore.setAuth({ accessToken, refreshToken, user: u })
-        router.push('/')
+        // ② 응답 구조에 맞춰서 분해
+        const { access_token, refresh_token, user } = res.data
+
+        // ③ Pinia 스토어에 저장
+        userStore.setAuth({
+            access_token,
+            refresh_token,
+            user,
+        })
+
+        // ④ 홈으로 이동
+        router.push('/home')
     } catch (err) {
         console.error(err)
         alert('로그인에 실패했습니다. 아이디/비밀번호를 확인해주세요.')
@@ -98,9 +105,11 @@ async function handleLogin() {
 function handleKakaoLogin() {
     console.log('카카오 로그인 (추후 SDK 연동)')
 }
+
 function goToSignUp() {
     router.push('/signup')
 }
+
 function goToFindPassword() {
     router.push('/find-password')
 }

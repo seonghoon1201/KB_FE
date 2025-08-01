@@ -2,8 +2,9 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
 const routes = [
+    { path: '/', name: 'First', component: () => import('@/pages/auth/Login.vue') },
     // 홈 화면
-    { path: '/', name: 'Home', component: () => import('@/pages/home/Home.vue') },
+    { path: '/home', name: 'Home', component: () => import('@/pages/home/Home.vue') },
     // 선호 설정 화면
     {
         path: '/preference',
@@ -28,11 +29,17 @@ const routes = [
         name: 'SubscriptionList',
         component: () => import('@/pages/subscription/SubscriptionList.vue'),
     },
-    // 청약 정보 디테일 화면
+    // 아파트 청약 정보 디테일 화면
     {
         path: '/subscriptions/:id',
         name: 'SubscriptionDetail',
         component: () => import('@/pages/subscription/SubscriptionDetail.vue'),
+    },
+    // 아파트 제외 청약 정보 디테일 화면
+    {
+        path: '/etcsubscriptions/:id',
+        name: 'EtcSubscriptionDetail',
+        component: () => import('@/pages/subscription/EtcSubscriptionDetail.vue'),
     },
     // 즐겨찾기 화면
     {

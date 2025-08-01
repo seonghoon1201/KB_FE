@@ -1,94 +1,59 @@
-// 즐겨찾기 스토어
+import { ref } from 'vue'
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
+import api from '@/api/axios'
 
 export const useFavoritesStore = defineStore('favorites', () => {
-  // 상태 (State)
-  const favoriteIds = ref(new Set())
-  
-  // 게터 (Getters)
-  const favoritesCount = computed(() => favoriteIds.value.size)
-  
-  const favoriteIdsList = computed(() => Array.from(favoriteIds.value))
-
-  const saveFavoritesToStorage = () => {
-  const favoritesArray = Array.from(favoriteIds.value)
-  console.log('[save] localStorage 저장 시도:', favoritesArray)
-  localStorage.setItem('favorites', JSON.stringify(favoritesArray))
-}
-  
- const isFavorite = (subscriptionId) => {
-  return favoriteIds.value.has(subscriptionId)
-}
-
-  // 액션 (Actions)
-  const addToFavorites = (subscriptionId) => {
-    favoriteIds.value.add(subscriptionId)
-    saveFavoritesToStorage()
-    console.log(`즐겨찾기 추가: ${subscriptionId}`)
-  }
-
-  const removeFromFavorites = (subscriptionId) => {
-    favoriteIds.value.delete(subscriptionId)
-    saveFavoritesToStorage()
-    console.log(`즐겨찾기 제거: ${subscriptionId}`)
-  }
-
-  const toggleFavorite = (subscriptionId) => {
-    if (favoriteIds.value.has(subscriptionId)) {
-      removeFromFavorites(subscriptionId)
-      return false
-    } else {
-      addToFavorites(subscriptionId)
-      return true
-    }
-  }
-
-  const clearAllFavorites = () => {
-    favoriteIds.value.clear()
-    saveFavoritesToStorage()
-    console.log('모든 즐겨찾기 삭제')
-  }
-
-  // 즐겨찾기한 공고들 가져오기 (다른 스토어와 연동)
-  const getFavoriteSubscriptions = (allSubscriptions) => {
-    return allSubscriptions.filter(sub => favoriteIds.value.has(sub.id))
-  }
-
-  
-
-  const loadFavoritesFromStorage = () => {
-  try {
-    const saved = localStorage.getItem('favorites')
-    const favoritesArray = saved ? JSON.parse(saved) : []
-    favoriteIds.value = new Set(favoritesArray)
-    console.log('즐겨찾기 로드:', favoritesArray)
-  } catch (error) {
-    console.error('즐겨찾기 로드 실패:', error)
-    favoriteIds.value = new Set()
-  } 
-}
-
-  // 스토어 초기화시 데이터 로드
-  const initializeFavorites = () => {
-    loadFavoritesFromStorage()
-  }
-
-  return {
     // 상태
-    favoriteIds,
-    
-    // 게터
-    favoritesCount,
-    favoriteIdsList,
-    isFavorite,
-    
-    // 액션
-    addToFavorites,
-    removeFromFavorites,
-    toggleFavorite,
-    clearAllFavorites,
-    getFavoriteSubscriptions,
-    initializeFavorites
-  }
+    const favorites = ref([])
+
+    // 즐겨찾기 여부 확인
+    function isFavorite(house_type, pblanc_no) {
+        return favorites.value.some(
+            (fav) => fav.house_type === house_type && fav.pblanc_no === pblanc_no,
+        )
+    }
+
+    // 즐겨찾기 목록 초기화
+    async function initializeFavorites() {
+        try {
+            const res = await api.get('/me/favorite')
+            // 서버 응답이 배열인지 확인하고 세팅
+            favorites.value = Array.isArray(res.data) ? res.data : []
+        } catch (err) {
+            console.error('즐겨찾기 목록 로드 실패', err)
+            favorites.value = [] // 실패 시 빈 배열
+        }
+    }
+
+    // 즐겨찾기 추가
+    async function addFavorite({ house_type, pblanc_no }) {
+        try {
+            await api.post('/me/favorites', { house_type, pblanc_no })
+            favorites.value.push({ house_type, pblanc_no })
+        } catch (err) {
+            console.error('즐겨찾기 추가 실패', err)
+        }
+    }
+
+    // 즐겨찾기 삭제
+    async function removeFavorite({ house_type, pblanc_no }) {
+        try {
+            await api.delete('/me/favorites', {
+                data: { house_type, pblanc_no }, // DELETE 요청에 data 필요
+            })
+            favorites.value = favorites.value.filter(
+                (fav) => !(fav.house_type === house_type && fav.pblanc_no === pblanc_no),
+            )
+        } catch (err) {
+            console.error('즐겨찾기 삭제 실패', err)
+        }
+    }
+
+    return {
+        favorites,
+        isFavorite,
+        initializeFavorites,
+        addFavorite,
+        removeFavorite,
+    }
 })

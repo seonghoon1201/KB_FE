@@ -351,7 +351,7 @@ function highlightClass(type, score) {
 // 홈으로
 function goHome() {
     scoreStore.saveResult()
-    router.push('/')
+    router.push('/home')
 }
 
 function goInfo() {

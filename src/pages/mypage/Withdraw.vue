@@ -46,20 +46,22 @@
                     type="password"
                     placeholder="비밀번호를 입력해 주세요."
                     class="mt-2 w-full px-4 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+                    :disabled="sending"
                 />
             </div>
 
             <!-- 탈퇴 버튼 -->
             <button
-                :disabled="!password"
+                type="button"
+                :disabled="!password || sending"
                 @click="isModalOpen = true"
                 class="mt-6 w-full py-2.5 rounded-md text-base font-semibold text-white transition bg-red-500 hover:bg-red-600 disabled:bg-gray-300 disabled:cursor-not-allowed"
             >
-                탈퇴하기
+                {{ sending ? '처리중…' : '탈퇴하기' }}
             </button>
         </div>
 
-        <!-- ✅ 확인 모달 -->
+        <!-- 첫 번째 확인 모달 -->
         <div
             v-if="isModalOpen"
             class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
@@ -69,13 +71,15 @@
                 <p class="text-base text-gray-600">탈퇴 후에는 모든 정보가 삭제됩니다.</p>
                 <div class="flex justify-between gap-3 mt-4">
                     <button
+                        type="button"
                         @click="isModalOpen = false"
                         class="w-full py-2 border rounded-md text-sm font-medium text-gray-600 hover:bg-gray-100"
                     >
                         취소
                     </button>
                     <button
-                        @click="handleagain"
+                        type="button"
+                        @click="handleAgain"
                         class="w-full py-2 bg-red-500 text-white rounded-md text-sm font-semibold hover:bg-red-600"
                     >
                         확인
@@ -83,6 +87,8 @@
                 </div>
             </div>
         </div>
+
+        <!-- 최종 탈퇴 모달 -->
         <div
             v-if="isRealModalOpen"
             class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
@@ -92,16 +98,19 @@
                 <p class="text-base text-gray-600">후회할텐데?</p>
                 <div class="flex justify-between gap-3 mt-4">
                     <button
+                        type="button"
                         @click="isRealModalOpen = false"
                         class="w-full py-2 border rounded-md text-sm font-medium text-gray-600 hover:bg-gray-100"
                     >
                         취소
                     </button>
                     <button
+                        type="button"
                         @click="handleWithdraw"
-                        class="w-full py-2 bg-red-500 text-white rounded-md text-sm font-semibold hover:bg-red-600"
+                        :disabled="sending"
+                        class="w-full py-2 bg-red-500 text-white rounded-md text-sm font-semibold hover:bg-red-600 disabled:opacity-50"
                     >
-                        확인
+                        {{ sending ? '탈퇴중…' : '확인' }}
                     </button>
                 </div>
             </div>
@@ -111,24 +120,47 @@
 
 <script setup>
 import { ref } from 'vue'
-import BackHeader from '@/components/common/BackHeader.vue'
-import { HeartHandshake, FileWarning, FlagOff, User } from 'lucide-vue-next'
 import { useRouter } from 'vue-router'
+import authApi from '@/api/authApi'
+import { useUserStore } from '@/stores/user'
+import BackHeader from '@/components/common/BackHeader.vue'
 
 const password = ref('')
 const isModalOpen = ref(false)
 const isRealModalOpen = ref(false)
-const router = useRouter()
+const sending = ref(false)
 
-const handleagain = () => {
+const router = useRouter()
+const userStore = useUserStore()
+
+function handleAgain() {
     isModalOpen.value = false
     isRealModalOpen.value = true
 }
 
-const handleWithdraw = () => {
-    isModalOpen.value = false
-    // ✅ 실제 탈퇴 처리 로직 (백엔드 연동 예정)
-    alert('회원 탈퇴 처리가 완료되었습니다.')
-    router.push('/login')
+async function handleWithdraw() {
+    if (!password.value) {
+        alert('비밀번호를 입력해주세요.')
+        return
+    }
+    if (sending.value) return
+
+    sending.value = true
+    try {
+        // 1) 회원탈퇴 API 호출 (DELETE /auth/signout + body)
+        await authApi.signout({ password: password.value })
+
+        // 2) 로컬 스토어 초기화 (토큰, 유저정보 삭제)
+        await userStore.signout()
+
+        alert('회원 탈퇴가 완료되었습니다.')
+        router.replace('/login')
+    } catch (err) {
+        console.error('회원탈퇴 에러:', err)
+        alert(err.response?.data || '회원탈퇴에 실패했습니다.')
+    } finally {
+        sending.value = false
+        isRealModalOpen.value = false
+    }
 }
 </script>
