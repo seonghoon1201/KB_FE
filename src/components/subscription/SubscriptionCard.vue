@@ -188,14 +188,14 @@ const handleFavoriteClick = () => {
     }
 }
 
-// 아파트와 기타 주택 디테일 페이지 분리
+
 const handleDetailClick = () => {
-    const { pblanc_no, house_type } = props.subscription
-    if (house_type === 'APT') {
-        router.push(`/subscriptions/${pblanc_no}`)
-    } else {
-        router.push(`/etcsubscriptions/${pblanc_no}`)
-    }
+  const { pblanc_no, house_type } = props.subscription
+  if (house_type === 'APT' || house_type === '신혼희망타운') {
+    router.push(`/subscriptions/${pblanc_no}`)
+  } else {
+    router.push(`/etcsubscriptions/${pblanc_no}`)
+  }
 }
 
 const formatToNum = (strValue) => {
