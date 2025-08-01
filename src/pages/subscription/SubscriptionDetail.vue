@@ -26,7 +26,7 @@
                     </button>
                 </div>
                 <p class="text-sm text-gray-500">
-                    {{ subscription.type }} · {{ areaList }} · {{ subscription.householdCount }}세대
+                    아파트 · {{ areaList }} · {{ subscription.householdCount }}세대
                 </p>
                 <p class="mt-1 text-sm text-gray-500">
                     <MapPin class="inline mr-1" :size="16" />{{ subscription.address }}
@@ -311,12 +311,21 @@ const handleFavoriteClick = () => {
     favoritesStore.toggleFavorite(subscription.value.houseSecdNm, subscription.value.pblancNo)
 }
 
-// 평수 문자열
 const areaList = computed(() => {
-    if (!subscription.value?.apt_type) return ''
-    return subscription.value.apt_type
-        .map((t) => `${parseFloat(t.SUPLY_AR).toFixed(1)}㎡`)
-        .join(' / ')
+  const types = subscription.value?.apt_type || subscription.value?.officetel_type
+  if (!types || types.length === 0) return ''
+
+  // 면적만 추출
+  const areas = types.map(t => parseFloat(t.SUPLY_AR || t.EXCLUSE_AR)).filter(a => !isNaN(a))
+  if (areas.length === 0) return ''
+
+  const min = Math.min(...areas)
+  const max = Math.max(...areas)
+
+  // 최소 = 최대라면 하나만, 아니면 범위 표기
+  return min === max
+    ? `${min.toFixed(1)}㎡`
+    : `${min.toFixed(1)}㎡ ~ ${max.toFixed(1)}㎡`
 })
 
 function calcBadge(start, end) {
