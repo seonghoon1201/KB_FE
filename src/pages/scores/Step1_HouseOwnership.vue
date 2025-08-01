@@ -1,3 +1,4 @@
+<!-- src/pages/score/Step1.vue -->
 <template>
     <ScoreStepWrapper>
         <!-- 단계 표시 -->
@@ -36,8 +37,9 @@
         </div>
 
         <div class="space-y-4">
-            <button @click="select('no')" :class="btnClass('no')">네</button>
-            <button @click="select('yes')" :class="btnClass('yes')">아니요</button>
+            <!-- "소유 중" 을 눌렀을 때 1, "무주택" 을 눌렀을 때 0 으로 저장 -->
+            <button @click="select('owner')" :class="btnClass('owner')">소유 중</button>
+            <button @click="select('no-house')" :class="btnClass('no-house')">무주택</button>
         </div>
 
         <PrimaryButton class="mt-8" @click="next">다음</PrimaryButton>
@@ -45,7 +47,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useScoreStore } from '@/stores/scoreStore'
 import ScoreStepWrapper from '@/components/score/ScoreStepWrapper.vue'
@@ -55,19 +57,31 @@ import PrimaryButton from '@/components/common/PrimaryButton.vue'
 const router = useRouter()
 const scoreStore = useScoreStore()
 
-const selected = ref(scoreStore.houseOwned || '')
+// 'owner' ↔ 1, 'no-house' ↔ 0
+const selected = ref(
+    scoreStore.houseOwner === 1 ? 'owner' : scoreStore.houseOwner === 0 ? 'no-house' : '',
+)
 
-const select = (val) => {
+// 버튼 클릭 시 store.houseOwner 에 숫자로 저장
+function select(val) {
     selected.value = val
-    scoreStore.houseOwned = val
+    scoreStore.houseOwner = val === 'owner' ? 1 : 0
 }
 
-const btnClass = (val) => [
-    'w-full px-4 py-3 rounded-md border font-semibold',
-    val === selected.value ? 'bg-blue-500 text-white' : 'bg-white text-gray-700 border-gray-300',
-]
+function btnClass(val) {
+    return [
+        'w-full px-4 py-3 rounded-md border font-semibold',
+        val === selected.value
+            ? 'bg-blue-500 text-white'
+            : 'bg-white text-gray-700 border-gray-300',
+    ]
+}
 
-const next = () => {
-    if (selected.value) router.push('/score/step2')
+function next() {
+    if (!selected.value) {
+        alert('선택을 해주세요.')
+        return
+    }
+    router.push('/score/step2')
 }
 </script>

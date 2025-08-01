@@ -35,7 +35,7 @@ const navItems = [
     {
         label: '홈',
         iconInactive: Home,
-        path: '/',
+        path: '/home',
     },
     {
         label: '달력',

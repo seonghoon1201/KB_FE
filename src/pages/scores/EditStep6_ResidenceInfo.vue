@@ -1,3 +1,4 @@
+<!-- src/pages/scores/EditStep6_ResidenceInfo.vue -->
 <template>
     <ScoreStepWrapper>
         <!-- 단계 표시 -->
@@ -5,8 +6,9 @@
             <span class="text-lg text-gray-500">6/6 수정</span>
         </div>
 
+        <!-- 헤드라인 -->
         <div class="flex items-center mb-6">
-            <h2 class="text-lg font-bold">어느 지역에 언제부터 살고 계신가요?</h2>
+            <h2 class="text-lg font-bold">현재 주소지에 언제부터 살고 계신가요?</h2>
             <InfoTooltip title="연속 거주지">
                 <p>
                     해당 지역에 연속하여 1년 이상 거주한 경우, 특별공급 등의 조건에 유리할 수 있어요
@@ -14,50 +16,49 @@
             </InfoTooltip>
         </div>
 
+        <!-- 입력 부분 -->
         <div class="space-y-4">
-            <div class="flex gap-2">
-                <select v-model="residence.city" class="border px-4 py-2 rounded w-1/2">
-                    <option value="">시/도</option>
-                    <option v-for="city in cities" :key="city" :value="city">{{ city }}</option>
-                </select>
-                <select
-                    v-model="residence.district"
-                    class="border px-4 py-2 rounded w-1/2"
-                    :disabled="!residence.city"
-                >
-                    <option value="">시/군/구</option>
-                    <option v-for="d in districtsList" :key="d" :value="d">{{ d }}</option>
-                </select>
-            </div>
-
             <input
-                v-model="residence.startDate"
+                v-model="localDate"
                 type="month"
                 class="w-full border px-4 py-2 rounded"
+                placeholder="거주 시작 연월"
             />
         </div>
 
-        <PrimaryButton class="mt-8" @click="confirmEdit">확인</PrimaryButton>
+        <PrimaryButton class="mt-8" :loading="loading" @click="confirmEdit"> 확인 </PrimaryButton>
     </ScoreStepWrapper>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useScoreStore } from '@/stores/scoreStore'
 import ScoreStepWrapper from '@/components/score/ScoreStepWrapper.vue'
-import PrimaryButton from '@/components/common/PrimaryButton.vue'
 import InfoTooltip from '@/components/score/InfoTooltip.vue'
-import { districts } from '@/data/districts'
+import PrimaryButton from '@/components/common/PrimaryButton.vue'
 
 const router = useRouter()
 const scoreStore = useScoreStore()
-const residence = scoreStore.residence
 
-const cities = Object.keys(districts)
-const districtsList = computed(() => (residence.city ? districts[residence.city] : []))
+// 1) Edit 전용 로컬 ref
+const localDate = ref(scoreStore.residenceStartDate)
+const loading = ref(false)
 
-const confirmEdit = () => {
-    router.push('/score/info')
+async function confirmEdit() {
+    scoreStore.residenceStartDate = localDate.value
+    localStorage.setItem('residenceStartDate', localDate.value)
+
+    // 3) 가점 계산 호출
+    loading.value = true
+    try {
+        await scoreStore.calculateScore()
+
+        router.push('/score/info')
+    } catch (err) {
+        console.error('[EditStep6] calculateScore error', err)
+    } finally {
+        loading.value = false
+    }
 }
 </script>

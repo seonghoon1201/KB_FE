@@ -52,10 +52,10 @@ const props = defineProps({
 
 // 예치금 기준표에 맞춘 면적 카테고리
 const options = [
-    { label: '~ 85㎡(26평)', value: 85 },
-    { label: '85㎡ ~ 102㎡(31평)', value: 102 },
-    { label: '102㎡ ~ 135㎡(41평)', value: 135 },
-    { label: '135㎡(41평) ~', value: 'all' },
+    { label: '~ 85㎡(34평)', value: 85 },
+    { label: '85㎡ ~ 102㎡(41평)', value: 102 },
+    { label: '102㎡ ~ 135㎡(53평)', value: 135 },
+    { label: '135㎡(53평) ~', value: 'all' },
 ]
 
 const selectedValue = ref(props.modelValue)
