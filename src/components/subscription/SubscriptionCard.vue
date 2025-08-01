@@ -51,9 +51,9 @@
 
             <!-- 우측: 면적/가격, 상세보기 버튼 -->
             <div class="flex flex-col items-end">
-                <span class="text-gray-500 text-sm mr-2"
-                    >{{ formatToEok(subscription.min_price) }} ~</span
-                >
+                <span class="text-gray-500 text-sm mr-2">
+                    {{ formatToEok(subscription.min_price) }} ~
+                </span>
                 <!-- 면적, 가격 -->
                 <span class="text-gray-500 text-sm mt-2 mb-3 mr-2">
                     {{ formatToNum(subscription.min_area) }}㎡ ~
@@ -97,7 +97,11 @@ const props = defineProps({
 
 const isFavorite = computed(() => {
     if (!favoritesStore.favorites || !Array.isArray(favoritesStore.favorites)) return false
-    return favoritesStore.isFavorite(props.subscription.house_type, props.subscription.pblanc_no)
+    else
+        return favoritesStore.isFavorite(
+            props.subscription.house_type,
+            props.subscription.pblanc_no,
+        )
 })
 
 // D-Day 계산 (computed)
@@ -186,14 +190,13 @@ const handleFavoriteClick = () => {
 
 // 아파트와 기타 주택 디테일 페이지 분리
 const handleDetailClick = () => {
-  const { pblanc_no, house_type } = props.subscription
-  if (house_type === 'APT') {
-    router.push(`/subscriptions/${pblanc_no}`)
-  } else {
-    router.push(`/etcsubscriptions/${pblanc_no}`)
-  }
+    const { pblanc_no, house_type } = props.subscription
+    if (house_type === 'APT') {
+        router.push(`/subscriptions/${pblanc_no}`)
+    } else {
+        router.push(`/etcsubscriptions/${pblanc_no}`)
+    }
 }
-
 
 const formatToNum = (strValue) => {
     if (strValue == null || strValue === '') return 0 // null/빈 문자열 처리
