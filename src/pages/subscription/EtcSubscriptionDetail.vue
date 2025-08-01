@@ -12,7 +12,7 @@
                     <h1 class="text-xl font-bold">{{ subscription.house_nm }}</h1>
                 </div>
                 <p class="text-sm text-gray-500">
-                    {{ subscription.type }} · {{ areaList }} · {{ subscription.householdCount }}세대
+                    {{ subscription.house_dtl_secd_nm }} · {{ areaList }} · {{ subscription.householdCount }}세대
                 </p>
                 <p class="mt-1 text-sm text-gray-500">
                     <MapPin class="inline mr-1" :size="16" /> {{ subscription.address }}
@@ -20,7 +20,7 @@
 
                 <p class="flex items-center mt-1 text-sm text-gray-500">
                     <Heart class="inline mr-1" :size="16" stroke-width="1.5" />{{
-                        subscription.favoriteCount
+                        subscription.favorite_count
                     }}
                     / <Eye class="inline ml-1 mr-1" :size="16" stroke-width="1.5" />{{
                         subscription.view_count
@@ -154,6 +154,7 @@ onMounted(async () => {
     subscription.value = {
         ...d,
         type: d.house_secd_nm,
+        house_dtl_secd_nm: d.house_dtl_secd_nm,
         address: d.hssply_adres,
         price: d.officetel_type?.[0]?.SUPLY_AMOUNT || '',
         householdCount: d.tot_suply_hshldco,
@@ -164,10 +165,20 @@ onMounted(async () => {
 })
 
 const areaList = computed(() => {
-    if (!subscription.value?.officetel_type) return ''
-    return subscription.value.officetel_type
-        .map((t) => `${parseFloat(t.EXCLUSE_AR).toFixed(1)}㎡`)
-        .join(' / ')
+  const types = subscription.value?.apt_type || subscription.value?.officetel_type
+  if (!types || types.length === 0) return ''
+
+  // 면적만 추출
+  const areas = types.map(t => parseFloat(t.SUPLY_AR || t.EXCLUSE_AR)).filter(a => !isNaN(a))
+  if (areas.length === 0) return ''
+
+  const min = Math.min(...areas)
+  const max = Math.max(...areas)
+
+  // 최소 = 최대라면 하나만, 아니면 범위 표기
+  return min === max
+    ? `${min.toFixed(1)}㎡`
+    : `${min.toFixed(1)}㎡ ~ ${max.toFixed(1)}㎡`
 })
 
 function formatToEok(price) {
