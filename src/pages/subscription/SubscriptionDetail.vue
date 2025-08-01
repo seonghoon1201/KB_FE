@@ -25,9 +25,8 @@
                         />
                     </button>
                 </div>
-                <p class="text-sm text-gray-500">
-                    아파트 · {{ areaList }} · {{ subscription.householdCount }}세대
-                </p>
+                <p class="text-sm text-gray-500">아파트· {{ subscription.householdCount }}세대</p>
+                <p class="text-sm text-gray-500">{{ areaList }}</p>
                 <p class="mt-1 text-sm text-gray-500">
                     <MapPin class="inline mr-1" :size="16" />{{ subscription.address }}
                 </p>
@@ -41,7 +40,7 @@
                     }}
                 </p>
                 <p class="mt-2 text-lg font-bold text-blue-600">
-                    {{ formatToEok(subscription.price) }}
+                    {{ formatToEok(subscription.min_price) }} ~ {{ formatToEok(subscription.max_price) }}
                 </p>
 
                 <!-- 지도 영역 -->
@@ -244,13 +243,28 @@ onMounted(async () => {
             if (d[key]) d[key] = formatDate(d[key])
         })
 
+        // ---- 가격 범위 계산 ----
+        let minPrice = null
+        let maxPrice = null
+
+        if (Array.isArray(d.apt_type)) {
+            const prices = d.apt_type
+                .map((t) => parseFloat(t.LTTOT_TOP_AMOUNT))
+                .filter((v) => !isNaN(v))
+            if (prices.length > 0) {
+                minPrice = Math.min(...prices)
+                maxPrice = Math.max(...prices)
+            }
+        }
+
         // subscription 객체 구성
         subscription.value = {
             ...d,
             house_nm: d.house_nm,
             type: d.house_secd_nm,
             address: d.hssply_adres,
-            price: d.apt_type?.[0]?.LTTOT_TOP_AMOUNT ? d.apt_type[0].LTTOT_TOP_AMOUNT : '',
+            min_price: minPrice,
+            max_price: maxPrice,
             householdCount: d.tot_suply_hshldco,
             favorite_count: d.favorite_count,
             view_count: d.view_count,
@@ -311,21 +325,35 @@ const handleFavoriteClick = () => {
     favoritesStore.toggleFavorite(subscription.value.houseSecdNm, subscription.value.pblancNo)
 }
 
+// 면적 최소 ~ 최대로 보여주는 함수
+// const areaList = computed(() => {
+//     const types = subscription.value?.apt_type || subscription.value?.officetel_type
+//     if (!types || types.length === 0) return ''
+
+//     // 면적만 추출
+//     const areas = types.map((t) => parseFloat(t.SUPLY_AR || t.EXCLUSE_AR)).filter((a) => !isNaN(a))
+//     if (areas.length === 0) return ''
+
+//     const min = Math.min(...areas)
+//     const max = Math.max(...areas)
+
+//     // 최소 = 최대라면 하나만, 아니면 범위 표기
+//     return min === max ? `${min.toFixed(1)}㎡` : `${min.toFixed(1)}㎡ ~ ${max.toFixed(1)}㎡`
+
+// })
+
 const areaList = computed(() => {
-  const types = subscription.value?.apt_type || subscription.value?.officetel_type
-  if (!types || types.length === 0) return ''
+    const types = subscription.value?.apt_type || subscription.value?.officetel_type
+    if (!types || types.length === 0) return ''
 
-  // 면적만 추출
-  const areas = types.map(t => parseFloat(t.SUPLY_AR || t.EXCLUSE_AR)).filter(a => !isNaN(a))
-  if (areas.length === 0) return ''
-
-  const min = Math.min(...areas)
-  const max = Math.max(...areas)
-
-  // 최소 = 최대라면 하나만, 아니면 범위 표기
-  return min === max
-    ? `${min.toFixed(1)}㎡`
-    : `${min.toFixed(1)}㎡ ~ ${max.toFixed(1)}㎡`
+    return types
+        .map((t) => {
+            // 아파트는 SUPLY_AR, 오피스텔은 EXCLUSE_AR 사용
+            const area = parseFloat(t.SUPLY_AR || t.EXCLUSE_AR)
+            return isNaN(area) ? null : `${area.toFixed(1)}㎡`
+        })
+        .filter(Boolean) // null 제거
+        .join(' / ')
 })
 
 function calcBadge(start, end) {
@@ -473,7 +501,10 @@ function getAddressUpToRi(addr) {
 // }
 
 function goToApply() {
-    window.open('https://www.applyhome.co.kr/ap/aph/reqst/selectSubscrtReqstAptMainView.do', '_blank')
+    window.open(
+        'https://www.applyhome.co.kr/ap/aph/reqst/selectSubscrtReqstAptMainView.do',
+        '_blank',
+    )
 }
 
 function viewSubscriptionInfo() {
