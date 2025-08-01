@@ -15,7 +15,7 @@ export const loadKakaoMapScript = () => {
             })
         }
 
-        script.src = `//dapi.kakao.com/v2/maps/sdk.js?appkey=50043506120eb6a0ceb86b492b3c9840&autoload=false&libraries=services`
+        script.src = `//dapi.kakao.com/v2/maps/sdk.js?appkey=03cbdb235220c6913e65af3e8cf6fa87&autoload=false&libraries=services`
         document.head.appendChild(script)
     })
 }
