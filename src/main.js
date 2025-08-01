@@ -5,7 +5,7 @@ import router from './router'
 import { createPinia } from 'pinia'
 import './assets/main.css'
 
-import api from '@/api/axios'
+import '@/utils/date'
 import { useUserStore } from '@/stores/user'
 import { useAccountStore } from '@/stores/account'
 import * as lucide from 'lucide-vue-next'
