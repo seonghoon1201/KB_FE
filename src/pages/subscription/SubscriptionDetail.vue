@@ -7,7 +7,7 @@
         <div v-if="!subscription" class="flex items-center justify-center h-64">
             <p class="text-gray-500">불러오는 중...</p>
         </div>
-        <div v-else>
+        <div v-else >
             <!-- 공고 기본 정보 -->
             <section class="bg-white px-4 pt-4 pb-6">
                 <div class="flex items-center justify-between mb-2">
@@ -161,50 +161,70 @@ const subscription = ref(null)
 const loading = ref(true)
 const mapRef = ref(null)
 
+// // 지도 초기화 함수
+// async function initMap(address) {
+//     const kakao = await loadKakaoMapScript()
+//     await nextTick()
+
+//     kakao.maps.load(() => {
+//         if (!mapRef.value) return
+
+//         const geocoder = new kakao.maps.services.Geocoder()
+//         const cleanAddress = normalizeAddress(address)
+//         console.log('주소 검색 시작:', cleanAddress)
+
+//         const map = new kakao.maps.Map(mapRef.value, {
+//             center: new kakao.maps.LatLng(36.5, 127.5),
+//             level: 5,
+//         })
+
+//         geocoder.addressSearch(cleanAddress, function (result, status) {
+//             if (status === kakao.maps.services.Status.OK) {
+//                 const coords = new kakao.maps.LatLng(result[0].y, result[0].x)
+//                 map.setCenter(coords)
+//                 new kakao.maps.Marker({ map, position: coords })
+//             } else {
+//                 console.warn('주소를 좌표로 변환할 수 없습니다:', status, cleanAddress)
+
+//                 // 1차 검색 실패 → 'OO리'까지만 사용해 재검색
+//                 const partialAddr = getAddressUpToRi(subscription.value.address)
+//                 console.log('Fallback 주소 재검색:', partialAddr)
+
+//                 geocoder.addressSearch(partialAddr, function (res2, status2) {
+//                     if (status2 === kakao.maps.services.Status.OK) {
+//                         const coords = new kakao.maps.LatLng(res2[0].y, res2[0].x)
+//                         map.setCenter(coords)
+//                         new kakao.maps.Marker({ map, position: coords })
+//                     } else {
+//                         console.warn('Fallback 주소도 좌표로 변환 실패:', status2, partialAddr)
+
+//                         // 완전 실패 → 기본 좌표 사용
+//                         const fallbackCoords = new kakao.maps.LatLng(36.5, 127.5)
+//                         map.setCenter(fallbackCoords)
+//                         new kakao.maps.Marker({ map, position: fallbackCoords })
+//                     }
+//                 })
+//             }
+//         })
+//     })
+// }
+
 // 지도 초기화 함수
-async function initMap(address) {
+async function initMap(lat, lng) {
     const kakao = await loadKakaoMapScript()
     await nextTick()
 
     kakao.maps.load(() => {
         if (!mapRef.value) return
 
-        const geocoder = new kakao.maps.services.Geocoder()
-        const cleanAddress = normalizeAddress(address)
-        console.log('주소 검색 시작:', cleanAddress)
-
         const map = new kakao.maps.Map(mapRef.value, {
-            center: new kakao.maps.LatLng(36.5, 127.5),
+            center: new kakao.maps.LatLng(lat, lng),
             level: 5,
         })
 
-        geocoder.addressSearch(cleanAddress, function (result, status) {
-            if (status === kakao.maps.services.Status.OK) {
-                const coords = new kakao.maps.LatLng(result[0].y, result[0].x)
-                map.setCenter(coords)
-                new kakao.maps.Marker({ map, position: coords })
-            } else {
-                console.warn('주소를 좌표로 변환할 수 없습니다:', status, cleanAddress)
-
-                // 1차 검색 실패 → 'OO리'까지만 사용해 재검색
-                const partialAddr = getAddressUpToRi(subscription.value.address)
-                console.log('Fallback 주소 재검색:', partialAddr)
-
-                geocoder.addressSearch(partialAddr, function (res2, status2) {
-                    if (status2 === kakao.maps.services.Status.OK) {
-                        const coords = new kakao.maps.LatLng(res2[0].y, res2[0].x)
-                        map.setCenter(coords)
-                        new kakao.maps.Marker({ map, position: coords })
-                    } else {
-                        console.warn('Fallback 주소도 좌표로 변환 실패:', status2, partialAddr)
-
-                        // 완전 실패 → 기본 좌표 사용
-                        const fallbackCoords = new kakao.maps.LatLng(36.5, 127.5)
-                        map.setCenter(fallbackCoords)
-                        new kakao.maps.Marker({ map, position: fallbackCoords })
-                    }
-                })
-            }
+        new kakao.maps.Marker({
+            map,
+            position: new kakao.maps.LatLng(lat, lng),
         })
     })
 }
@@ -245,16 +265,25 @@ onMounted(async () => {
         })
 
         // ---- 가격 범위 계산 ----
+
         let minPrice = null
         let maxPrice = null
 
         if (Array.isArray(d.apt_type)) {
             const prices = d.apt_type
-                .map((t) => parseFloat(t.LTTOT_TOP_AMOUNT))
+                .map((t) => Number(t.LTTOT_TOP_AMOUNT))
                 .filter((v) => !isNaN(v))
+
             if (prices.length > 0) {
                 minPrice = Math.min(...prices)
                 maxPrice = Math.max(...prices)
+
+                // 혹시라도 데이터 이상으로 뒤바뀌었으면 방어적으로 교환
+                if (minPrice > maxPrice) {
+                    const tmp = minPrice
+                    minPrice = maxPrice
+                    maxPrice = tmp
+                }
             }
         }
 
@@ -270,9 +299,11 @@ onMounted(async () => {
             favorite_count: d.favorite_count,
             view_count: d.view_count,
             pblanc_url: d.pblanc_url,
+            lat: d.latitude,
+            long: d.longitude,
         }
         await nextTick() // DOM 업데이트 기다림
-        await initMap(subscription.value.address)
+        await initMap(Number(subscription.value.lat), Number(subscription.value.long))
         new kakao.maps.services.Geocoder().addressSearch(
             '서울특별시 동대문구 제기동 892-68',
             console.log,
@@ -283,12 +314,12 @@ onMounted(async () => {
         loading.value = false
     }
 
-    // --- watchEffect로 map init ---
-    watchEffect(async () => {
-        if (subscription.value?.address && mapRef.value) {
-            await initMap(subscription.value.address)
-        }
-    })
+    // // --- watchEffect로 map init ---
+    // watchEffect(async () => {
+    //     if (subscription.value?.address && mapRef.value) {
+    //         await initMap(subscription.value.address)
+    //     }
+    // })
 })
 
 // // 임시 subscription 데이터
@@ -333,35 +364,34 @@ const handleFavoriteClick = () => {
 }
 
 // 면적 최소 ~ 최대로 보여주는 함수
-// const areaList = computed(() => {
-//     const types = subscription.value?.apt_type || subscription.value?.officetel_type
-//     if (!types || types.length === 0) return ''
-
-//     // 면적만 추출
-//     const areas = types.map((t) => parseFloat(t.SUPLY_AR || t.EXCLUSE_AR)).filter((a) => !isNaN(a))
-//     if (areas.length === 0) return ''
-
-//     const min = Math.min(...areas)
-//     const max = Math.max(...areas)
-
-//     // 최소 = 최대라면 하나만, 아니면 범위 표기
-//     return min === max ? `${min.toFixed(1)}㎡` : `${min.toFixed(1)}㎡ ~ ${max.toFixed(1)}㎡`
-
-// })
-
 const areaList = computed(() => {
     const types = subscription.value?.apt_type || subscription.value?.officetel_type
     if (!types || types.length === 0) return ''
 
-    return types
-        .map((t) => {
-            // 아파트는 SUPLY_AR, 오피스텔은 EXCLUSE_AR 사용
-            const area = parseFloat(t.SUPLY_AR || t.EXCLUSE_AR)
-            return isNaN(area) ? null : `${area.toFixed(1)}㎡`
-        })
-        .filter(Boolean) // null 제거
-        .join(' / ')
+    // 면적만 추출
+    const areas = types.map((t) => parseFloat(t.SUPLY_AR || t.EXCLUSE_AR)).filter((a) => !isNaN(a))
+    if (areas.length === 0) return ''
+
+    const min = Math.min(...areas)
+    const max = Math.max(...areas)
+
+    // 최소 = 최대라면 하나만, 아니면 범위 표기
+    return min === max ? `${min.toFixed(1)}㎡` : `${min.toFixed(1)}㎡ ~ ${max.toFixed(1)}㎡`
 })
+
+// const areaList = computed(() => {
+//     const types = subscription.value?.apt_type || subscription.value?.officetel_type
+//     if (!types || types.length === 0) return ''
+
+//     return types
+//         .map((t) => {
+//             // 아파트는 SUPLY_AR, 오피스텔은 EXCLUSE_AR 사용
+//             const area = parseFloat(t.SUPLY_AR || t.EXCLUSE_AR)
+//             return isNaN(area) ? null : `${area.toFixed(1)}㎡`
+//         })
+//         .filter(Boolean) // null 제거
+//         .join(' / ')
+// })
 
 function calcBadge(start, end) {
     if (!start || !end) return ''
@@ -462,7 +492,7 @@ const facilityGroups = computed(() => {
 
         grouped[meta.title].items.push({
             name: place.place_name,
-            desc: `${(place.distance / 1000).toFixed(1)}km · ${place.road_address_name}`,
+            desc: `${(place.distance / 1000).toFixed(1)}km · 도보 ${walkingTimeFromKm(place.distance / 1000)}분`,
         })
     })
 
@@ -517,5 +547,15 @@ function goToApply() {
 function viewSubscriptionInfo() {
     if (!subscription.value?.pblanc_url) return
     window.open(subscription.value.pblanc_url, '_blank')
+}
+
+// 도보 시간 계산 함수
+function walkingTimeFromKm(km) {
+    if (typeof km !== 'number' || isNaN(km) || km < 0) {
+        throw new Error('유효한 양의 숫자(km)를 입력해주세요.')
+    }
+
+    const minutesPerKm = 14
+    return Math.round(km * minutesPerKm)
 }
 </script>
