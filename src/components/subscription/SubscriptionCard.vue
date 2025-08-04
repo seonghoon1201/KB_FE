@@ -61,9 +61,6 @@
                 <!-- 면적, 가격 -->
                 <span class="text-gray-500 text-sm mt-2 mb-3 mr-2">
                     {{ formatToNum(subscription.min_area) }}㎡ ~
-                    <!-- <span
-                        > ·{{ formatToPyeong(subscription.min_area) }}평
-                    </span> -->
                 </span>
                 <!-- 상세보기 버튼 -->
                 <button
@@ -113,7 +110,7 @@ const dDayInfo = computed(() => {
     const period = props.subscription.application_period
     if (!period) return { dDay: 0, text: 'D-Day' }
 
-    // 예: "2025.08.04 ~ 2025.08.06" 에서 끝 날짜 부분만 가져오기
+    // "2025.08.04 ~ 2025.08.06" 에서 끝 날짜 부분만 가져오기
     const parts = period.split('~')
     if (parts.length < 2) return { dDay: 0, text: 'D-Day' }
 
@@ -174,12 +171,6 @@ const houseTypeLabel = computed(() => {
     return labelMap[type] || type
 })
 
-// function extractCityDistrict(fullAddr) {
-//     if (!fullAddr) return ''
-//     const parts = fullAddr.split(' ')
-//     return parts.slice(0, 2).join(' ')
-// }
-
 // 이벤트 emith
 const emit = defineEmits(['favorite-changed', 'detail-click'])
 
@@ -226,10 +217,4 @@ const formatToEok = (priceValue) => {
     return `${eok.toFixed(1)}억`
 }
 
-// // 1평 = 3.30579㎡
-// const formatToPyeong = (squareMeters) => {
-//     const num = parseFloat(squareMeters)
-//     if (isNaN(num)) return 0
-//     return (num / 3.30579).toFixed(0)
-// }
 </script>
