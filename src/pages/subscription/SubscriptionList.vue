@@ -325,12 +325,10 @@ const finalSubscriptions = computed(() => {
         return new Date((startRaw || '').trim().replace(/\./g, '-'))
     }
 
-
     result.sort((a, b) => {
+        // 마감된 공고는 항상 뒤로, 나중에 삭제할 부분
         const aExpired = isExpired(a)
         const bExpired = isExpired(b)
-
-        // 마감된 공고는 항상 뒤로
         if (aExpired !== bExpired) {
             return aExpired ? 1 : -1
         }
