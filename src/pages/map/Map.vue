@@ -1,11 +1,11 @@
 <template>
-    <div class="relative min-h-screen bg-white pb-20">
+    <div class="flex flex-col min-h-screen bg-gray-50 pt-14">
         <!-- ✅ 상단 헤더 -->
         <BackHeader title="청약 지도" />
 
         <!-- ✅ 상단 탭 -->
         <div
-            class="fixed top-[56px] left-0 right-0 z-30 bg-white px-4 py-2 flex justify-between gap-2"
+            class="px-4 py-3 bg-white border-b border-gray-100 z-20 flex justify-between items-center"
         >
             <!-- 왼쪽 공간 (비워둠) -->
             <div class="flex-1"></div>
@@ -34,7 +34,7 @@
             </div>
 
             <!-- 오른쪽 끝 필터 버튼 -->
-            <div class="flex-1 flex justify-end">
+            <div class="flex-1 flex justify-end ml-1">
                 <button
                     class="z-10 px-3 py-2 rounded-full text-sm text-black-600 bg-gray-100 hover:bg-gray-200 transition-colors"
                     @click="isFilterOpen = true"

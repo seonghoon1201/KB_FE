@@ -59,7 +59,7 @@
                 class="flex items-center gap-1 px-3 py-2 rounded-full bg-gray-100 hover:bg-gray-200 transition"
             >
                 <ListFilter class="w-4 h-4" />
-                <span class="text-sm font-medium">필터</span>
+                <!-- <span class="text-sm font-medium">필터</span> -->
             </button>
         </div>
         <hr />
