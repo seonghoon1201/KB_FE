@@ -34,7 +34,7 @@
             <div class="flex flex-col gap-3">
                 <!-- 위치 정보 -->
                 <p class="text-gray-500 text-sm text-left">
-                    {{ subscription.si }} {{ subscription.district }}
+                    {{ subscription.city }} {{ subscription.district }}
                 </p>
                 <!-- 모집 기간 -->
                 <span v-if="subscription.application_start_date" class="text-gray-500 text-sm">

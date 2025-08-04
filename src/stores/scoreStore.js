@@ -58,7 +58,6 @@ export const useScoreStore = defineStore('score', () => {
             house_owner: houseOwner.value,
             marital_status: maritalStatus.value,
             wedding_date: maritalStatus.value === 1 ? weddingDate.value : null,
-            no_house_period: noHousePeriod.value,
             residence_start_date: residenceStartDate.value,
         }
 
@@ -80,14 +79,14 @@ export const useScoreStore = defineStore('score', () => {
             no_house_score: res.data.no_house_score,
             payment_period_score: res.data.payment_period_score,
             total_ga_score: res.data.total_ga_score,
+            noHousePeriod: res.data.no_house_period,
         }
 
         // 로컬에 무주택 기간 저장
-        noHousePeriod.value = res.data.no_house_period
 
         isCalculated.value = true
+        return res.data
     }
-
     // ── 입력값 로컬저장 ─────────────────────────────────
     watch(headOfHousehold, (v) => localStorage.setItem('headOfHousehold', JSON.stringify(v)))
     watch(houseOwner, (v) => localStorage.setItem('houseOwner', JSON.stringify(v)))
@@ -100,7 +99,24 @@ export const useScoreStore = defineStore('score', () => {
         localStorage.setItem('residenceStartDate', v)
     })
     watch(noHousePeriod, (v) => localStorage.setItem('noHousePeriod', JSON.stringify(v)))
+    // ── 주택 처분일이 바뀌면 무주택 기간 재계산 & 즉시 calculateScore 호출
+    watch([houseDisposal, disposalDate], ([newDisp, newDate]) => {
+        console.log('[watch] houseDisposal=', newDisp, 'disposalDate=', newDate)
+        if (newDisp === 1 && /^\d{4}-\d{2}$/.test(newDate)) {
+            const [yStr, mStr] = newDate.split('-')
+            const y = parseInt(yStr, 10)
+            const m = parseInt(mStr, 10)
+            const now = new Date()
+            let years = now.getFullYear() - y
+            if (now.getMonth() + 1 < m) years--
 
+            noHousePeriod.value = years
+            console.log(`[scoreStore] ▶ recomputed noHousePeriod=${years}`)
+
+            // 입력값만 바뀐 경우에도 강제 재계산
+            calculateScore().catch((err) => console.error('[scoreStore] recalc error:', err))
+        }
+    })
     // ── 스토어 생성 직후 자동 계산 ─────────────────────────────
     if (
         headOfHousehold.value !== null &&
