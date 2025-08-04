@@ -4,36 +4,39 @@
         <!-- 은행 로고 -->
         <img :src="accountStore.selectedBankLogo" alt="은행 로고" class="w-16 h-16 mb-8" />
 
-        <!-- 아이디 입력 -->
-        <input
-            v-model="email"
-            type="email"
-            placeholder="아이디를 입력해 주세요."
-            class="w-full max-w-xs border-b border-gray-300 py-2 mb-4 text-sm focus:outline-none"
-        />
+        <!-- 로그인 입력 폼 -->
+        <form @submit.prevent="onLogin" class="w-full max-w-xs flex flex-col items-center">
+            <!-- 아이디 입력 -->
+            <input
+                v-model="text"
+                type="text"
+                placeholder="아이디를 입력해 주세요."
+                class="w-full border-b border-gray-300 py-2 mb-4 text-sm focus:outline-none"
+            />
 
-        <!-- 비밀번호 입력 -->
-        <input
-            v-model="password"
-            type="password"
-            placeholder="비밀번호를 입력해 주세요."
-            class="w-full max-w-xs border-b border-gray-300 py-2 mb-6 text-sm focus:outline-none"
-        />
+            <!-- 비밀번호 입력 -->
+            <input
+                v-model="password"
+                type="password"
+                placeholder="비밀번호를 입력해 주세요."
+                class="w-full border-b border-gray-300 py-2 mb-6 text-sm focus:outline-none"
+            />
 
-        <!-- 주의사항 -->
-        <div
-            class="w-full max-w-xs bg-[#FFF9EC] border border-[#F9DCA7] text-[#C87C00] rounded-md text-xs p-4 mb-6 space-y-1"
-        >
-            <p class="font-medium">⚠️ 연결 시 주의사항</p>
-            <ul class="list-disc list-inside space-y-1">
-                <li>청약통장만 연결 가능합니다</li>
-                <li>본인 명의 계좌만 연결할 수 있습니다</li>
-                <li>연결 후 언제든지 해제할 수 있습니다</li>
-            </ul>
-        </div>
+            <!-- 주의사항 -->
+            <div
+                class="w-full bg-[#FFF9EC] border border-[#F9DCA7] text-[#C87C00] rounded-md text-xs p-4 mb-6 space-y-1"
+            >
+                <p class="font-medium">⚠️ 연결 시 주의사항</p>
+                <ul class="list-disc list-inside space-y-1">
+                    <li>청약통장만 연결 가능합니다</li>
+                    <li>본인 명의 계좌만 연결할 수 있습니다</li>
+                    <li>연결 후 언제든지 해제할 수 있습니다</li>
+                </ul>
+            </div>
 
-        <!-- 연결 버튼 -->
-        <PrimaryButton class="w-full max-w-xs" @click="onLogin"> 계좌 연결하기 </PrimaryButton>
+            <!-- 연결 버튼 -->
+            <PrimaryButton type="submit" class="w-full">계좌 연결하기</PrimaryButton>
+        </form>
     </div>
 </template>
 
