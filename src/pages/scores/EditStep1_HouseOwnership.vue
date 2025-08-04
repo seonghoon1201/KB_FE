@@ -11,15 +11,15 @@
                 <div class="flex items-center">
                     <h2 class="text-lg font-bold">현재 주택을 소유하고 있나요?</h2>
                     <InfoTooltip title="주택 소유 기준">
-                        <!-- ...tooltip 내용... -->
+                        <!-- tooltip 내용... -->
                     </InfoTooltip>
                 </div>
             </div>
         </div>
 
         <div class="space-y-4">
-            <button @click="select('no')" :class="btnClass('no')">네</button>
-            <button @click="select('yes')" :class="btnClass('yes')">아니요</button>
+            <button @click="select(1)" :class="btnClass(1)">네</button>
+            <button @click="select(0)" :class="btnClass(0)">아니요</button>
         </div>
 
         <PrimaryButton class="mt-8" @click="confirmEdit">확인</PrimaryButton>
@@ -27,7 +27,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, watchEffect } from 'vue'
 import { useRouter } from 'vue-router'
 import { useScoreStore } from '@/stores/scoreStore'
 import ScoreStepWrapper from '@/components/score/ScoreStepWrapper.vue'
@@ -37,20 +37,31 @@ import PrimaryButton from '@/components/common/PrimaryButton.vue'
 const router = useRouter()
 const scoreStore = useScoreStore()
 
-const selected = ref(scoreStore.houseOwned || '')
+// 스토어에 저장된 값을 초기화 (null이면 빈문자열)
+const selected = ref(scoreStore.houseOwner != null ? scoreStore.houseOwner : '')
 
-const select = (val) => {
+// 스토어 값이 외부에서 바뀔 때도 selected 동기화
+watchEffect(() => {
+    if (scoreStore.houseOwner != null && scoreStore.houseOwner !== selected.value) {
+        selected.value = scoreStore.houseOwner
+    }
+})
+
+function select(val) {
     selected.value = val
-    scoreStore.houseOwned = val // 로컬 스토어만 업데이트
+    scoreStore.houseOwner = val
 }
 
-const btnClass = (val) => [
-    'w-full px-4 py-3 rounded-md border font-semibold',
-    val === selected.value ? 'bg-blue-500 text-white' : 'bg-white text-gray-700 border-gray-300',
-]
+function btnClass(val) {
+    return [
+        'w-full px-4 py-3 rounded-md border font-semibold',
+        val === selected.value
+            ? 'bg-blue-500 text-white'
+            : 'bg-white text-gray-700 border-gray-300',
+    ]
+}
 
-const confirmEdit = () => {
-    // API 호출 없음! 그냥 정보 확인 화면으로 돌아갑니다.
+function confirmEdit() {
     router.push('/score/info')
 }
 </script>

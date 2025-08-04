@@ -8,6 +8,7 @@ import './assets/main.css'
 import '@/utils/date'
 import { useUserStore } from '@/stores/user'
 import { useAccountStore } from '@/stores/account'
+import { useScoreStore } from '@/stores/scoreStore'
 import * as lucide from 'lucide-vue-next'
 
 const app = createApp(App)
@@ -33,6 +34,10 @@ if (at && rt && rawUser) {
         user: JSON.parse(rawUser),
     })
 }
+
+// — 로그인 시 자동으로 현재 입력값 기준 가점 계산하기 —
+const scoreStore = useScoreStore()
+scoreStore.calculateScore().catch(() => {})
 
 // — 계좌 스토어 복원 & 저장(퍼시스트) —
 const accountStore = useAccountStore()
