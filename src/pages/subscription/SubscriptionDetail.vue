@@ -40,7 +40,8 @@
                     }}
                 </p>
                 <p class="mt-2 text-lg font-bold text-blue-600">
-                    {{ formatToEok(subscription.min_price) }} ~ {{ formatToEok(subscription.max_price) }}
+                    {{ formatToEok(subscription.min_price) }} ~
+                    {{ formatToEok(subscription.max_price) }}
                 </p>
 
                 <!-- 지도 영역 -->
@@ -145,7 +146,7 @@ import {
     FileText,
     Building2,
 } from 'lucide-vue-next'
-import { onMounted, ref, computed, nextTick } from 'vue'
+import { onMounted, ref, computed, nextTick, watchEffect } from 'vue'
 import api from '@/api/axios'
 import { useRoute } from 'vue-router'
 import BackHeader from '@/components/common/BackHeader.vue'
@@ -316,13 +317,19 @@ function formatDate(dateString) {
 }
 
 const isFavorite = computed(() => {
+    console.log(
+        'test : ',
+        favoritesStore.isFavorite(subscription.value.house_secd_nm, subscription.value.pblanc_no),
+    )
     if (!subscription.value) return false
-    return favoritesStore.isFavorite(subscription.value.houseSecdNm, subscription.value.pblancNo)
+    return favoritesStore.isFavorite(subscription.value.house_secd_nm, subscription.value.pblanc_no)
 })
 
 const handleFavoriteClick = () => {
+    console.log('subscription.value : ', subscription)
+    console.log('isFavorite : ', isFavorite)
     if (!subscription.value) return
-    favoritesStore.toggleFavorite(subscription.value.houseSecdNm, subscription.value.pblancNo)
+    favoritesStore.removeFavorite(subscription.value.house_secd_nm, subscription.value.pblanc_no)
 }
 
 // 면적 최소 ~ 최대로 보여주는 함수

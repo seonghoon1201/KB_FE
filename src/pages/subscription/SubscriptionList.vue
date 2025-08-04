@@ -127,7 +127,6 @@
                     v-for="subscription in finalSubscriptions.slice(0, scrollIdx)"
                     :key="subscription.pblanc_no"
                     :subscription="subscription"
-
                 />
             </div>
         </div>
@@ -362,7 +361,7 @@ onMounted(() => {
         selectedFilter.value = 'recommend'
     }
     subscriptionsStore.fetchSubscriptions()
-    favoritesStore.initializeFavorites()
+    favoritesStore.getFavorite()
     window.addEventListener('scroll', handleScroll)
 })
 onUnmounted(() => window.removeEventListener('scroll', handleScroll))

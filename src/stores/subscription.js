@@ -16,13 +16,7 @@ export const useSubscriptionsStore = defineStore('subscription', () => {
 
             subscriptions.value = res.data.map((item) => {
                 // application_period 분리
-                let start_date = ''
-                let end_date = ''
-                if (item.application_period) {
-                    const parts = item.application_period.split('~')
-                    start_date = parts[0]?.trim()
-                    end_date = parts[1]?.trim()
-                }
+                let [startDate, endDate] = item.application_period.split('~').map((s) => s.trim())
 
                 return {
                     id: item.pblanc_no, // 이제 pblanc_no가 고유 키
@@ -30,17 +24,16 @@ export const useSubscriptionsStore = defineStore('subscription', () => {
                     house_nm: item.house_nm,
                     house_type: item.house_type,
                     city: item.si,
-                    si: item.si,
                     district: item.sigungu,
                     hssply_adres: item.hssply_adres,
                     application_period: item.application_period,
-                    application_start_date: start_date,
-                    application_end_date: end_date,
+                    application_start_date: startDate,
+                    application_end_date: endDate,
                     min_area: item.min_area,
                     max_area: item.max_area,
                     min_price: item.min_price,
                     max_price: item.max_price,
-                    is_favorite: item.is_favorite
+                    is_favorite: item.is_favorite,
                 }
             })
 

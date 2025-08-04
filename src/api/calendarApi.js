@@ -4,94 +4,11 @@ import api from '@/api/axios'
 
 const BASE_URL = '/me/favorite/'
 
-// 현재 년월일에서 일을 +- 일 한 결과 리턴.
-Date.prototype.addDays = function (days) {
-    let date = this
-    return new Date(date.setDate(date.getDate() + days))
-}
-
 export default {
     async getData() {
         const { data } = await api.get(`${BASE_URL}list`)
 
-        let returnData = [
-            {
-                id: '11111',
-                title: 'test',
-                start: '2025-07-08',
-                end: '2025-07-12',
-                allDay: true,
-                maxArea: 'test',
-                minArea: 'test',
-                maxPrice: 'test',
-                minPrice: 'test',
-                si: 'test',
-                sigungu: 'test',
-
-                house_nm: 'test',
-                application_period: 'test',
-                application_start_date: 'test',
-                application_end_date: 'test',
-                city: 'test',
-                district: 'test',
-                house_type: 'test',
-                pblanc_no: 'test',
-                min_price: 'test',
-                min_area: 'test',
-
-                favorites: true,
-            },
-            {
-                id: '11111',
-                title: 'test',
-                start: '2025-07-21',
-                end: '2025-07-24',
-                allDay: true,
-                maxArea: 'test',
-                minArea: 'test',
-                maxPrice: 'test',
-                minPrice: 'test',
-                si: 'test',
-                sigungu: 'test',
-
-                house_nm: 'test',
-                application_period: 'test',
-                application_start_date: 'test',
-                application_end_date: 'test',
-                city: 'test',
-                district: 'test',
-                house_type: 'test',
-                pblanc_no: 'test',
-                min_price: 'test',
-                min_area: 'test',
-                favorites: true,
-            },
-            {
-                id: '11111',
-                title: 'test',
-                start: '2025-07-30',
-                end: '2025-08-02',
-                allDay: true,
-                maxArea: 'test',
-                minArea: 'test',
-                maxPrice: 'test',
-                minPrice: 'test',
-                si: 'test',
-                sigungu: 'test',
-
-                house_nm: 'test',
-                application_period: 'test',
-                application_start_date: 'test',
-                application_end_date: 'test',
-                city: 'test',
-                district: 'test',
-                house_type: 'test',
-                pblanc_no: 'test',
-                min_price: 'test',
-                min_area: 'test',
-                favorites: true,
-            },
-        ]
+        let returnData = []
 
         data.map((item, index) => {
             let date = item.application_period.split(' ~ ')
@@ -116,7 +33,7 @@ export default {
                 application_period: item.application_period,
                 application_start_date: date[0],
                 application_end_date: date[1],
-                city: date[1],
+                city: item.si,
                 district: item.sigungu,
                 house_type: 'APT',
                 pblanc_no: item.pblanc_no,
