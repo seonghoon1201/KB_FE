@@ -16,12 +16,23 @@ export const useSubscriptionsStore = defineStore('subscription', () => {
 
             subscriptions.value = res.data.map((item) => {
                 // application_period 분리
-                let start_date = ''
-                let end_date = ''
-                if (item.application_period) {
-                    const parts = item.application_period.split('~')
-                    start_date = parts[0]?.trim()
-                    end_date = parts[1]?.trim()
+                let [startDate, endDate] = item.application_period.split('~').map((s) => s.trim())
+
+                // 가격 숫자 변환
+                let minPrice = Number(item.min_price)
+                let maxPrice = Number(item.max_price)
+
+                // 가격 유효성 검사 및 swap
+                if (!isNaN(minPrice) && !isNaN(maxPrice) && minPrice > maxPrice) {
+                    console.warn('⚠️ min_price > max_price 문제 감지:', {
+                        pblanc_no: item.pblanc_no,
+                        house_nm: item.house_nm,
+                        min_price: minPrice,
+                        max_price: maxPrice,
+                    })
+                    const temp = minPrice
+                    minPrice = maxPrice
+                    maxPrice = temp
                 }
 
                 return {
@@ -30,17 +41,18 @@ export const useSubscriptionsStore = defineStore('subscription', () => {
                     house_nm: item.house_nm,
                     house_type: item.house_type,
                     city: item.si,
-                    si: item.si,
                     district: item.sigungu,
                     hssply_adres: item.hssply_adres,
                     application_period: item.application_period,
-                    application_start_date: start_date,
-                    application_end_date: end_date,
+                    application_start_date: startDate,
+                    application_end_date: endDate,
                     min_area: item.min_area,
                     max_area: item.max_area,
-                    min_price: item.min_price,
-                    max_price: item.max_price,
-                    is_favorite: item.is_favorite
+                    min_price: minPrice,
+                    max_price: maxPrice,
+                    is_favorite: item.is_favorite,
+                    lat: Number(item.latitude),
+                    long: Number(item.longitude)
                 }
             })
 

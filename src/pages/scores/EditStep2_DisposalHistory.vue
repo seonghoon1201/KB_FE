@@ -74,12 +74,21 @@ function btnClass(val) {
     ]
 }
 
-function confirmEdit() {
+async function confirmEdit() {
     if (selected.value === '') return
     if (selected.value === 1 && !scoreStore.disposalDate) {
         alert('처분한 연월을 입력해주세요.')
         return
     }
+    // 수동으로도 무주택 기간 업데이트 & 재계산
+    const [yStr, mStr] = scoreStore.disposalDate.split('-')
+    const y = parseInt(yStr, 10),
+        m = parseInt(mStr, 10)
+    const now = new Date()
+    let years = now.getFullYear() - y
+    if (now.getMonth() + 1 < m) years--
+    scoreStore.noHousePeriod = years
+    await scoreStore.calculateScore()
     router.push('/score/info')
 }
 </script>

@@ -12,7 +12,10 @@
                     <h1 class="text-xl font-bold">{{ subscription.house_nm }}</h1>
                 </div>
                 <p class="text-sm text-gray-500">
-                    {{ subscription.house_dtl_secd_nm }} · {{ areaList }} · {{ subscription.householdCount }}세대
+                    {{ subscription.house_dtl_secd_nm }} · {{ subscription.householdCount }}세대
+                </p>
+                <p class="text-sm text-gray-500">
+                    {{ areaList }}
                 </p>
                 <p class="mt-1 text-sm text-gray-500">
                     <MapPin class="inline mr-1" :size="16" /> {{ subscription.address }}
@@ -164,22 +167,36 @@ onMounted(async () => {
     await initMap(subscription.value.address)
 })
 
+// 면적 최소 ~ 최대로 보여주는 함수
 const areaList = computed(() => {
-  const types = subscription.value?.apt_type || subscription.value?.officetel_type
-  if (!types || types.length === 0) return ''
+    const types = subscription.value?.apt_type || subscription.value?.officetel_type
+    if (!types || types.length === 0) return ''
 
-  // 면적만 추출
-  const areas = types.map(t => parseFloat(t.SUPLY_AR || t.EXCLUSE_AR)).filter(a => !isNaN(a))
-  if (areas.length === 0) return ''
+    // 면적만 추출
+    const areas = types.map((t) => parseFloat(t.SUPLY_AR || t.EXCLUSE_AR)).filter((a) => !isNaN(a))
+    if (areas.length === 0) return ''
 
-  const min = Math.min(...areas)
-  const max = Math.max(...areas)
+    const min = Math.min(...areas)
+    const max = Math.max(...areas)
 
-  // 최소 = 최대라면 하나만, 아니면 범위 표기
-  return min === max
-    ? `${min.toFixed(1)}㎡`
-    : `${min.toFixed(1)}㎡ ~ ${max.toFixed(1)}㎡`
+    // 최소 = 최대라면 하나만, 아니면 범위 표기
+    return min === max ? `${min.toFixed(1)}㎡` : `${min.toFixed(1)}㎡ ~ ${max.toFixed(1)}㎡`
+
 })
+
+// const areaList = computed(() => {
+//     const types = subscription.value?.apt_type || subscription.value?.officetel_type
+//     if (!types || types.length === 0) return ''
+
+//     return types
+//         .map((t) => {
+//             // 아파트는 SUPLY_AR, 오피스텔은 EXCLUSE_AR 사용
+//             const area = parseFloat(t.SUPLY_AR || t.EXCLUSE_AR)
+//             return isNaN(area) ? null : `${area.toFixed(1)}㎡`
+//         })
+//         .filter(Boolean) // null 제거
+//         .join(' / ')
+// })
 
 function formatToEok(price) {
     if (!price) return ''
@@ -235,7 +252,7 @@ const facilityGroups = computed(() => {
         if (!grouped[meta.title]) grouped[meta.title] = { ...meta, items: [] }
         grouped[meta.title].items.push({
             name: place.place_name,
-            desc: `${(place.distance / 1000).toFixed(1)}km · ${place.road_address_name}`,
+            desc: `${(place.distance / 1000).toFixed(1)}km ·도보 ${walkingTimeFromKm(place.distance / 1000)}분`,
         })
     })
     return Object.values(grouped)
@@ -251,5 +268,15 @@ function goToApply() {
 function viewSubscriptionInfo() {
     if (!subscription.value?.pblanc_url) return
     window.open(subscription.value.pblanc_url, '_blank')
+}
+
+// 도보 시간 계산 함수
+function walkingTimeFromKm(km) {
+    if (typeof km !== 'number' || isNaN(km) || km < 0) {
+        throw new Error('유효한 양의 숫자(km)를 입력해주세요.')
+    }
+
+    const minutesPerKm = 14
+    return Math.round(km * minutesPerKm)
 }
 </script>
