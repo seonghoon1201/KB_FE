@@ -61,6 +61,7 @@ export default {
     // 즐겨찾기 삭제
     async removeFavorite(params) {
         try {
+            console.log('params : ', params)
             const { data } = await api.delete(BASE_URL, { params: params })
             return data
         } catch (err) {
