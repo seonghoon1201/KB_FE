@@ -3,6 +3,7 @@ Date.prototype.addDays = function (days) {
     let date = this
     return new Date(date.setDate(date.getDate() + days))
 }
+
 // 현재 년월일에서 월을 +- 월 한 결과 리턴.
 Date.prototype.addMonth = function (month) {
     let date = this
@@ -25,7 +26,8 @@ Date.prototype.betweenDate = function (start, end, date) {
     else return false
 }
 
-Date.prototype.dateStringFormat = function (date, format) {
+// 데이터 포맷
+Date.prototype.dateStringFormat = function (date, format = '-') {
     let dateDate = new Date(date)
 
     return (
@@ -37,6 +39,7 @@ Date.prototype.dateStringFormat = function (date, format) {
     )
 }
 
+// 데이터 포맷 (년월일)
 Date.prototype.dateStringKoFormat = function (date) {
     let dateDate = new Date(date)
 
