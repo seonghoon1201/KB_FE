@@ -13,8 +13,9 @@
         </div>
 
         <div class="space-y-4">
-            <button @click="select('no')" :class="btnClass('no')">네</button>
-            <button @click="select('yes')" :class="btnClass('yes')">아니요</button>
+            <!-- "네" = 세대주 → 1, "아니요" = 세대원 → 0 -->
+            <button @click="select(1)" :class="btnClass(1)">네</button>
+            <button @click="select(0)" :class="btnClass(0)">아니요</button>
         </div>
 
         <PrimaryButton class="mt-8" @click="confirmEdit">확인</PrimaryButton>
@@ -22,7 +23,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, watchEffect } from 'vue'
 import { useRouter } from 'vue-router'
 import { useScoreStore } from '@/stores/scoreStore'
 import ScoreStepWrapper from '@/components/score/ScoreStepWrapper.vue'
@@ -32,20 +33,40 @@ import PrimaryButton from '@/components/common/PrimaryButton.vue'
 const router = useRouter()
 const scoreStore = useScoreStore()
 
-const selected = ref(scoreStore.isHouseholdHead || '')
+// 스토어 초기값(1|0|null)을 받아서 '' 또는 숫자로 셋업
+const selected = ref(
+    scoreStore.headOfHousehold !== null && scoreStore.headOfHousehold !== undefined
+        ? scoreStore.headOfHousehold
+        : '',
+)
 
-const select = (val) => {
+// 스토어 값이 바뀌면 컴포넌트에도 반영
+watchEffect(() => {
+    if (
+        scoreStore.headOfHousehold !== null &&
+        scoreStore.headOfHousehold !== undefined &&
+        scoreStore.headOfHousehold !== selected.value
+    ) {
+        selected.value = scoreStore.headOfHousehold
+    }
+})
+
+function select(val) {
     selected.value = val
-    scoreStore.isHouseholdHead = val
+    scoreStore.headOfHousehold = val
 }
 
-const btnClass = (val) => [
-    'w-full px-4 py-3 rounded-md border font-semibold',
-    val === selected.value ? 'bg-blue-500 text-white' : 'bg-white text-gray-700 border-gray-300',
-]
+function btnClass(val) {
+    return [
+        'w-full px-4 py-3 rounded-md border font-semibold',
+        val === selected.value
+            ? 'bg-blue-500 text-white'
+            : 'bg-white text-gray-700 border-gray-300',
+    ]
+}
 
-const confirmEdit = () => {
-    if (!selected.value) return
+function confirmEdit() {
+    if (selected.value === '') return
     router.push('/score/info')
 }
 </script>
