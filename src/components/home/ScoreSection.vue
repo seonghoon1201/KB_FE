@@ -25,8 +25,7 @@
 
             <!-- 메시지 -->
             <div class="flex items-center text-base text-gray-700 gap-1">
-                <Sparkles class="w-4 h-4" />
-                <span>{{ score.message }}</span>
+                <span>{{ message }}</span>
             </div>
 
             <!-- 버튼 -->
@@ -56,13 +55,14 @@
 </template>
 
 <script setup>
+import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import PrimaryButton from '@/components/common/PrimaryButton.vue'
 import { Target, Sparkles } from 'lucide-vue-next'
 
 const router = useRouter()
 
-defineProps({
+const props = defineProps({
     isScoreCalculated: Boolean,
     score: {
         type: Object,
@@ -72,6 +72,15 @@ defineProps({
             message: '',
         }),
     },
+})
+
+const message = computed(() => {
+    const scoreVal = props.score.total
+    if (scoreVal >= 69) return '🎯 당첨 가능성이 매우 높아요!'
+    else if (scoreVal >= 55) return '👍 청약 당첨 가능성이 높습니다.'
+    else if (scoreVal >= 40) return '📈 조금만 더 가점 관리해보세요!'
+    else if (scoreVal >= 25) return '📌 꾸준한 납입과 가점 관리를 추천드려요.'
+    else return '📝 당첨 가능성이 낮아요. 다른 조건도 함께 고려해보세요.'
 })
 
 // 계산하기 또는 다시 계산하기 눌렀을 때 이동

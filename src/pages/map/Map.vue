@@ -317,4 +317,9 @@ watch(activeTab, () => {
 watch(selectedCity, () => {
     selectedDistrict.value = ''
 })
+
+const close = () => {
+    isFilterOpen.value = false
+    filterError.value = false
+}
 </script>
