@@ -82,7 +82,7 @@
                         class="w-full h-8 mb-4 flex justify-between border-b-2 cursor-pointer"
                         @click="movePage('/mypage/notice')"
                     >
-                        <p class="text-sm">공지사항</p>
+                        <p class="text-sm">FAQ</p>
                         <ChevronRight />
                     </div>
                     <div
