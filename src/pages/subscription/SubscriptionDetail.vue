@@ -33,7 +33,7 @@
 
                 <p class="flex items-center mt-1 text-sm text-gray-500">
                     <Heart class="inline mr-1" :size="16" stroke-width="1.5" />{{
-                        subscription.favorite_count
+                        isFavorite ? subscription.favorite_count : subscription.favorite_count - 1
                     }}
                     / <Eye class="inline ml-1 mr-1" :size="16" stroke-width="1.5" />{{
                         subscription.view_count
@@ -171,7 +171,7 @@ async function initMap(address) {
 
         const geocoder = new kakao.maps.services.Geocoder()
         const cleanAddress = normalizeAddress(address)
-        console.log('주소 검색 시작:', cleanAddress)
+        // console.log('주소 검색 시작:', cleanAddress)
 
         const map = new kakao.maps.Map(mapRef.value, {
             center: new kakao.maps.LatLng(36.5, 127.5),
@@ -188,7 +188,7 @@ async function initMap(address) {
 
                 // 1차 검색 실패 → 'OO리'까지만 사용해 재검색
                 const partialAddr = getAddressUpToRi(subscription.value.address)
-                console.log('Fallback 주소 재검색:', partialAddr)
+                // console.log('Fallback 주소 재검색:', partialAddr)
 
                 geocoder.addressSearch(partialAddr, function (res2, status2) {
                     if (status2 === kakao.maps.services.Status.OK) {
@@ -275,7 +275,8 @@ onMounted(async () => {
         await initMap(subscription.value.address)
         new kakao.maps.services.Geocoder().addressSearch(
             '서울특별시 동대문구 제기동 892-68',
-            console.log,
+            // console.log,
+            function () {}, // 아무것도 안 함
         )
     } catch (err) {
         console.error('상세 정보 로드 실패', err)
@@ -317,37 +318,19 @@ function formatDate(dateString) {
 }
 
 const isFavorite = computed(() => {
-    console.log(
-        'test : ',
-        favoritesStore.isFavorite(subscription.value.house_secd_nm, subscription.value.pblanc_no),
-    )
     if (!subscription.value) return false
     return favoritesStore.isFavorite(subscription.value.house_secd_nm, subscription.value.pblanc_no)
 })
 
 const handleFavoriteClick = () => {
-    console.log('subscription.value : ', subscription)
-    console.log('isFavorite : ', isFavorite)
-    if (!subscription.value) return
-    favoritesStore.removeFavorite(subscription.value.house_secd_nm, subscription.value.pblanc_no)
+    const { house_secd_nm, pblanc_no } = subscription.value
+
+    if (favoritesStore.isFavorite(house_secd_nm, pblanc_no)) {
+        favoritesStore.removeFavorite({ house_type: house_secd_nm, pblanc_no })
+    } else {
+        favoritesStore.addFavorite({ house_type: house_secd_nm, pblanc_no })
+    }
 }
-
-// 면적 최소 ~ 최대로 보여주는 함수
-// const areaList = computed(() => {
-//     const types = subscription.value?.apt_type || subscription.value?.officetel_type
-//     if (!types || types.length === 0) return ''
-
-//     // 면적만 추출
-//     const areas = types.map((t) => parseFloat(t.SUPLY_AR || t.EXCLUSE_AR)).filter((a) => !isNaN(a))
-//     if (areas.length === 0) return ''
-
-//     const min = Math.min(...areas)
-//     const max = Math.max(...areas)
-
-//     // 최소 = 최대라면 하나만, 아니면 범위 표기
-//     return min === max ? `${min.toFixed(1)}㎡` : `${min.toFixed(1)}㎡ ~ ${max.toFixed(1)}㎡`
-
-// })
 
 const areaList = computed(() => {
     const types = subscription.value?.apt_type || subscription.value?.officetel_type
