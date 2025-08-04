@@ -243,6 +243,11 @@ onMounted(async () => {
         level: 9,
     })
 
+    // 지도 클릭시 카드 선택 해제
+    kakao.maps.event.addListener(map.value, 'click', () => {
+        selectedItem.value = null
+    })
+
     // 1. 전체 청약 리스트 가져오기
     const res = await api.get('/subscriptions')
     subscriptionList.value = res.data
@@ -277,17 +282,17 @@ onMounted(async () => {
 
 // 찜한 청약 지도 탭 변환 준비중....
 watch(activeTab, () => {
-  if (!map.value) return
+    if (!map.value) return
 
-  // 1. favorite 탭이면 is_favorite=true만, 아니면 전체
-  let list = subscriptionList.value
-  if (activeTab.value === 'favorite') {
-    list = list.filter(item => item.is_favorite)
-  }
+    // 1. favorite 탭이면 is_favorite=true만, 아니면 전체
+    let list = subscriptionList.value
+    if (activeTab.value === 'favorite') {
+        list = list.filter((item) => item.is_favorite)
+    }
 
-  // 2. bounds 체크를 하고 싶으면 renderMarkers(list, false)
-  //    그냥 전체 다시 그리고 싶으면 renderMarkers(list, true)
-  renderMarkers(list, true)
+    // 2. bounds 체크를 하고 싶으면 renderMarkers(list, false)
+    //    그냥 전체 다시 그리고 싶으면 renderMarkers(list, true)
+    renderMarkers(list, true)
 })
 
 // 시/도 선택 초기화
