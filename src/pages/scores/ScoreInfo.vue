@@ -169,17 +169,22 @@ const router = useRouter()
 const store = useScoreStore()
 const userStore = useUserStore()
 
+// 페이지 진입 시 자동 재계산
+onMounted(async () => {
+    try {
+        const data = await store.calculateScore()
+        console.log('[ScoreInfoPage] calculateScore 완료:', data)
+    } catch (err) {
+        console.error('[ScoreInfoPage] calculateScore 에러:', err)
+    }
+})
+
 // 순서: 로컬 입력값 먼저, 없으면 API 결과
 const rawResidence = computed(() => store.residenceStartDate || store.result.residence_start_date)
 const formattedResidenceDate = computed(() => {
     if (!rawResidence.value) return ''
     const [y, m] = rawResidence.value.split('-')
     return `${y}. ${m.padStart(2, '0')}`
-})
-
-// 페이지 진입 시 자동 재계산
-onMounted(async () => {
-    await store.calculateScore()
 })
 
 // 생년월일 포맷
