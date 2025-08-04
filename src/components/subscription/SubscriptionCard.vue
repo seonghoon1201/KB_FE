@@ -34,13 +34,14 @@
             <div class="flex flex-col gap-3">
                 <!-- 위치 정보 -->
                 <p class="text-gray-500 text-sm text-left">
-                    {{ subscription.city }} {{ subscription.district }}
+                    {{ subscription.si }} {{ subscription.district }}
                 </p>
+                <!-- 모집 기간 -->
                 <span v-if="subscription.application_start_date" class="text-gray-500 text-sm">
                     {{ subscription.application_start_date }} ~
                     {{ subscription.application_end_date }}
                 </span>
-                <span v-else-if="subscription.application_period">
+                <span v-else-if="subscription.application_period" class="text-gray-500 text-sm">
                     {{ subscription.application_period }}
                 </span>
                 <!-- 주택 타입 배지 -->

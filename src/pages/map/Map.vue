@@ -150,14 +150,31 @@ async function getCoords(addr) {
     })
 }
 
-// 모든 공고 좌표를 한 번에 준비
+// const clusterer = new kakao.maps.MarkerClusterer({
+//     map: map.value,
+//     averageCenter: true,
+//     minLevel: 7
+// })
+
+// // 모든 공고 좌표를 한 번에 준비
+// async function prepareCoords(list) {
+//     for (const item of list) {
+//         const addr = `${item.si} ${item.sigungu}`
+//         if (!coordsCache[addr]) {
+//             await getCoords(addr)
+//         }
+//     }
+// }
+
+// 병렬요청으로 수정
 async function prepareCoords(list) {
-    for (const item of list) {
+    const promises = list.map((item) => {
         const addr = `${item.si} ${item.sigungu}`
         if (!coordsCache[addr]) {
-            await getCoords(addr)
+            return getCoords(addr)
         }
-    }
+    })
+    await Promise.all(promises)
 }
 
 // 마커 렌더링
@@ -185,7 +202,23 @@ function renderMarkers(list, skipBoundsCheck = false) {
 
             const marker = new kakao.maps.Marker({ position: pos, map: map.value })
             kakao.maps.event.addListener(marker, 'click', () => {
+                console.log(item)
                 selectedItem.value = item
+
+                const newItem = {
+                    ...item,
+                    city: item.city || item.si,
+                    district: item.district || item.sigungu,
+                }
+
+                // application_period도 가공하고 싶으면 같이 처리
+                if (newItem.application_period) {
+                    const [start, end] = newItem.application_period.split(' ~ ')
+                    newItem.application_start_date = start
+                    newItem.application_end_date = end
+                }
+
+                selectedItem.value = newItem
             })
             markers.value.push(marker)
         }
@@ -244,14 +277,39 @@ onMounted(async () => {
 })
 
 // 탭 변경 시
+// watch(activeTab, () => {
+//     const bounds = map.value.getBounds()
+//     const visible = subscriptionList.value.filter((item) => {
+//         const coords = coordsCache[`${item.si} ${item.sigungu}`]
+//         if (!coords) return false
+//         const pos = new kakao.maps.LatLng(coords.lat, coords.lng)
+//         return bounds.contains(pos)
+//     })
+//     renderMarkers(visible)
+// })
+
+// 찜한 청약 지도 탭 변환 준비중....
 watch(activeTab, () => {
+    // 1. map이 준비됐는지 체크
+    if (!map.value || typeof map.value.getBounds !== 'function') return
+
     const bounds = map.value.getBounds()
-    const visible = subscriptionList.value.filter((item) => {
+    if (!bounds || typeof bounds.contains !== 'function') return
+
+    // 2. activeTab 값에 따라 데이터 필터링
+    let list = subscriptionList.value
+    if (activeTab.value === 'favorite') {
+        list = list.filter((item) => item.is_favorite)
+    }
+
+    // 3. 지도 범위 내 데이터만 걸러서 마커 다시 렌더링
+    const visible = list.filter((item) => {
         const coords = coordsCache[`${item.si} ${item.sigungu}`]
         if (!coords) return false
         const pos = new kakao.maps.LatLng(coords.lat, coords.lng)
         return bounds.contains(pos)
     })
+
     renderMarkers(visible)
 })
 
