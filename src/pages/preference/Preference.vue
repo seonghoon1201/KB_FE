@@ -143,6 +143,8 @@ import BackHeader from '@/components/common/BackHeader.vue'
 import { usePreferenceStore } from '@/stores/preference'
 import { districts } from '@/data/districts'
 import { areaOptions } from '@/data/area'
+import api from '@/api/axios' 
+
 
 const router = useRouter()
 const preferenceStore = usePreferenceStore()
@@ -228,33 +230,47 @@ const toggleType = (type) => {
     }
 }
 
-const onSubmit = () => {
-    if (selectedRegions.value.length === 0) {
-        showRegionError.value = true
-        return
+
+const onSubmit = async () => {
+  if (selectedRegions.value.length === 0) {
+    showRegionError.value = true
+    return
+  }
+  showRegionError.value = false
+
+  const expandedSizes = expandAreaRanges(selectedAreas.value)
+
+  // 1) 백엔드 스펙에 맞는 데이터 변환
+  const preferenceData = {
+    selected_homesize: expandedSizes.length > 0
+      ? [{
+          min_homesize: Math.min(...expandedSizes),
+          max_homesize: Math.max(...expandedSizes)
+        }]
+      : [],
+    selected_hometype: selectedTypes.value.map(t => ({
+      selected_house_secd: t
+    })),
+    selected_region: selectedRegions.value.map(r => ({
+      si: r.city,
+      gun_gu: r.district
+    })),
+    user_info: {
+      hope_min_price: priceMin.value || null,
+      hope_max_price: priceMax.value || null
     }
+  }
 
-    showRegionError.value = false
-
-    const expandedSizes = expandAreaRanges(selectedAreas.value)
-    const region = selectedRegions.value[0]
-
-    // ✅ 디폴트 보정
-    const finalAreas = expandedSizes.length > 0 ? expandedSizes : [] // 선택 없으면 전체
-    const finalPriceRange =
-        priceMin.value || priceMax.value ? [priceMin.value, priceMax.value] : [null, null]
-    const finalTypes = selectedTypes.value.length > 0 ? selectedTypes.value : [] // 전체 포함
-
-    preferenceStore.setPreference({
-        city: region.city,
-        district: region.district,
-        areas: finalAreas,
-        priceRange: finalPriceRange,
-        types: finalTypes,
-    })
+  try {
+    // 2) API로 POST 요청
+    await api.post('/user/preferences', preferenceData)
 
     alert('설정이 저장되었습니다.')
     router.push('/home')
+  } catch (error) {
+    console.error('선호 정보 저장 실패:', error)
+    alert('저장에 실패했습니다. 다시 시도해주세요.')
+  }
 }
 </script>
 
