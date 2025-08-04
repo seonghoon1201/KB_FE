@@ -24,6 +24,23 @@ export const useSubscriptionsStore = defineStore('subscription', () => {
                     end_date = parts[1]?.trim()
                 }
 
+                // 가격 숫자 변환
+                let minPrice = Number(item.min_price)
+                let maxPrice = Number(item.max_price)
+
+                // 가격 유효성 검사 및 swap
+                if (!isNaN(minPrice) && !isNaN(maxPrice) && minPrice > maxPrice) {
+                    console.warn('⚠️ min_price > max_price 문제 감지:', {
+                        pblanc_no: item.pblanc_no,
+                        house_nm: item.house_nm,
+                        min_price: minPrice,
+                        max_price: maxPrice,
+                    })
+                    const temp = minPrice
+                    minPrice = maxPrice
+                    maxPrice = temp
+                }
+
                 return {
                     id: item.pblanc_no, // 이제 pblanc_no가 고유 키
                     pblanc_no: item.pblanc_no,
@@ -40,7 +57,7 @@ export const useSubscriptionsStore = defineStore('subscription', () => {
                     max_area: item.max_area,
                     min_price: item.min_price,
                     max_price: item.max_price,
-                    is_favorite: item.is_favorite
+                    is_favorite: item.is_favorite,
                 }
             })
 

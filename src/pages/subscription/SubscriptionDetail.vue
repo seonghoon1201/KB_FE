@@ -40,7 +40,8 @@
                     }}
                 </p>
                 <p class="mt-2 text-lg font-bold text-blue-600">
-                    {{ formatToEok(subscription.min_price) }} ~ {{ formatToEok(subscription.max_price) }}
+                    {{ formatToEok(subscription.min_price) }} ~
+                    {{ formatToEok(subscription.max_price) }}
                 </p>
 
                 <!-- 지도 영역 -->
@@ -145,7 +146,7 @@ import {
     FileText,
     Building2,
 } from 'lucide-vue-next'
-import { onMounted, ref, computed, nextTick } from 'vue'
+import { onMounted, ref, computed, nextTick, watchEffect } from 'vue'
 import api from '@/api/axios'
 import { useRoute } from 'vue-router'
 import BackHeader from '@/components/common/BackHeader.vue'
@@ -244,16 +245,25 @@ onMounted(async () => {
         })
 
         // ---- 가격 범위 계산 ----
+
         let minPrice = null
         let maxPrice = null
 
         if (Array.isArray(d.apt_type)) {
             const prices = d.apt_type
-                .map((t) => parseFloat(t.LTTOT_TOP_AMOUNT))
+                .map((t) => Number(t.LTTOT_TOP_AMOUNT))
                 .filter((v) => !isNaN(v))
+
             if (prices.length > 0) {
                 minPrice = Math.min(...prices)
                 maxPrice = Math.max(...prices)
+
+                // 혹시라도 데이터 이상으로 뒤바뀌었으면 방어적으로 교환
+                if (minPrice > maxPrice) {
+                    const tmp = minPrice
+                    minPrice = maxPrice
+                    maxPrice = tmp
+                }
             }
         }
 
@@ -326,35 +336,34 @@ const handleFavoriteClick = () => {
 }
 
 // 면적 최소 ~ 최대로 보여주는 함수
-// const areaList = computed(() => {
-//     const types = subscription.value?.apt_type || subscription.value?.officetel_type
-//     if (!types || types.length === 0) return ''
-
-//     // 면적만 추출
-//     const areas = types.map((t) => parseFloat(t.SUPLY_AR || t.EXCLUSE_AR)).filter((a) => !isNaN(a))
-//     if (areas.length === 0) return ''
-
-//     const min = Math.min(...areas)
-//     const max = Math.max(...areas)
-
-//     // 최소 = 최대라면 하나만, 아니면 범위 표기
-//     return min === max ? `${min.toFixed(1)}㎡` : `${min.toFixed(1)}㎡ ~ ${max.toFixed(1)}㎡`
-
-// })
-
 const areaList = computed(() => {
     const types = subscription.value?.apt_type || subscription.value?.officetel_type
     if (!types || types.length === 0) return ''
 
-    return types
-        .map((t) => {
-            // 아파트는 SUPLY_AR, 오피스텔은 EXCLUSE_AR 사용
-            const area = parseFloat(t.SUPLY_AR || t.EXCLUSE_AR)
-            return isNaN(area) ? null : `${area.toFixed(1)}㎡`
-        })
-        .filter(Boolean) // null 제거
-        .join(' / ')
+    // 면적만 추출
+    const areas = types.map((t) => parseFloat(t.SUPLY_AR || t.EXCLUSE_AR)).filter((a) => !isNaN(a))
+    if (areas.length === 0) return ''
+
+    const min = Math.min(...areas)
+    const max = Math.max(...areas)
+
+    // 최소 = 최대라면 하나만, 아니면 범위 표기
+    return min === max ? `${min.toFixed(1)}㎡` : `${min.toFixed(1)}㎡ ~ ${max.toFixed(1)}㎡`
 })
+
+// const areaList = computed(() => {
+//     const types = subscription.value?.apt_type || subscription.value?.officetel_type
+//     if (!types || types.length === 0) return ''
+
+//     return types
+//         .map((t) => {
+//             // 아파트는 SUPLY_AR, 오피스텔은 EXCLUSE_AR 사용
+//             const area = parseFloat(t.SUPLY_AR || t.EXCLUSE_AR)
+//             return isNaN(area) ? null : `${area.toFixed(1)}㎡`
+//         })
+//         .filter(Boolean) // null 제거
+//         .join(' / ')
+// })
 
 function calcBadge(start, end) {
     if (!start || !end) return ''
