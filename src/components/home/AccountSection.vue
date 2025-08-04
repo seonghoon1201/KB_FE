@@ -4,18 +4,16 @@
         <!-- ✅ 계좌 등록된 경우 -->
         <template v-if="hasAccount">
             <!-- 납입 상태 & 총 납입 횟수 -->
-            <div class="flex justify-between items-center text-xs mb-2">
-                <!-- 왼쪽: 납입 상태 -->
-                <div class="space-y-1">
-                    <p v-if="hasDepositThisMonth" class="text-green-500">
-                        🟢 이번 달 청약 납입이 확인되었어요
-                    </p>
-                    <p v-else class="text-red-500">🔴 이번 달 청약 납입이 확인되지 않았어요</p>
-                </div>
-
-                <!-- 오른쪽: 총 납입 횟수 badge -->
+            <div class="flex justify-between items-center text-xs mb-4">
+                <p :class="hasDepositThisMonth ? 'text-green-500' : 'text-red-500'">
+                    {{
+                        hasDepositThisMonth
+                            ? '🟢 이번 달 청약 납입이 확인되었어요'
+                            : '🔴 이번 달 청약 납입이 되지 않았어요'
+                    }}
+                </p>
                 <span
-                    class="inline-block bg-blue-100 text-blue-600 px-3 py-1 rounded-full font-semibold"
+                    class="bg-blue-100 text-blue-600 px-3 py-1 rounded-full font-semibold whitespace-nowrap"
                 >
                     • 총 납입 횟수: {{ resFinalRoundNo }}회
                 </span>
@@ -23,7 +21,7 @@
 
             <!-- 이미지 + 프로그래스 링 -->
             <div class="flex flex-col items-center gap-1">
-                <div class="relative w-40 h-40">
+                <div class="relative w-40 h-40 mb-2">
                     <svg class="absolute inset-0" width="160" height="160" viewBox="0 0 160 160">
                         <!-- 배경 원형 -->
                         <circle
