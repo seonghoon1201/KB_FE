@@ -10,9 +10,22 @@
             <section class="bg-white px-4 pt-4 pb-6">
                 <div class="flex items-center justify-between mb-2">
                     <h1 class="text-xl font-bold">{{ subscription.house_nm }}</h1>
+                    <!-- 하트 아이콘 -->
+                    <button
+                        @click="handleFavoriteClick"
+                        class="p-1 hover:bg-gray-50 rounded-full transition-colors duration-200"
+                    >
+                        <Heart
+                            :size="24"
+                            :fill="isFavorite ? '#ef4444' : 'none'"
+                            :class="isFavorite ? 'text-red-500' : 'text-gray-400'"
+                            stroke-width="1.5"
+                        />
+                    </button>
                 </div>
                 <p class="text-sm text-gray-500">
-                    {{ subscription.house_dtl_secd_nm }} · {{ areaList }} · {{ subscription.householdCount }}세대
+                    {{ subscription.house_dtl_secd_nm }} · {{ areaList }} ·
+                    {{ subscription.householdCount }}세대
                 </p>
                 <p class="mt-1 text-sm text-gray-500">
                     <MapPin class="inline mr-1" :size="16" /> {{ subscription.address }}
@@ -20,7 +33,7 @@
 
                 <p class="flex items-center mt-1 text-sm text-gray-500">
                     <Heart class="inline mr-1" :size="16" stroke-width="1.5" />{{
-                        subscription.favorite_count
+                        isFavorite ? subscription.favorite_count : subscription.favorite_count - 1
                     }}
                     / <Eye class="inline ml-1 mr-1" :size="16" stroke-width="1.5" />{{
                         subscription.view_count
@@ -122,10 +135,12 @@ import {
     ShoppingBag,
 } from 'lucide-vue-next'
 import { loadKakaoMapScript } from '@/utils/KakaoMapLoader'
+import { useFavoritesStore } from '@/stores/favorites'
 
 const route = useRoute()
 const subscription = ref(null)
 const mapRef = ref(null)
+const favoritesStore = useFavoritesStore()
 
 async function initMap(address) {
     const kakao = await loadKakaoMapScript()
@@ -151,6 +166,7 @@ onMounted(async () => {
     const id = route.params.id
     const res = await api.get('/subscriptions/officetels/detail', { params: { pblanc_no: id } })
     const d = res.data
+
     subscription.value = {
         ...d,
         type: d.house_secd_nm,
@@ -161,24 +177,41 @@ onMounted(async () => {
         view_count: d.view_count,
         pblanc_url: d.pblanc_url,
     }
+
     await initMap(subscription.value.address)
 })
 
+const isFavorite = computed(() => {
+    if (!subscription.value) return false
+    return favoritesStore.isFavorite(
+        subscription.value.house_dtl_secd_nm,
+        subscription.value.pblanc_no,
+    )
+})
+
+const handleFavoriteClick = () => {
+    const { house_dtl_secd_nm, pblanc_no } = subscription.value
+
+    if (favoritesStore.isFavorite(house_dtl_secd_nm, pblanc_no)) {
+        favoritesStore.removeFavorite({ house_type: house_dtl_secd_nm, pblanc_no })
+    } else {
+        favoritesStore.addFavorite({ house_type: house_dtl_secd_nm, pblanc_no })
+    }
+}
+
 const areaList = computed(() => {
-  const types = subscription.value?.apt_type || subscription.value?.officetel_type
-  if (!types || types.length === 0) return ''
+    const types = subscription.value?.apt_type || subscription.value?.officetel_type
+    if (!types || types.length === 0) return ''
 
-  // 면적만 추출
-  const areas = types.map(t => parseFloat(t.SUPLY_AR || t.EXCLUSE_AR)).filter(a => !isNaN(a))
-  if (areas.length === 0) return ''
+    // 면적만 추출
+    const areas = types.map((t) => parseFloat(t.SUPLY_AR || t.EXCLUSE_AR)).filter((a) => !isNaN(a))
+    if (areas.length === 0) return ''
 
-  const min = Math.min(...areas)
-  const max = Math.max(...areas)
+    const min = Math.min(...areas)
+    const max = Math.max(...areas)
 
-  // 최소 = 최대라면 하나만, 아니면 범위 표기
-  return min === max
-    ? `${min.toFixed(1)}㎡`
-    : `${min.toFixed(1)}㎡ ~ ${max.toFixed(1)}㎡`
+    // 최소 = 최대라면 하나만, 아니면 범위 표기
+    return min === max ? `${min.toFixed(1)}㎡` : `${min.toFixed(1)}㎡ ~ ${max.toFixed(1)}㎡`
 })
 
 function formatToEok(price) {
