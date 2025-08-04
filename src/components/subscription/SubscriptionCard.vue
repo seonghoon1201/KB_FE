@@ -36,9 +36,12 @@
                 <p class="text-gray-500 text-sm text-left">
                     {{ subscription.city }} {{ subscription.district }}
                 </p>
-                <span class="text-gray-500 text-sm">
+                <span v-if="subscription.application_start_date" class="text-gray-500 text-sm">
                     {{ subscription.application_start_date }} ~
                     {{ subscription.application_end_date }}
+                </span>
+                <span v-else-if="subscription.application_period">
+                    {{ subscription.application_period }}
                 </span>
                 <!-- 주택 타입 배지 -->
                 <span
@@ -188,14 +191,13 @@ const handleFavoriteClick = () => {
     }
 }
 
-
 const handleDetailClick = () => {
-  const { pblanc_no, house_type } = props.subscription
-  if (house_type === 'APT' || house_type === '신혼희망타운') {
-    router.push(`/subscriptions/${pblanc_no}`)
-  } else {
-    router.push(`/etcsubscriptions/${pblanc_no}`)
-  }
+    const { pblanc_no, house_type } = props.subscription
+    if (house_type === 'APT' || house_type === '신혼희망타운') {
+        router.push(`/subscriptions/${pblanc_no}`)
+    } else {
+        router.push(`/etcsubscriptions/${pblanc_no}`)
+    }
 }
 
 const formatToNum = (strValue) => {
