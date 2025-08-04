@@ -326,13 +326,19 @@ function formatDate(dateString) {
 }
 
 const isFavorite = computed(() => {
+    console.log(
+        'test : ',
+        favoritesStore.isFavorite(subscription.value.house_secd_nm, subscription.value.pblanc_no),
+    )
     if (!subscription.value) return false
-    return favoritesStore.isFavorite(subscription.value.houseSecdNm, subscription.value.pblancNo)
+    return favoritesStore.isFavorite(subscription.value.house_secd_nm, subscription.value.pblanc_no)
 })
 
 const handleFavoriteClick = () => {
+    console.log('subscription.value : ', subscription)
+    console.log('isFavorite : ', isFavorite)
     if (!subscription.value) return
-    favoritesStore.toggleFavorite(subscription.value.houseSecdNm, subscription.value.pblancNo)
+    favoritesStore.removeFavorite(subscription.value.house_secd_nm, subscription.value.pblanc_no)
 }
 
 // 면적 최소 ~ 최대로 보여주는 함수

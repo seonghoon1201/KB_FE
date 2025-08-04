@@ -7,9 +7,10 @@ export default {
     async getPreferences() {
         console.log('선호설정')
         const { data } = api.get(BASE_URL)
-        console.log('data : ', data)
+        console.log('선호설정 data : ', data)
         return data
     },
+
     async setPreferences(params) {
         console.log('선호설정')
         const { data } = api.post(BASE_URL, params)

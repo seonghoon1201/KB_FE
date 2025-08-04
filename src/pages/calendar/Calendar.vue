@@ -24,7 +24,7 @@
                             class="flex flex-col items-center px-4 py-2 font-medium rounded-lg shadow focus:outline-none focus:ring-2 transition z-50"
                             @click="handleMonthMove('today')"
                         >
-                            <span class="text-sm text-center">{{ todayMonth }}</span>
+                            <span class="text-sm text-center mb-1">{{ todayMonth }}</span>
                             <span class="text-lg font-semibold -mt-1">{{ todayDay }}</span>
                         </span>
                         <button
@@ -90,7 +90,8 @@
                                 v-for="subscription in filteredSubscriptions"
                                 :key="subscription.id"
                                 :subscription="subscription"
-                                @favorite-changed="favoritesStore.toggleFavorite"
+                                :favorite-default="true"
+                                @favorite-changed="removeCalendar"
                             />
                         </div>
                     </div>
@@ -104,13 +105,10 @@
 </template>
 
 <script setup>
-// ---------------------
 // import 및 전역 변수/상수 선언
-// ---------------------
 import { ref, reactive, watch, computed } from 'vue'
-import calendarApi from '@/api/calendarApi'
-import { ChevronLeft, ChevronRight } from 'lucide-vue-next'
 import { useFavoritesStore } from '@/stores/favorites'
+import { ChevronLeft, ChevronRight } from 'lucide-vue-next'
 import BackHeader from '@/components/common/BackHeader.vue'
 import BottomNavBar from '@/components/common/BottomNavbar.vue'
 import SubscriptionCard from '@/components/subscription/SubscriptionCard.vue'
@@ -118,21 +116,16 @@ import FullCalendar from '@fullcalendar/vue3'
 import dayGridPlugin from '@fullcalendar/daygrid'
 import interactionPlugin from '@fullcalendar/interaction'
 
-// 즐겨찾기 pinia 스토어 사용
-const favoritesStore = useFavoritesStore()
-
-// ---------------------
 // 상태값(reactive/ref)
-// ---------------------
 const calendarRef = ref(null) // FullCalendar DOM 접근 ref
 const showCalendar = ref(true) // 월간 뷰(true)/주간 뷰(false)
 const subscriptions = ref([]) // 청약 공고 리스트
 const selectedDate = ref('') // 사용자가 선택한 날짜 (YYYY-MM-DD)
 const selectedWeekRange = ref([]) // 주간 날짜 배열
 
-// ---------------------
+const favorite = useFavoritesStore()
+
 // 날짜/월 텍스트
-// ---------------------
 const MONTH_NAMES = [
     'January',
     'February',
@@ -150,9 +143,7 @@ const MONTH_NAMES = [
 const todayMonth = computed(() => MONTH_NAMES[new Date().getMonth()])
 const todayDay = computed(() => new Date().getDate())
 
-// ---------------------
 // 청약 공고 리스트 정렬
-// ---------------------
 const filteredSubscriptions = computed(() => {
     if (showCalendar.value) {
         const result = Array.isArray(subscriptions.value) ? [...subscriptions.value] : []
@@ -169,9 +160,7 @@ const filteredSubscriptions = computed(() => {
     }
 })
 
-// ---------------------
 // FullCalendar 옵션 (월간 뷰만)
-// ---------------------
 const calendarOptions = reactive({
     plugins: [dayGridPlugin, interactionPlugin],
     initialView: 'dayGridMonth',
@@ -188,12 +177,11 @@ const calendarOptions = reactive({
     moreLinkClick: handleMoreClick,
 })
 
-// ---------------------
 // API에서 데이터 로딩
-// ---------------------
 async function loadCalendarEvents(fetchInfo, successCallback, failureCallback) {
     try {
-        const res = await calendarApi.getData()
+        const res = await favorite.getFavorite()
+        console.log('res /; ', res)
         subscriptions.value = res
         successCallback(res)
     } catch (err) {
@@ -202,18 +190,27 @@ async function loadCalendarEvents(fetchInfo, successCallback, failureCallback) {
     }
 }
 
-// ---------------------
+async function removeCalendar(subscription) {
+    try {
+        let param = {
+            house_type: subscription.house_type,
+            pblanc_no: subscription.pblanc_no,
+        }
+        const res = await favorite.removeFavorite(param)
+        subscriptions.value = res
+    } catch (e) {
+        console.log(e)
+    }
+}
+
 // 달력 날짜 클릭 핸들러: 주간 뷰로 전환
-// ---------------------
 function handleDateClick(info) {
     selectedDate.value = info.dateStr
     generateWeekRange(info.dateStr)
     showCalendar.value = false // 주간 뷰로 전환
 }
 
-// ---------------------
 // + more 클릭 핸들러: 주간 뷰로 전환
-// ---------------------
 function handleMoreClick(info) {
     selectedDate.value = info.dateStr || info.date?.toISOString().slice(0, 10)
     generateWeekRange(selectedDate.value)
@@ -222,9 +219,7 @@ function handleMoreClick(info) {
     return false
 }
 
-// ---------------------
 // 월 이동/오늘 버튼 핸들러 (getApi null 방지)
-// ---------------------
 function handleMonthMove(direction) {
     // FullCalendar가 mount 전에는 calendarRef.value가 null일 수 있음
     if (!calendarRef.value) return
@@ -235,9 +230,7 @@ function handleMonthMove(direction) {
     else if (direction === 'next') api.next()
 }
 
-// ---------------------
 // 주간 날짜 배열 생성 (월~금 5일)
-// ---------------------
 function generateWeekRange(dateStr) {
     const date = new Date(dateStr)
     const day = date.getDay()
@@ -252,16 +245,12 @@ function generateWeekRange(dateStr) {
     })
 }
 
-// ---------------------
 // 월간 뷰로 돌아가기 (주간 → 월간)
-// ---------------------
 function backToMonth() {
     showCalendar.value = true
 }
 
-// ---------------------
 // 달력 보이기/숨기기 상태 감시 (필요시 렌더)
-// ---------------------
 watch(showCalendar, (val) => {
     if (val && calendarRef.value) {
         calendarRef.value.getApi().render()
@@ -343,6 +332,10 @@ watch(showCalendar, (val) => {
 .fc .fc-event,
 .fc .fc-event-title,
 .fc .fc-event-main {
+    width: 100%;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
     color: #000000 !important;
 }
 
