@@ -1,3 +1,4 @@
+<!-- src/pages/score/Step3.vue -->
 <template>
     <ScoreStepWrapper>
         <!-- 단계 표시 -->
@@ -8,8 +9,8 @@
             <h2 class="text-lg font-bold">본인이 세대주이신가요?</h2>
             <InfoTooltip title="세대주 기준">
                 <ul class="text-base list-disc list-inside text-gray-600 space-y-2">
-                  <li>주민등록본상 가족 구성원의 대표를 세대주라고 해요</li>
-                  <li>세대주를 제외한 구성원은 모두 세대원이에요</li>
+                    <li>주민등록본상 가족 구성원의 대표를 세대주라고 해요</li>
+                    <li>세대주를 제외한 구성원은 모두 세대원이에요</li>
                 </ul>
             </InfoTooltip>
         </div>
@@ -32,19 +33,28 @@ import PrimaryButton from '@/components/common/PrimaryButton.vue'
 const router = useRouter()
 const scoreStore = useScoreStore()
 
-const selected = ref(scoreStore.isHouseholdHead || '')
+// 초기값: 1 → 'yes', 0 → 'no', 그 외 → ''
+const selected = ref(
+    scoreStore.headOfHousehold === 1 ? 'yes' : scoreStore.headOfHousehold === 0 ? 'no' : '',
+)
 
-const select = (val) => {
+function select(val) {
     selected.value = val
-    scoreStore.isHouseholdHead = val
+    // 'yes' → 1, 'no' → 0
+    scoreStore.headOfHousehold = val === 'yes' ? 1 : 0
 }
 
-const btnClass = (val) => [
-    'w-full px-4 py-3 rounded-md border font-semibold',
-    val === selected.value ? 'bg-blue-500 text-white' : 'bg-white text-gray-700 border-gray-300',
-]
+function btnClass(val) {
+    return [
+        'w-full px-4 py-3 rounded-md border font-semibold',
+        val === selected.value
+            ? 'bg-blue-500 text-white'
+            : 'bg-white text-gray-700 border-gray-300',
+    ]
+}
 
-const next = () => {
-    if (selected.value) router.push('/score/step4')
+function next() {
+    if (!selected.value) return
+    router.push('/score/step4')
 }
 </script>

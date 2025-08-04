@@ -132,11 +132,11 @@
                             </tr>
                             <tr v-for="(row, i) in noHouseTable" :key="i">
                                 <td class="py-2">{{ row.left.range }}</td>
-                                <td :class="highlightClass(modalType, row.left.score)">
+                                <td :class="highlightClass('noHouse', row.left.score)">
                                     {{ row.left.score }}점
                                 </td>
                                 <td class="py-2">{{ row.right.range }}</td>
-                                <td :class="highlightClass(modalType, row.right.score)">
+                                <td :class="highlightClass('noHouse', row.right.score)">
                                     {{ row.right.score }}점
                                 </td>
                             </tr>
@@ -152,17 +152,17 @@
                             </tr>
                             <tr v-for="(row, i) in familyTable" :key="i">
                                 <td class="py-2">{{ row.left.count }}명</td>
-                                <td :class="highlightClass(modalType, row.left.score)">
+                                <td :class="highlightClass('family', row.left.score)">
                                     {{ row.left.score }}점
                                 </td>
                                 <td class="py-2">{{ row.right.count }}명</td>
-                                <td :class="highlightClass(modalType, row.right.score)">
+                                <td :class="highlightClass('family', row.right.score)">
                                     {{ row.right.score }}점
                                 </td>
                             </tr>
                         </table>
 
-                        <!-- 가입기간 표 -->
+                        <!-- 통장 가입기간 표 -->
                         <table v-if="modalType === 'account'" class="w-full table-fixed text-xs">
                             <tr class="bg-gray-50">
                                 <th>기간</th>
@@ -172,11 +172,11 @@
                             </tr>
                             <tr v-for="(row, i) in accountTable" :key="i">
                                 <td class="py-2">{{ row.left.range }}</td>
-                                <td :class="highlightClass(modalType, row.left.score)">
+                                <td :class="highlightClass('account', row.left.score)">
                                     {{ row.left.score }}점
                                 </td>
                                 <td class="py-2">{{ row.right.range }}</td>
-                                <td :class="highlightClass(modalType, row.right.score)">
+                                <td :class="highlightClass('account', row.right.score)">
                                     {{ row.right.score }}점
                                 </td>
                             </tr>
@@ -200,15 +200,9 @@
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useScoreStore } from '@/stores/scoreStore'
-import { useUserStore } from '@/stores/user'
-import {
-    calculateNoHouseScore,
-    calculateFamilyScore,
-    calculateAccountScore,
-} from '@/utils/scoreCalculator'
 import BackHeader from '@/components/common/BackHeader.vue'
 import {
-    Home as HonmeIcon,
+    Home as HomeIcon,
     Users as UsersIcon,
     Calendar as CalendarIcon,
     ChevronRight as ChevronRightIcon,
@@ -216,40 +210,21 @@ import {
 
 const router = useRouter()
 const scoreStore = useScoreStore()
-const userStore = useUserStore()
-
-// ★ 누락된 부분: 파트별 점수 계산 (computed)
-const noHouseScore = computed(() =>
-    calculateNoHouseScore({
-        ownHouse: scoreStore.houseOwned === 'yes',
-        familyOwnHouse: false,
-        birthDate: userStore.birthDate,
-        isMarried: scoreStore.isMarried === 'yes',
-        marriageDate: scoreStore.marriageDate,
-    }),
-)
-
-const familyScore = computed(() =>
-    calculateFamilyScore({
-        hasSpouse: scoreStore.dependents.spouse > 0,
-        familyCounts: {
-            ascendant: scoreStore.dependents.parents,
-            descendant: scoreStore.dependents.children,
-        },
-    }),
-)
-
-const accountScore = computed(() =>
-    calculateAccountScore({
-        hasAccount: !!scoreStore.accountStartDate,
-        accountStartDate: scoreStore.accountStartDate,
-        depositCount: scoreStore.depositCount,
-    }),
-)
 
 // 모달 상태
 const modalVisible = ref(false)
 const modalType = ref('') // 'noHouse' | 'family' | 'account'
+
+// 링 차트 계산용
+const totalScore = computed(() => scoreStore.result.total_ga_score || 0)
+const maxTotal = 84
+const circumference = 2 * Math.PI * 70
+
+// 파트별 점수
+const noHouseScore = computed(() => scoreStore.result.no_house_score || 0)
+const familyScore = computed(() => scoreStore.result.dependents_score || 0)
+const accountScore = computed(() => scoreStore.result.payment_period_score || 0)
+
 // 모달 오픈
 function openModal(type) {
     modalType.value = type
@@ -258,18 +233,19 @@ function openModal(type) {
 
 // 모달 제목
 const modalTitle = computed(() => {
-    if (modalType.value === 'noHouse') return '무주택 기간 점수'
-    if (modalType.value === 'family') return '부양가족 수 점수'
-    if (modalType.value === 'account') return '청약통장 가입기간 점수'
-    return ''
+    switch (modalType.value) {
+        case 'noHouse':
+            return '무주택 기간 점수'
+        case 'family':
+            return '부양가족 수 점수'
+        case 'account':
+            return '청약통장 가입기간 점수'
+        default:
+            return ''
+    }
 })
 
-// 링 차트 계산용
-const totalScore = computed(() => noHouseScore.value + familyScore.value + accountScore.value)
-const maxTotal = 84
-const circumference = 2 * Math.PI * 70
-
-// 무주택 기간 점수표
+// 점수표 데이터 (원본 그대로)
 const noHouseTable = [
     { left: { range: '1년 미만', score: 2 }, right: { range: '8년 이상 ~ 9년 미만', score: 18 } },
     {
@@ -299,7 +275,6 @@ const noHouseTable = [
     { left: { range: '7년 이상 ~ 8년 미만', score: 16 }, right: { range: '15년 이상', score: 32 } },
 ]
 
-// 부양가족 수 점수표
 const familyTable = [
     { left: { count: '0명', score: 5 }, right: { count: '4명', score: 25 } },
     { left: { count: '1명', score: 10 }, right: { count: '5명', score: 30 } },
@@ -307,7 +282,6 @@ const familyTable = [
     { left: { count: '3명', score: 20 }, right: { count: '', score: null } },
 ]
 
-// 청약통장 가입기간 점수표
 const accountTable = [
     { left: { range: '6개월 미만', score: 1 }, right: { range: '8년 이상 ~ 9년 미만', score: 10 } },
     {
@@ -337,6 +311,7 @@ const accountTable = [
     { left: { range: '6년 이상 ~ 7년 미만', score: 8 }, right: { range: '15년 이상', score: 17 } },
     { left: { range: '7년 이상 ~ 8년 미만', score: 9 }, right: { range: '', score: null } },
 ]
+
 // 하이라이트 클래스
 function highlightClass(type, score) {
     if (type === 'noHouse' && score === noHouseScore.value)
@@ -348,12 +323,9 @@ function highlightClass(type, score) {
     return ''
 }
 
-// 홈으로
 function goHome() {
-    scoreStore.saveResult()
     router.push('/home')
 }
-
 function goInfo() {
     router.push('/score/info')
 }
