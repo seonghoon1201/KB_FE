@@ -160,7 +160,7 @@ const houseTypeBadgeClass = computed(() => {
         도시형생활주택: 'bg-yellow-50 text-yellow-700 border border-yellow-200',
         오피스텔: 'bg-red-50 text-red-700 border border-red-200',
     }
-    return styleMap[type] || 'bg-gray-100 text-gray-700'
+    return styleMap[type] || 'bg-gray-100 text-gray-700 border border-gray-200'
 })
 
 // 주택 타입 표시 텍스트
@@ -174,11 +174,11 @@ const houseTypeLabel = computed(() => {
     return labelMap[type] || type
 })
 
-function extractCityDistrict(fullAddr) {
-    if (!fullAddr) return ''
-    const parts = fullAddr.split(' ')
-    return parts.slice(0, 2).join(' ')
-}
+// function extractCityDistrict(fullAddr) {
+//     if (!fullAddr) return ''
+//     const parts = fullAddr.split(' ')
+//     return parts.slice(0, 2).join(' ')
+// }
 
 // 이벤트 emith
 const emit = defineEmits(['favorite-changed', 'detail-click'])
@@ -226,10 +226,10 @@ const formatToEok = (priceValue) => {
     return `${eok.toFixed(1)}억`
 }
 
-// 1평 = 3.30579㎡
-const formatToPyeong = (squareMeters) => {
-    const num = parseFloat(squareMeters)
-    if (isNaN(num)) return 0
-    return (num / 3.30579).toFixed(0)
-}
+// // 1평 = 3.30579㎡
+// const formatToPyeong = (squareMeters) => {
+//     const num = parseFloat(squareMeters)
+//     if (isNaN(num)) return 0
+//     return (num / 3.30579).toFixed(0)
+// }
 </script>
