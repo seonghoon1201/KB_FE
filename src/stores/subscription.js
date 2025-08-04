@@ -30,6 +30,7 @@ export const useSubscriptionsStore = defineStore('subscription', () => {
                     house_nm: item.house_nm,
                     house_type: item.house_type,
                     city: item.si,
+                    si: item.si,
                     district: item.sigungu,
                     hssply_adres: item.hssply_adres,
                     application_period: item.application_period,
