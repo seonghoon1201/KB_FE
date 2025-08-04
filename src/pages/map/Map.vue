@@ -189,44 +189,31 @@ function renderMarkers(list, skipBoundsCheck = false) {
         if (!bounds || typeof bounds.contains !== 'function') return
     }
 
-    let index = 0
-    function addNext() {
-        const batch = 20 // 한 프레임당 20개씩 찍기
-        const end = Math.min(index + batch, list.length)
-        for (; index < end; index++) {
-            const item = list[index]
-            const coords = coordsCache[`${item.si} ${item.sigungu}`]
-            if (!coords) continue
-            const pos = new kakao.maps.LatLng(coords.lat, coords.lng)
-            if (!skipBoundsCheck && !bounds.contains(pos)) continue
+    list.forEach((item) => {
+        const lat = parseFloat(item.latitude)
+        const lng = parseFloat(item.longitude)
+        if (isNaN(lat) || isNaN(lng)) return
 
-            const marker = new kakao.maps.Marker({ position: pos, map: map.value })
-            kakao.maps.event.addListener(marker, 'click', () => {
-                console.log(item)
-                selectedItem.value = item
+        const pos = new kakao.maps.LatLng(lat, lng)
+        if (!skipBoundsCheck && !bounds.contains(pos)) return
 
-                const newItem = {
-                    ...item,
-                    city: item.city || item.si,
-                    district: item.district || item.sigungu,
-                }
+        const marker = new kakao.maps.Marker({ position: pos, map: map.value })
+        kakao.maps.event.addListener(marker, 'click', () => {
+            const newItem = {
+                ...item,
+                city: item.city || item.si,
+                district: item.district || item.sigungu,
+            }
+            if (newItem.application_period) {
+                const [start, end] = newItem.application_period.split(' ~ ')
+                newItem.application_start_date = start
+                newItem.application_end_date = end
+            }
+            selectedItem.value = newItem
+        })
 
-                // application_period도 가공하고 싶으면 같이 처리
-                if (newItem.application_period) {
-                    const [start, end] = newItem.application_period.split(' ~ ')
-                    newItem.application_start_date = start
-                    newItem.application_end_date = end
-                }
-
-                selectedItem.value = newItem
-            })
-            markers.value.push(marker)
-        }
-        if (index < list.length) {
-            requestAnimationFrame(addNext)
-        }
-    }
-    requestAnimationFrame(addNext)
+        markers.value.push(marker)
+    })
 }
 
 // ------------------- 필터 버튼 -------------------
@@ -290,27 +277,17 @@ onMounted(async () => {
 
 // 찜한 청약 지도 탭 변환 준비중....
 watch(activeTab, () => {
-    // 1. map이 준비됐는지 체크
-    if (!map.value || typeof map.value.getBounds !== 'function') return
+  if (!map.value) return
 
-    const bounds = map.value.getBounds()
-    if (!bounds || typeof bounds.contains !== 'function') return
+  // 1. favorite 탭이면 is_favorite=true만, 아니면 전체
+  let list = subscriptionList.value
+  if (activeTab.value === 'favorite') {
+    list = list.filter(item => item.is_favorite)
+  }
 
-    // 2. activeTab 값에 따라 데이터 필터링
-    let list = subscriptionList.value
-    if (activeTab.value === 'favorite') {
-        list = list.filter((item) => item.is_favorite)
-    }
-
-    // 3. 지도 범위 내 데이터만 걸러서 마커 다시 렌더링
-    const visible = list.filter((item) => {
-        const coords = coordsCache[`${item.si} ${item.sigungu}`]
-        if (!coords) return false
-        const pos = new kakao.maps.LatLng(coords.lat, coords.lng)
-        return bounds.contains(pos)
-    })
-
-    renderMarkers(visible)
+  // 2. bounds 체크를 하고 싶으면 renderMarkers(list, false)
+  //    그냥 전체 다시 그리고 싶으면 renderMarkers(list, true)
+  renderMarkers(list, true)
 })
 
 // 시/도 선택 초기화

@@ -252,7 +252,7 @@ const facilityGroups = computed(() => {
         if (!grouped[meta.title]) grouped[meta.title] = { ...meta, items: [] }
         grouped[meta.title].items.push({
             name: place.place_name,
-            desc: `${(place.distance / 1000).toFixed(1)}km · ${place.road_address_name}`,
+            desc: `${(place.distance / 1000).toFixed(1)}km ·도보 ${walkingTimeFromKm(place.distance / 1000)}분`,
         })
     })
     return Object.values(grouped)
@@ -268,5 +268,15 @@ function goToApply() {
 function viewSubscriptionInfo() {
     if (!subscription.value?.pblanc_url) return
     window.open(subscription.value.pblanc_url, '_blank')
+}
+
+// 도보 시간 계산 함수
+function walkingTimeFromKm(km) {
+    if (typeof km !== 'number' || isNaN(km) || km < 0) {
+        throw new Error('유효한 양의 숫자(km)를 입력해주세요.')
+    }
+
+    const minutesPerKm = 14
+    return Math.round(km * minutesPerKm)
 }
 </script>
