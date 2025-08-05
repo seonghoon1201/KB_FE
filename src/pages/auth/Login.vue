@@ -61,12 +61,14 @@ import { useRouter } from 'vue-router'
 import PrimaryButton from '@/components/common/PrimaryButton.vue'
 import authApi from '@/api/authApi'
 import { useUserStore } from '@/stores/user'
+import { useAccountStore } from '@/stores/account'
 
 const email = ref('')
 const password = ref('')
 const loading = ref(false)
 const router = useRouter()
 const userStore = useUserStore()
+const accountStore = useAccountStore()
 
 async function handleLogin() {
     if (!email.value || !password.value) {
@@ -91,6 +93,8 @@ async function handleLogin() {
             refresh_token,
             user,
         })
+
+        await accountStore.fetchAccount()
 
         // ④ 홈으로 이동
         router.push('/home')
