@@ -97,7 +97,6 @@ async function handleLogin() {
         })
 
         await accountStore.fetchAccount()
-        await scoreStore.fetchScore()
         // ④ 홈으로 이동
         router.push('/home')
     } catch (err) {
