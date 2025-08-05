@@ -16,6 +16,7 @@ export const useScoreStore = defineStore('score', () => {
     const residenceStartDate = ref(localStorage.getItem('residenceStartDate') ?? '') // 'YYYY-MM'
     const noHousePeriod = ref(JSON.parse(localStorage.getItem('noHousePeriod') ?? '0')) // number
 
+    // ── 유저 정보 (생년월일) ─────────────────────────────
     const userStore = useUserStore()
 
     // ── 계산 결과 state ─────────────────────────────────
@@ -37,15 +38,15 @@ export const useScoreStore = defineStore('score', () => {
         total_ga_score: 0,
     })
 
-    // ── 1. 서버에서 점수 계산된 결과 fetch ─────────────────
-    async function fetchScore() {
+    /** 백엔드에 계산 요청 */
+    async function calculateScore() {
         if (
             [headOfHousehold, houseOwner, houseDisposal, maritalStatus].some(
                 (x) => x.value === null,
             )
         ) {
-            console.warn('[scoreStore] fetchScore skipped: missing inputs')
-            return null
+            console.warn('[scoreStore] calculateScore skipped: missing inputs')
+            return
         }
 
         const payload = {
@@ -61,42 +62,32 @@ export const useScoreStore = defineStore('score', () => {
         }
 
         const res = await scoreApi.calculateScore(payload)
+
+        // 상태 업데이트
+        result.value = {
+            head_of_household: res.data.head_of_household,
+            house_owner: res.data.house_owner,
+            house_disposal: res.data.house_disposal,
+            disposal_date: res.data.disposal_date,
+            marital_status: res.data.marital_status,
+            wedding_date: res.data.wedding_date,
+            dependents_nm: res.data.dependents_nm,
+            no_house_period: res.data.no_house_period,
+            residence_start_date: res.data.residence_start_date,
+            payment_period: res.data.payment_period,
+            dependents_score: res.data.dependents_score,
+            no_house_score: res.data.no_house_score,
+            payment_period_score: res.data.payment_period_score,
+            total_ga_score: res.data.total_ga_score,
+            noHousePeriod: res.data.no_house_period,
+        }
+
+        // 로컬에 무주택 기간 저장
+
+        isCalculated.value = true
         return res.data
     }
-
-    // ── 2. 받아온 결과로 store 상태 반영 ─────────────────
-    function setScore(data) {
-        result.value = {
-            head_of_household: data.head_of_household,
-            house_owner: data.house_owner,
-            house_disposal: data.house_disposal,
-            disposal_date: data.disposal_date,
-            marital_status: data.marital_status,
-            wedding_date: data.wedding_date,
-            dependents_nm: data.dependents_nm,
-            no_house_period: data.no_house_period,
-            residence_start_date: data.residence_start_date,
-            payment_period: data.payment_period,
-            dependents_score: data.dependents_score,
-            no_house_score: data.no_house_score,
-            payment_period_score: data.payment_period_score,
-            total_ga_score: data.total_ga_score,
-            noHousePeriod: data.no_house_period,
-        }
-        isCalculated.value = true
-    }
-
-    // ── 3. 통합: fetch + setScore 호출 ────────────────────
-    async function calculateScore() {
-        const data = await fetchScore()
-        if (data) {
-            setScore(data)
-            return data
-        }
-        return null
-    }
-
-    // ── 입력값 로컬스토리지 저장 ──────────────────────────
+    // ── 입력값 로컬저장 ─────────────────────────────────
     watch(headOfHousehold, (v) => localStorage.setItem('headOfHousehold', JSON.stringify(v)))
     watch(houseOwner, (v) => localStorage.setItem('houseOwner', JSON.stringify(v)))
     watch(houseDisposal, (v) => localStorage.setItem('houseDisposal', JSON.stringify(v)))
@@ -104,11 +95,13 @@ export const useScoreStore = defineStore('score', () => {
     watch(maritalStatus, (v) => localStorage.setItem('maritalStatus', JSON.stringify(v)))
     watch(weddingDate, (v) => localStorage.setItem('weddingDate', v))
     watch(dependentsNm, (v) => localStorage.setItem('dependentsNm', JSON.stringify(v)))
-    watch(residenceStartDate, (v) => localStorage.setItem('residenceStartDate', v))
+    watch(residenceStartDate, (v) => {
+        localStorage.setItem('residenceStartDate', v)
+    })
     watch(noHousePeriod, (v) => localStorage.setItem('noHousePeriod', JSON.stringify(v)))
-
-    // ── 주택 처분일이 바뀌면 무주택 기간 계산 및 재계산 요청 ───
+    // ── 주택 처분일이 바뀌면 무주택 기간 재계산 & 즉시 calculateScore 호출
     watch([houseDisposal, disposalDate], ([newDisp, newDate]) => {
+        console.log('[watch] houseDisposal=', newDisp, 'disposalDate=', newDate)
         if (newDisp === 1 && /^\d{4}-\d{2}$/.test(newDate)) {
             const [yStr, mStr] = newDate.split('-')
             const y = parseInt(yStr, 10)
@@ -120,12 +113,11 @@ export const useScoreStore = defineStore('score', () => {
             noHousePeriod.value = years
             console.log(`[scoreStore] ▶ recomputed noHousePeriod=${years}`)
 
-            // 즉시 재계산
+            // 입력값만 바뀐 경우에도 강제 재계산
             calculateScore().catch((err) => console.error('[scoreStore] recalc error:', err))
         }
     })
-
-    // ── 스토어 생성 시 자동 계산 (입력값이 다 있을 경우) ───────
+    // ── 스토어 생성 직후 자동 계산 ─────────────────────────────
     if (
         headOfHousehold.value !== null &&
         houseOwner.value !== null &&
@@ -135,9 +127,7 @@ export const useScoreStore = defineStore('score', () => {
         calculateScore().catch(() => {})
     }
 
-    // ── 외부로 export ─────────────────────────────────────
     return {
-        // 입력값
         headOfHousehold,
         houseOwner,
         houseDisposal,
@@ -147,14 +137,8 @@ export const useScoreStore = defineStore('score', () => {
         dependentsNm,
         residenceStartDate,
         noHousePeriod,
-
-        // 결과값
         isCalculated,
         result,
-
-        // 메서드
-        fetchScore,
-        setScore,
         calculateScore,
     }
 })
