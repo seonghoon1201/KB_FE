@@ -97,13 +97,7 @@ async function handleLogin() {
         })
 
         await accountStore.fetchAccount()
-        try {
-            await scoreStore.calculateScore()
-            console.log('[✅] 가점 정보 자동 계산 완료')
-        } catch (e) {
-            console.warn('[⚠️] 가점 정보 자동 계산 실패:', e)
-        }
-
+        await scoreStore.fetchScore()
         // ④ 홈으로 이동
         router.push('/home')
     } catch (err) {
