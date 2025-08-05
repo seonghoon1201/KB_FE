@@ -5,7 +5,6 @@ import router from '@/router'
 const api = axios.create({
     baseURL: import.meta.env.VITE_API_BASE_URL,
     withCredentials: true, // 인증이 필요하면
-    timeout: 5000,
 })
 
 // 요청 인터셉터: accessToken 이 있을 때만 header 에 붙임
