@@ -62,6 +62,7 @@ import PrimaryButton from '@/components/common/PrimaryButton.vue'
 import authApi from '@/api/authApi'
 import { useUserStore } from '@/stores/user'
 import { useAccountStore } from '@/stores/account'
+import { useScoreStore } from '@/stores/scoreStore'
 
 const email = ref('')
 const password = ref('')
@@ -69,6 +70,7 @@ const loading = ref(false)
 const router = useRouter()
 const userStore = useUserStore()
 const accountStore = useAccountStore()
+const scoreStore = useScoreStore()
 
 async function handleLogin() {
     if (!email.value || !password.value) {
@@ -95,6 +97,12 @@ async function handleLogin() {
         })
 
         await accountStore.fetchAccount()
+        try {
+            await scoreStore.calculateScore()
+            console.log('[✅] 가점 정보 자동 계산 완료')
+        } catch (e) {
+            console.warn('[⚠️] 가점 정보 자동 계산 실패:', e)
+        }
 
         // ④ 홈으로 이동
         router.push('/home')
