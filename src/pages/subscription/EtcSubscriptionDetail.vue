@@ -316,7 +316,7 @@ function walkingTimeFromKm(km) {
         throw new Error('유효한 양의 숫자(km)를 입력해주세요.')
     }
 
-    const minutesPerKm = 14
+    const minutesPerKm = 12
     return Math.round(km * minutesPerKm)
 }
 </script>
