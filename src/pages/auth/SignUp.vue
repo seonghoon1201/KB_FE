@@ -25,6 +25,7 @@
                     />
                     <!-- (1) 이메일 인증코드 전송 버튼 -->
                     <PrimaryButton
+                        type="button"
                         :fullWidth="false"
                         class="px-4 h-[36px] text-sm"
                         :disabled="sending || !email"
@@ -48,6 +49,7 @@
                     />
                     <!-- (2) 인증코드 확인 버튼 -->
                     <PrimaryButton
+                        type="button"
                         :fullWidth="false"
                         class="px-4 h-[36px] text-sm"
                         :disabled="verifying || !code || verified"
