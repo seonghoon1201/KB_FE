@@ -33,7 +33,7 @@
 
                 <p class="flex items-center mt-1 text-sm text-gray-500">
                     <Heart class="inline mr-1" :size="16" stroke-width="1.5" />{{
-                        subscription.favorite_count
+                        isFavorite ? subscription.favorite_count : subscription.favorite_count - 1
                     }}
                     / <Eye class="inline ml-1 mr-1" :size="16" stroke-width="1.5" />{{
                         subscription.view_count
@@ -306,7 +306,8 @@ onMounted(async () => {
         await initMap(Number(subscription.value.lat), Number(subscription.value.long))
         new kakao.maps.services.Geocoder().addressSearch(
             '서울특별시 동대문구 제기동 892-68',
-            console.log,
+            // console.log,
+            function () {}, // 아무것도 안 함
         )
     } catch (err) {
         console.error('상세 정보 로드 실패', err)
@@ -348,19 +349,18 @@ function formatDate(dateString) {
 }
 
 const isFavorite = computed(() => {
-    console.log(
-        'test : ',
-        favoritesStore.isFavorite(subscription.value.house_secd_nm, subscription.value.pblanc_no),
-    )
     if (!subscription.value) return false
     return favoritesStore.isFavorite(subscription.value.house_secd_nm, subscription.value.pblanc_no)
 })
 
 const handleFavoriteClick = () => {
-    console.log('subscription.value : ', subscription)
-    console.log('isFavorite : ', isFavorite)
-    if (!subscription.value) return
-    favoritesStore.removeFavorite(subscription.value.house_secd_nm, subscription.value.pblanc_no)
+    const { house_secd_nm, pblanc_no } = subscription.value
+
+    if (favoritesStore.isFavorite(house_secd_nm, pblanc_no)) {
+        favoritesStore.removeFavorite({ house_type: house_secd_nm, pblanc_no })
+    } else {
+        favoritesStore.addFavorite({ house_type: house_secd_nm, pblanc_no })
+    }
 }
 
 // 면적 최소 ~ 최대로 보여주는 함수

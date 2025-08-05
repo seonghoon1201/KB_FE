@@ -16,7 +16,6 @@
                     :key="subscription.apt_idx"
                     :subscription="subscription"
                     :favorite-default="true"
-                    @favorite-changed="handleFavoriteToggle(subscription)"
                 />
             </div>
         </div>
@@ -46,7 +45,8 @@ const sortedFavorites = computed(() => {
 
 const handleFavoriteToggle = async (subscription) => {
     // 서버가 사용하는 실제 PK 필드로 넘겨줍니다.
-    await favoritesStore.removeFavorite(subscription)
+    console.log('handleFavoriteToggle subscription : ', subscription)
+    // await favoritesStore.removeFavorite(subscription)
 }
 
 onMounted(async () => {
