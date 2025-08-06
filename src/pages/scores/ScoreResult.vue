@@ -197,7 +197,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useScoreStore } from '@/stores/scoreStore'
 import BackHeader from '@/components/common/BackHeader.vue'
@@ -210,6 +210,16 @@ import {
 
 const router = useRouter()
 const scoreStore = useScoreStore()
+
+onMounted(async () => {
+    try {
+        const res = await scoreStore.fetchScoreFromServer()
+        await scoreStore.calculateScore()
+        console.log('[ScoreResultPage] 점수 정보 최신화 완료')
+    } catch (e) {
+        console.error('[ScoreResultPage] 점수 정보 불러오기 실패:', e)
+    }
+})
 
 // 모달 상태
 const modalVisible = ref(false)
