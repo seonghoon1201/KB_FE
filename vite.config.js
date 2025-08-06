@@ -40,12 +40,14 @@ export default defineConfig({
     server: {
         host: '0.0.0.0',
         port: 5173,
-        proxy: {
-            '/v1': {
-                target: 'http://localhost:8080',
-                changeOrigin: true,
-                rewrite: (path) => path.replace(/^\/v1/, '/v1'),
-            },
-        },
+        // proxy: {
+        //     '/v1': {
+        //         // 로컬 대신 여기에 배포된 서버 URL
+        //         target: 'http://15.165.143.27:8080',
+        //         changeOrigin: true,
+        //         // 클라이언트 요청 '/v1/...' → 서버의 '/v1/...' 로 매핑
+        //         rewrite: (path) => path.replace(/^\/v1/, '/v1'),
+        //     },
+        // },
     },
 })

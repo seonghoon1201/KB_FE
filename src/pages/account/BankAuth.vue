@@ -8,7 +8,7 @@
         <form @submit.prevent="onLogin" class="w-full max-w-xs flex flex-col items-center">
             <!-- 아이디 입력 -->
             <input
-                v-model="text"
+                v-model="email"
                 type="text"
                 placeholder="아이디를 입력해 주세요."
                 class="w-full border-b border-gray-300 py-2 mb-4 text-sm focus:outline-none"

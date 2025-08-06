@@ -251,7 +251,15 @@ const finalSubscriptions = computed(() => {
     const today = new Date()
     today.setHours(0, 0, 0, 0)
 
-    // // 1. 마감 공고 제거
+    const isExpired = (item) => {
+        const today = new Date()
+        today.setHours(0, 0, 0, 0)
+        const [, endRaw] = (item.application_period || '').split('~') || []
+        const endDate = new Date((endRaw || '').trim().replace(/\./g, '-'))
+        return endDate < today
+    }
+
+    // // 1. 마감 공고 제거 -> 테스트 시에는 마감 공고 제거 X
     // if (!props.showExpired) {
     //     result = result.filter((item) => {
     //         if (!item.application_period) return false
@@ -317,22 +325,26 @@ const finalSubscriptions = computed(() => {
         return new Date((startRaw || '').trim().replace(/\./g, '-'))
     }
 
-    switch (selectedFilter.value) {
-        case 'latest':
-            result.sort(
-                (a, b) =>
-                    parseStartDate(b.application_period) - parseStartDate(a.application_period),
-            )
-            break
-        case 'deadline-first':
-            result.sort(
-                (a, b) => parseEndDate(a.application_period) - parseEndDate(b.application_period),
-            )
-            break
-        case 'recommend':
-            result.sort((a, b) => (parseFloat(b.max_price) || 0) - (parseFloat(a.max_price) || 0))
-            break
-    }
+    result.sort((a, b) => {
+        // 마감된 공고는 항상 뒤로, 나중에 삭제할 부분
+        const aExpired = isExpired(a)
+        const bExpired = isExpired(b)
+        if (aExpired !== bExpired) {
+            return aExpired ? 1 : -1
+        }
+
+        // 정렬 기준
+        switch (selectedFilter.value) {
+            case 'latest':
+                return parseStartDate(a.application_period) - parseStartDate(b.application_period)
+            case 'deadline-first':
+                return parseEndDate(a.application_period) - parseEndDate(b.application_period)
+            case 'recommend':
+                return (parseFloat(b.max_price) || 0) - (parseFloat(a.max_price) || 0)
+            default:
+                return 0
+        }
+    })
 
     return result
 })

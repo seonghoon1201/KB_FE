@@ -3,7 +3,8 @@ import { useUserStore } from '@/stores/user'
 import router from '@/router'
 
 const api = axios.create({
-    baseURL: '/v1',
+    baseURL: import.meta.env.VITE_API_BASE_URL,
+    withCredentials: true, // 인증이 필요하면
 })
 
 // 요청 인터셉터: accessToken 이 있을 때만 header 에 붙임

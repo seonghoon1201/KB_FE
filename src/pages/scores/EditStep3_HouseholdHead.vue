@@ -54,6 +54,7 @@ watchEffect(() => {
 function select(val) {
     selected.value = val
     scoreStore.headOfHousehold = val
+    scoreStore.saveToLocal()
 }
 
 function btnClass(val) {

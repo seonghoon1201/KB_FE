@@ -74,12 +74,17 @@ function btnClass(val) {
     ]
 }
 
-function confirmEdit() {
+async function confirmEdit() {
     if (selected.value === '') return
     if (selected.value === 1 && !scoreStore.disposalDate) {
         alert('처분한 연월을 입력해주세요.')
         return
     }
+
+    scoreStore.recomputeNoHousePeriodIfNeeded() // ✅ 먼저 무주택 기간 재계산
+    scoreStore.saveToLocal() // ✅ 저장
+    await scoreStore.calculateScore() // ✅ 서버에 요청
+
     router.push('/score/info')
 }
 </script>
