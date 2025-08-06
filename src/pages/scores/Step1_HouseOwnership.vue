@@ -5,6 +5,7 @@
         <div class="flex justify-start pb-4">
             <span class="text-lg text-gray-500">1/6</span>
         </div>
+
         <div class="flex items-center mb-6">
             <div>
                 <h1 class="text-xl font-extrabold mb-1">주택 소유 기준</h1>
@@ -37,7 +38,6 @@
         </div>
 
         <div class="space-y-4">
-            <!-- "소유 중" 을 눌렀을 때 1, "무주택" 을 눌렀을 때 0 으로 저장 -->
             <button @click="select('owner')" :class="btnClass('owner')">소유 중</button>
             <button @click="select('no-house')" :class="btnClass('no-house')">무주택</button>
         </div>
@@ -57,15 +57,16 @@ import PrimaryButton from '@/components/common/PrimaryButton.vue'
 const router = useRouter()
 const scoreStore = useScoreStore()
 
-// 'owner' ↔ 1, 'no-house' ↔ 0
+// 초기 선택값 설정
 const selected = ref(
     scoreStore.houseOwner === 1 ? 'owner' : scoreStore.houseOwner === 0 ? 'no-house' : '',
 )
 
-// 버튼 클릭 시 store.houseOwner 에 숫자로 저장
+// 버튼 클릭 시 store 값 변경
 function select(val) {
     selected.value = val
     scoreStore.houseOwner = val === 'owner' ? 1 : 0
+    scoreStore.saveToLocal()
 }
 
 function btnClass(val) {

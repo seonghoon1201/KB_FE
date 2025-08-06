@@ -3,9 +3,9 @@
         v-bind="$attrs"
         :class="[
             // ✅ 공통 스타일
-            'h-10 bg-[#00AEFF] text-white text-sm font-semibold rounded-[10px] flex items-center justify-center',
+            'h-10 bg-[#00AEFF] text-white text-sm font-semibold rounded-[10px] inline-flex items-center justify-center',
             // ✅ fullWidth 여부
-            fullWidth ? 'w-full' : 'w-max shrink-0 whitespace-nowrap',
+            fullWidth ? 'w-full' : 'w-auto shrink-0 whitespace-nowrap',
             // ✅ 추가 클래스
             customClass,
         ]"

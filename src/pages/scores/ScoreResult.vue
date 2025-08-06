@@ -44,7 +44,7 @@
             <li class="flex justify-between items-center py-4">
                 <div class="flex items-center gap-2">
                     <HomeIcon class="w-5 h-5 text-gray-600" />
-                    <span>무주택 기간</span>
+                    <span>무주택 기간 점수</span>
                 </div>
                 <div class="flex items-center gap-1">
                     <span class="font-semibold">{{ noHouseScore }}점</span>
@@ -60,7 +60,7 @@
             <li class="flex justify-between items-center py-4">
                 <div class="flex items-center gap-2">
                     <UsersIcon class="w-5 h-5 text-gray-600" />
-                    <span>부양가족 수</span>
+                    <span>부양가족 점수</span>
                 </div>
                 <div class="flex items-center gap-1">
                     <span class="font-semibold">{{ familyScore }}점</span>
@@ -76,7 +76,7 @@
             <li class="flex justify-between items-center py-4">
                 <div class="flex items-center gap-2">
                     <CalendarIcon class="w-5 h-5 text-gray-600" />
-                    <span>청약통장 가입기간</span>
+                    <span>청약통장 가입기간 점수</span>
                 </div>
                 <div class="flex items-center gap-1">
                     <span class="font-semibold">{{ accountScore }}점</span>
@@ -197,7 +197,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useScoreStore } from '@/stores/scoreStore'
 import BackHeader from '@/components/common/BackHeader.vue'
@@ -210,6 +210,16 @@ import {
 
 const router = useRouter()
 const scoreStore = useScoreStore()
+
+onMounted(async () => {
+    try {
+        const res = await scoreStore.fetchScoreFromServer()
+        await scoreStore.calculateScore()
+        console.log('[ScoreResultPage] 점수 정보 최신화 완료')
+    } catch (e) {
+        console.error('[ScoreResultPage] 점수 정보 불러오기 실패:', e)
+    }
+})
 
 // 모달 상태
 const modalVisible = ref(false)

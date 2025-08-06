@@ -23,6 +23,18 @@ export const useAccountStore = defineStore('account', {
         isRegistered: (state) => !!state.resAccount,
     },
     actions: {
+        setAccount(data) {
+            this.accountDisplay = data.account_display
+            this.accountBalance = data.account_balance
+            this.accountStartDate = data.account_start_date
+            this.resAccount = data.res_account
+            this.resAccountName = data.res_account_name
+            this.resFinalRoundNo = data.res_final_round_no
+            this.resAccountTrDate = data.res_account_tr_date
+            this.isPayment = data.is_payment
+
+            localStorage.setItem('accountData', JSON.stringify(data))
+        },
         /** 은행 선택 */
         setSelectedBank(name, code, logo) {
             this.selectedBankName = name
@@ -60,16 +72,13 @@ export const useAccountStore = defineStore('account', {
          *    → 연결된 계좌 정보 가져오기
          */
         async fetchAccount() {
-            const res = await accountApi.fetch()
-            const d = res.data
-            this.accountDisplay = d.account_display
-            this.accountBalance = d.account_balance
-            this.accountStartDate = d.account_start_date
-            this.resAccount = d.res_account
-            this.resAccountName = d.res_account_name
-            this.resFinalRoundNo = d.res_final_round_no
-            this.resAccountTrDate = d.res_account_tr_date
-            this.isPayment = d.is_payment
+            try {
+                const res = await accountApi.fetch()
+                this.setAccount(res.data)
+            } catch (error) {
+                console.error('계좌 정보 불러오기 실패:', error)
+                throw error
+            }
         },
         /** 계좌 해지 요청 */
         async disconnectAccount() {

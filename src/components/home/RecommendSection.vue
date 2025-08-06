@@ -58,57 +58,25 @@ import SubscriptionCard from '../subscription/SubscriptionCard.vue'
 const router = useRouter()
 
 const props = defineProps({
-  isPreferenceSet: Boolean,
-  recommendList: {
-    type: Array,
-    default: () => [],
-  },
+    isPreferenceSet: Boolean,
+    recommendList: {
+        type: Array,
+        default: () => [],
+    },
 })
 
-const dummyData = [
-  {
-    id: 'dummy1',
-    house_nm: '힐스테이트 강남',
-    city: '서울특별시',
-    district: '강남구',
-    pblanc_no: '99990001',
-    application_period: '2025.09.01 ~ 2025.09.05',
-    house_type: 'APT',
-    min_area: '59.00',
-    max_area: '84.00',
-    min_price: '65000',
-    max_price: '85000',
-    is_favorite: false,
-  },
-  {
-    id: 'dummy2',
-    house_nm: '자이 마포',
-    city: '서울특별시',
-    district: '마포구',
-    pblanc_no: '99990002',
-    application_period: '2025.08.10 ~ 2025.08.12',
-    house_type: 'APT',
-    min_area: '74.00',
-    max_area: '101.00',
-    min_price: '70000',
-    max_price: '90000',
-    is_favorite: true,
-  },
-]
-
-const localRecommendList = ref(
-  props.recommendList.length > 0 ? props.recommendList : dummyData
-)
+const localRecommendList = ref(props.recommendList.length > 0 ? props.recommendList : dummyData)
 
 watch(
   () => props.recommendList,
   (newVal) => {
+    console.log('watch recommendList changed:', newVal)
     localRecommendList.value = newVal.length > 0 ? newVal : dummyData
   },
-  { deep: true }
+  { deep: true, immediate: true }
 )
 
 const goToPreference = () => {
-  router.push('/preference')
+    router.push('/preference')
 }
 </script>

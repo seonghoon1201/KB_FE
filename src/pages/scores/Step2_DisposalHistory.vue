@@ -5,6 +5,7 @@
         <div class="flex justify-start pb-4">
             <span class="text-lg text-gray-500">2/6</span>
         </div>
+
         <div class="flex items-center mb-6">
             <h2 class="text-lg font-bold">주택 혹은 분양권을 처분한 적이 있나요?</h2>
             <InfoTooltip title="주택 및 분양권 처분 내역">
@@ -20,7 +21,7 @@
             <button @click="select('no')" :class="btnClass('no')">아니요</button>
         </div>
 
-        <div v-if="selected === 'yes'" class="mt-6">
+        <div v-if="selected.value === 'yes'" class="mt-6">
             <label class="block mb-2 text-sm font-medium text-gray-700">처분한 연월</label>
             <input
                 v-model="disposedDate"
@@ -48,18 +49,16 @@ import PrimaryButton from '@/components/common/PrimaryButton.vue'
 const router = useRouter()
 const scoreStore = useScoreStore()
 
-// 초기 값: store.houseDisposal === 1 → 'yes', === 0 → 'no', else ''
 const selected = ref(
     scoreStore.houseDisposal === 1 ? 'yes' : scoreStore.houseDisposal === 0 ? 'no' : '',
 )
-// 로컬로 입력할 처분 연월
+
 const disposedDate = ref(scoreStore.disposalDate || '')
 
 function select(val) {
     selected.value = val
-    // 'yes' → 1, 'no' → 0
     scoreStore.houseDisposal = val === 'yes' ? 1 : 0
-    // 만약 'no' 선택 시 이전 날짜 삭제
+
     if (val === 'no') {
         disposedDate.value = ''
         scoreStore.disposalDate = ''
@@ -83,12 +82,11 @@ function next() {
             alert('처분한 연월을 입력해주세요.')
             return
         }
-        // store에 반영
         scoreStore.disposalDate = disposedDate.value
     } else {
-        // 'no' 선택 시 빈값
         scoreStore.disposalDate = null
     }
+    scoreStore.saveToLocal()
 
     router.push('/score/step3')
 }

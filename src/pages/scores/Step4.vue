@@ -11,12 +11,13 @@
                 <p>혼인 여부는 서류상 기준이며, 사실혼도 인정받을 수 있어요.</p>
             </InfoTooltip>
         </div>
+
         <div class="space-y-4">
             <button @click="select('yes')" :class="btnClass('yes')">네</button>
             <button @click="select('no')" :class="btnClass('no')">아니요</button>
         </div>
 
-        <div v-if="selected === 'yes'" class="mt-6">
+        <div v-if="selected.value === 'yes'" class="mt-6">
             <label class="block mb-2 text-sm font-medium text-gray-700">혼인 신고 연월</label>
             <input
                 v-model="marriageDate"
@@ -41,22 +42,22 @@ import PrimaryButton from '@/components/common/PrimaryButton.vue'
 const router = useRouter()
 const scoreStore = useScoreStore()
 
-// 초기값 설정: 1→'yes', 0→'no'
 const selected = ref(
     scoreStore.maritalStatus === 1 ? 'yes' : scoreStore.maritalStatus === 0 ? 'no' : '',
 )
-// 기존 저장된 날짜가 있으면 초기값으로
+
 const marriageDate = ref(scoreStore.weddingDate || '')
 
 function select(val) {
     selected.value = val
-    // 'yes'→1, 'no'→0
     scoreStore.maritalStatus = val === 'yes' ? 1 : 0
-    // 'no' 선택 시 날짜 초기화
+
     if (val === 'no') {
         marriageDate.value = ''
         scoreStore.weddingDate = null
     }
+
+    scoreStore.saveToLocal()
 }
 
 function btnClass(val) {
@@ -76,10 +77,8 @@ function next() {
             alert('혼인 신고 연월을 입력해주세요.')
             return
         }
-        // store에 저장
         scoreStore.weddingDate = marriageDate.value
     } else {
-        // 'no'인 경우 null
         scoreStore.weddingDate = null
     }
 

@@ -133,9 +133,20 @@ const spouse = ref(0) // 배우자: 1 or 0
 const parents = ref(0) // 부모 수
 const children = ref(0) // 자녀 수
 
-function next() {
-    // 합산해서 스토어 변수에 저장
-    scoreStore.dependentsNm = spouse.value + parents.value + children.value
+async function next() {
+    const total = spouse.value + parents.value + children.value
+    console.log('👪 부양가족 수 합산:', {
+        spouse: spouse.value,
+        parents: parents.value,
+        children: children.value,
+        total,
+    })
+
+    scoreStore.dependentsNm = total
+    scoreStore.saveToLocal()
+    console.log('💾 저장된 dependentsNm:', scoreStore.dependentsNm)
+
+    await scoreStore.calculateScore()
     router.push('/score/info')
 }
 </script>

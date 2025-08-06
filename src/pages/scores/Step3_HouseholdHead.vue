@@ -5,6 +5,7 @@
         <div class="flex justify-start pb-4">
             <span class="text-lg text-gray-500">3/6</span>
         </div>
+
         <div class="flex items-center mb-6">
             <h2 class="text-lg font-bold">본인이 세대주이신가요?</h2>
             <InfoTooltip title="세대주 기준">
@@ -14,10 +15,12 @@
                 </ul>
             </InfoTooltip>
         </div>
+
         <div class="space-y-4">
             <button @click="select('yes')" :class="btnClass('yes')">네</button>
             <button @click="select('no')" :class="btnClass('no')">아니요</button>
         </div>
+
         <PrimaryButton class="mt-8" @click="next">다음</PrimaryButton>
     </ScoreStepWrapper>
 </template>
@@ -33,15 +36,14 @@ import PrimaryButton from '@/components/common/PrimaryButton.vue'
 const router = useRouter()
 const scoreStore = useScoreStore()
 
-// 초기값: 1 → 'yes', 0 → 'no', 그 외 → ''
 const selected = ref(
     scoreStore.headOfHousehold === 1 ? 'yes' : scoreStore.headOfHousehold === 0 ? 'no' : '',
 )
 
 function select(val) {
     selected.value = val
-    // 'yes' → 1, 'no' → 0
     scoreStore.headOfHousehold = val === 'yes' ? 1 : 0
+    scoreStore.saveToLocal()
 }
 
 function btnClass(val) {

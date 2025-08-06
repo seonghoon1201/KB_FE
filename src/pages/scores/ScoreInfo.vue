@@ -172,10 +172,11 @@ const userStore = useUserStore()
 // 페이지 진입 시 자동 재계산
 onMounted(async () => {
     try {
+        const res = await store.fetchScoreFromServer() // GET /ga-score
         const data = await store.calculateScore()
         console.log('[ScoreInfoPage] calculateScore 완료:', data)
-    } catch (err) {
-        console.error('[ScoreInfoPage] calculateScore 에러:', err)
+    } catch (e) {
+        console.error('초기 점수 불러오기 실패:', e)
     }
 })
 
@@ -217,7 +218,9 @@ function pushEdit(step) {
 
 // 확인 버튼 (재계산 후 결과 페이지)
 async function confirmInfo() {
-    await store.calculateScore()
+    const data = await store.calculateScore()
+    console.log('[✅ 확인 버튼 후 점수 결과]', data)
+    console.log('👉 dependents_score:', data?.dependents_score)
     router.push('/score/result')
 }
 </script>

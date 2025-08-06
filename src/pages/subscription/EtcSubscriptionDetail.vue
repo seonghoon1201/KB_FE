@@ -34,8 +34,15 @@
                 </p>
 
                 <p class="flex items-center mt-1 text-sm text-gray-500">
-                    <Heart class="inline mr-1" :size="16" stroke-width="1.5" />{{
-                        isFavorite ? subscription.favorite_count : subscription.favorite_count - 1
+                    <Heart class="inline mr-1" :size="16" stroke-width="1.5" />
+                    {{
+                        isFavorite
+                            ? subscription.favorite_count === 0
+                                ? subscription.favorite_count + 1
+                                : subscription.favorite_count
+                            : subscription.favorite_count - 1 <= 0
+                              ? 0
+                              : subscription.favorite_count - 1
                     }}
                     / <Eye class="inline ml-1 mr-1" :size="16" stroke-width="1.5" />{{
                         subscription.view_count
@@ -309,7 +316,7 @@ function walkingTimeFromKm(km) {
         throw new Error('유효한 양의 숫자(km)를 입력해주세요.')
     }
 
-    const minutesPerKm = 14
+    const minutesPerKm = 12
     return Math.round(km * minutesPerKm)
 }
 </script>
