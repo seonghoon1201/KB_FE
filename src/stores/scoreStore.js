@@ -1,144 +1,130 @@
 // src/stores/scoreStore.js
 import { defineStore } from 'pinia'
-import { ref, watch } from 'vue'
 import scoreApi from '@/api/scoreApi'
 import { useUserStore } from '@/stores/user'
 
-export const useScoreStore = defineStore('score', () => {
-    // ── 입력값 state ─────────────────────────────────
-    const headOfHousehold = ref(JSON.parse(localStorage.getItem('headOfHousehold') ?? 'null')) // 1|0|null
-    const houseOwner = ref(JSON.parse(localStorage.getItem('houseOwner') ?? 'null')) // 1|0|null
-    const houseDisposal = ref(JSON.parse(localStorage.getItem('houseDisposal') ?? 'null')) // 1|0|null
-    const disposalDate = ref(localStorage.getItem('disposalDate') ?? 'null') // 'YYYY-MM' or 'null'
-    const maritalStatus = ref(JSON.parse(localStorage.getItem('maritalStatus') ?? 'null')) // 1|0|null
-    const weddingDate = ref(localStorage.getItem('weddingDate') ?? 'null') // 'YYYY-MM' or 'null'
-    const dependentsNm = ref(JSON.parse(localStorage.getItem('dependentsNm') ?? '0')) // number
-    const residenceStartDate = ref(localStorage.getItem('residenceStartDate') ?? '') // 'YYYY-MM'
-    const noHousePeriod = ref(JSON.parse(localStorage.getItem('noHousePeriod') ?? '0')) // number
+export const useScoreStore = defineStore('score', {
+    state: () => ({
+        // ── 입력값 ──
+        headOfHousehold: JSON.parse(localStorage.getItem('headOfHousehold') ?? 'null'),
+        houseOwner: JSON.parse(localStorage.getItem('houseOwner') ?? 'null'),
+        houseDisposal: JSON.parse(localStorage.getItem('houseDisposal') ?? 'null'),
+        disposalDate: localStorage.getItem('disposalDate') ?? 'null',
+        maritalStatus: JSON.parse(localStorage.getItem('maritalStatus') ?? 'null'),
+        weddingDate: localStorage.getItem('weddingDate') ?? 'null',
+        dependentsNm: JSON.parse(localStorage.getItem('dependentsNm') ?? '0'),
+        residenceStartDate: localStorage.getItem('residenceStartDate') ?? '',
+        noHousePeriod: JSON.parse(localStorage.getItem('noHousePeriod') ?? '0'),
 
-    // ── 유저 정보 (생년월일) ─────────────────────────────
-    const userStore = useUserStore()
+        // ── 결과 및 상태 ──
+        isCalculated: false,
+        result: {
+            head_of_household: 0,
+            house_owner: 0,
+            house_disposal: 0,
+            disposal_date: null,
+            marital_status: 0,
+            wedding_date: null,
+            dependents_nm: 0,
+            no_house_period: 0,
+            residence_start_date: '',
+            payment_period: 0,
+            dependents_score: 0,
+            no_house_score: 0,
+            payment_period_score: 0,
+            total_ga_score: 0,
+        },
+    }),
 
-    // ── 계산 결과 state ─────────────────────────────────
-    const isCalculated = ref(false)
-    const result = ref({
-        head_of_household: 0,
-        house_owner: 0,
-        house_disposal: 0,
-        disposal_date: null,
-        marital_status: 0,
-        wedding_date: null,
-        dependents_nm: 0,
-        no_house_period: 0,
-        residence_start_date: '',
-        payment_period: 0,
-        dependents_score: 0,
-        no_house_score: 0,
-        payment_period_score: 0,
-        total_ga_score: 0,
-    })
+    actions: {
+        saveToLocal() {
+            localStorage.setItem('headOfHousehold', JSON.stringify(this.headOfHousehold))
+            localStorage.setItem('houseOwner', JSON.stringify(this.houseOwner))
+            localStorage.setItem('houseDisposal', JSON.stringify(this.houseDisposal))
+            localStorage.setItem('disposalDate', this.disposalDate)
+            localStorage.setItem('maritalStatus', JSON.stringify(this.maritalStatus))
+            localStorage.setItem('weddingDate', this.weddingDate)
+            localStorage.setItem('dependentsNm', JSON.stringify(this.dependentsNm))
+            localStorage.setItem('residenceStartDate', this.residenceStartDate)
+            localStorage.setItem('noHousePeriod', JSON.stringify(this.noHousePeriod))
+        },
 
-    /** 백엔드에 계산 요청 */
-    async function calculateScore() {
-        if (
-            [headOfHousehold, houseOwner, houseDisposal, maritalStatus].some(
-                (x) => x.value === null,
-            )
-        ) {
-            console.warn('[scoreStore] calculateScore skipped: missing inputs')
-            return
-        }
+        async calculateScore() {
+            const userStore = useUserStore()
 
-        const payload = {
-            birth_date: userStore.birthDate,
-            dependents_nm: dependentsNm.value,
-            disposal_date: houseDisposal.value === 1 ? disposalDate.value : null,
-            head_of_household: headOfHousehold.value,
-            house_disposal: houseDisposal.value,
-            house_owner: houseOwner.value,
-            marital_status: maritalStatus.value,
-            wedding_date: maritalStatus.value === 1 ? weddingDate.value : null,
-            residence_start_date: residenceStartDate.value,
-        }
+            if (
+                this.headOfHousehold === null ||
+                this.houseOwner === null ||
+                this.houseDisposal === null ||
+                this.maritalStatus === null
+            ) {
+                console.warn('[scoreStore] calculateScore skipped: missing inputs')
+                return
+            }
 
-        const res = await scoreApi.calculateScore(payload)
+            const payload = {
+                birth_date: userStore.birthDate,
+                dependents_nm: this.dependentsNm,
+                disposal_date: this.houseDisposal === 1 ? this.disposalDate : null,
+                head_of_household: this.headOfHousehold,
+                house_disposal: this.houseDisposal,
+                house_owner: this.houseOwner,
+                marital_status: this.maritalStatus,
+                wedding_date: this.maritalStatus === 1 ? this.weddingDate : null,
+                residence_start_date: this.residenceStartDate,
+                no_house_period: this.noHousePeriod, // ✅ 추가
+            }
 
-        // 상태 업데이트
-        result.value = {
-            head_of_household: res.data.head_of_household,
-            house_owner: res.data.house_owner,
-            house_disposal: res.data.house_disposal,
-            disposal_date: res.data.disposal_date,
-            marital_status: res.data.marital_status,
-            wedding_date: res.data.wedding_date,
-            dependents_nm: res.data.dependents_nm,
-            no_house_period: res.data.no_house_period,
-            residence_start_date: res.data.residence_start_date,
-            payment_period: res.data.payment_period,
-            dependents_score: res.data.dependents_score,
-            no_house_score: res.data.no_house_score,
-            payment_period_score: res.data.payment_period_score,
-            total_ga_score: res.data.total_ga_score,
-            noHousePeriod: res.data.no_house_period,
-        }
+            const res = await scoreApi.calculateScore(payload)
 
-        // 로컬에 무주택 기간 저장
+            this.result = { ...res.data }
+            this.noHousePeriod = res.data.no_house_period
+            this.isCalculated = true
+            this.saveToLocal()
 
-        isCalculated.value = true
-        return res.data
-    }
-    // ── 입력값 로컬저장 ─────────────────────────────────
-    watch(headOfHousehold, (v) => localStorage.setItem('headOfHousehold', JSON.stringify(v)))
-    watch(houseOwner, (v) => localStorage.setItem('houseOwner', JSON.stringify(v)))
-    watch(houseDisposal, (v) => localStorage.setItem('houseDisposal', JSON.stringify(v)))
-    watch(disposalDate, (v) => localStorage.setItem('disposalDate', v))
-    watch(maritalStatus, (v) => localStorage.setItem('maritalStatus', JSON.stringify(v)))
-    watch(weddingDate, (v) => localStorage.setItem('weddingDate', v))
-    watch(dependentsNm, (v) => localStorage.setItem('dependentsNm', JSON.stringify(v)))
-    watch(residenceStartDate, (v) => {
-        localStorage.setItem('residenceStartDate', v)
-    })
-    watch(noHousePeriod, (v) => localStorage.setItem('noHousePeriod', JSON.stringify(v)))
-    // ── 주택 처분일이 바뀌면 무주택 기간 재계산 & 즉시 calculateScore 호출
-    watch([houseDisposal, disposalDate], ([newDisp, newDate]) => {
-        console.log('[watch] houseDisposal=', newDisp, 'disposalDate=', newDate)
-        if (newDisp === 1 && /^\d{4}-\d{2}$/.test(newDate)) {
-            const [yStr, mStr] = newDate.split('-')
-            const y = parseInt(yStr, 10)
-            const m = parseInt(mStr, 10)
-            const now = new Date()
-            let years = now.getFullYear() - y
-            if (now.getMonth() + 1 < m) years--
+            return res.data
+        },
+        setScore(data) {
+            this.result = {
+                head_of_household: data.head_of_household,
+                house_owner: data.house_owner,
+                house_disposal: data.house_disposal,
+                disposal_date: data.disposal_date,
+                marital_status: data.marital_status,
+                wedding_date: data.wedding_date,
+                dependents_nm: data.dependents_nm,
+                no_house_period: data.no_house_period,
+                residence_start_date: data.residence_start_date,
+                payment_period: data.payment_period,
+                dependents_score: data.dependents_score,
+                no_house_score: data.no_house_score,
+                payment_period_score: data.payment_period_score,
+                total_ga_score: data.total_ga_score,
+            }
 
-            noHousePeriod.value = years
-            console.log(`[scoreStore] ▶ recomputed noHousePeriod=${years}`)
+            this.noHousePeriod = data.no_house_period
+            this.isCalculated = true
+        },
 
-            // 입력값만 바뀐 경우에도 강제 재계산
-            calculateScore().catch((err) => console.error('[scoreStore] recalc error:', err))
-        }
-    })
-    // ── 스토어 생성 직후 자동 계산 ─────────────────────────────
-    if (
-        headOfHousehold.value !== null &&
-        houseOwner.value !== null &&
-        houseDisposal.value !== null &&
-        maritalStatus.value !== null
-    ) {
-        calculateScore().catch(() => {})
-    }
+        recomputeNoHousePeriodIfNeeded() {
+            let newPeriod = 0
 
-    return {
-        headOfHousehold,
-        houseOwner,
-        houseDisposal,
-        disposalDate,
-        maritalStatus,
-        weddingDate,
-        dependentsNm,
-        residenceStartDate,
-        noHousePeriod,
-        isCalculated,
-        result,
-        calculateScore,
-    }
+            if (this.houseDisposal === 1 && /^\d{4}-\d{2}$/.test(this.disposalDate)) {
+                // 처분한 경우
+                const [yStr, mStr] = this.disposalDate.split('-')
+                const y = parseInt(yStr, 10)
+                const m = parseInt(mStr, 10)
+                const now = new Date()
+                let years = now.getFullYear() - y
+                if (now.getMonth() + 1 < m) years--
+                newPeriod = Math.max(0, years)
+            } else if (this.houseDisposal === 0) {
+                // 현재 무주택 상태이므로 최대치로 설정 (예: 10년)
+                newPeriod = 10
+            }
+
+            this.noHousePeriod = newPeriod
+            console.log(`[scoreStore] ▶ noHousePeriod 재계산: ${newPeriod}년`)
+        },
+    },
 })
