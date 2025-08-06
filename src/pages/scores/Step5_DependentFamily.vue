@@ -5,6 +5,7 @@
         <div class="flex justify-start pb-4">
             <span class="text-lg text-gray-500">5/6</span>
         </div>
+
         <!-- 헤드라인 -->
         <div class="px-4 pb-4">
             <h2 class="text-xl font-bold">부양가족을 선택해주세요</h2>
@@ -37,10 +38,10 @@
                 </div>
                 <div class="flex items-center gap-2">
                     <button
-                        @click="spouse = 1"
+                        @click="spouse.value = 1"
                         :class="[
                             'w-10 h-8 rounded-full border font-medium',
-                            spouse === 1
+                            spouse.value === 1
                                 ? 'bg-blue-500 text-white border-blue-500'
                                 : 'bg-gray-100 text-gray-700 border-gray-200',
                         ]"
@@ -48,10 +49,10 @@
                         O
                     </button>
                     <button
-                        @click="spouse = 0"
+                        @click="spouse.value = 0"
                         :class="[
                             'w-10 h-8 rounded-full border font-medium',
-                            spouse === 0
+                            spouse.value === 0
                                 ? 'bg-blue-500 text-white border-blue-500'
                                 : 'bg-gray-100 text-gray-700 border-gray-200',
                         ]"
@@ -128,13 +129,11 @@ import DependentCounter from '@/components/score/DependentCounter.vue'
 const router = useRouter()
 const scoreStore = useScoreStore()
 
-// 로컬 상태
-const spouse = ref(0) // 1 or 0
-const parents = ref(0) // integer
-const children = ref(0) // integer
+const spouse = ref(0)
+const parents = ref(0)
+const children = ref(0)
 
 function next() {
-    // 총합 계산하여 store.dependentsNm 에 저장
     scoreStore.dependentsNm = spouse.value + parents.value + children.value
     router.push('/score/step6')
 }
