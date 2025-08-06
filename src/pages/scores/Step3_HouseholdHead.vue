@@ -43,6 +43,7 @@ const selected = ref(
 function select(val) {
     selected.value = val
     scoreStore.headOfHousehold = val === 'yes' ? 1 : 0
+    scoreStore.saveToLocal()
 }
 
 function btnClass(val) {
