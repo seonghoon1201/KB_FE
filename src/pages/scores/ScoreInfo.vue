@@ -171,12 +171,15 @@ const userStore = useUserStore()
 
 // 페이지 진입 시 자동 재계산
 onMounted(async () => {
-    try {
-        const data = await store.calculateScore()
-        console.log('[ScoreInfoPage] calculateScore 완료:', data)
-    } catch (err) {
-        console.error('[ScoreInfoPage] calculateScore 에러:', err)
-    }
+    // localStorage에서 값을 불러와서 scoreStore에 수동으로 주입
+    store.headOfHousehold = JSON.parse(localStorage.getItem('headOfHousehold') ?? 'null')
+    store.houseOwner = JSON.parse(localStorage.getItem('houseOwner') ?? 'null')
+    store.houseDisposal = JSON.parse(localStorage.getItem('houseDisposal') ?? 'null')
+    store.maritalStatus = JSON.parse(localStorage.getItem('maritalStatus') ?? 'null')
+
+    // 나머지는 그대로 두고 재계산 시도
+    const data = await store.calculateScore()
+    console.log('[ScoreInfoPage] calculateScore 완료:', data)
 })
 
 // 순서: 로컬 입력값 먼저, 없으면 API 결과
@@ -217,7 +220,9 @@ function pushEdit(step) {
 
 // 확인 버튼 (재계산 후 결과 페이지)
 async function confirmInfo() {
-    await store.calculateScore()
+    const data = await store.calculateScore()
+    console.log('[✅ 확인 버튼 후 점수 결과]', data)
+    console.log('👉 dependents_score:', data?.dependents_score)
     router.push('/score/result')
 }
 </script>

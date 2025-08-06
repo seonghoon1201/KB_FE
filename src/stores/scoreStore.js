@@ -58,7 +58,12 @@ export const useScoreStore = defineStore('score', {
                 this.houseDisposal === null ||
                 this.maritalStatus === null
             ) {
-                console.warn('[scoreStore] calculateScore skipped: missing inputs')
+                console.warn('[scoreStore] calculateScore skipped: missing inputs', {
+                    headOfHousehold: this.headOfHousehold,
+                    houseOwner: this.houseOwner,
+                    houseDisposal: this.houseDisposal,
+                    maritalStatus: this.maritalStatus,
+                })
                 return
             }
 
@@ -72,10 +77,16 @@ export const useScoreStore = defineStore('score', {
                 marital_status: this.maritalStatus,
                 wedding_date: this.maritalStatus === 1 ? this.weddingDate : null,
                 residence_start_date: this.residenceStartDate,
-                no_house_period: this.noHousePeriod, // ✅ 추가
+                no_house_period: this.noHousePeriod,
             }
 
+            console.log('[📦 API 호출 전 payload]', payload)
+
             const res = await scoreApi.calculateScore(payload)
+
+            // ✅ 백엔드 응답 확인 로그 추가
+            console.log('[📥 API 응답 수신]', res.data)
+            console.log('👉 dependents_score:', res.data.dependents_score)
 
             this.result = { ...res.data }
             this.noHousePeriod = res.data.no_house_period
