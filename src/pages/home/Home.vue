@@ -56,9 +56,48 @@ const computedScore = computed(() => {
 
 const preferenceStore = usePreferenceStore()
 const recommendList = [
-    { id: 1, name: '래미안 포레스트', location: '서울 강동구', image: 'apt1.jpg' },
-    { id: 2, name: '자이 더 리버', location: '서울 마포구', image: 'apt2.jpg' },
-    { id: 3, name: '힐스테이트 센트럴', location: '경기 성남시', image: 'apt3.jpg' },
+    {
+        id: 1,
+        house_nm: '래미안 포레스트',
+        city: '서울특별시',
+        district: '강동구',
+        application_start_date: '2025.08.20',
+        application_end_date: '2025.09.10',
+        application_period: '2025.08.20 ~ 2025.09.10',
+        min_price: '97000',
+        max_price: '187000',
+        min_area: 86,
+        max_area: 108,
+        house_type: 'APT',
+    },
+    {
+        id: 2,
+        house_nm: '이편한세상 레이크뷰',
+        city: '강원도',
+        district: '춘천시',
+        application_start_date: '2025.08.16',
+        application_end_date: '2025.09.07',
+        application_period: '2025.08.16 ~ 2025.09.07',
+        min_price: '49000',
+        max_price: '87000',
+        min_area: 85,
+        max_area: 109,
+        house_type: 'APT',
+    },
+    {
+        id: 2,
+        house_nm: '군자 자이',
+        city: '서울특별시',
+        district: '광진구',
+        application_start_date: '2025.08.24',
+        application_end_date: '2025.09.01',
+        application_period: '2025.08.24 ~ 2025.09.01',
+        min_price: '42000',
+        max_price: '71000',
+        min_area: 68,
+        max_area: 108,
+        house_type: '오피스텔',
+    },
 ]
 
 const isPreferenceSet = computed(() => {
