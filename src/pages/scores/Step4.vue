@@ -56,6 +56,8 @@ function select(val) {
         marriageDate.value = ''
         scoreStore.weddingDate = null
     }
+
+    scoreStore.saveToLocal()
 }
 
 function btnClass(val) {
