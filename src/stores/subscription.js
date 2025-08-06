@@ -24,12 +24,6 @@ export const useSubscriptionsStore = defineStore('subscription', () => {
 
                 // 가격 유효성 검사 및 swap
                 if (!isNaN(minPrice) && !isNaN(maxPrice) && minPrice > maxPrice) {
-                    console.warn('⚠️ min_price > max_price 문제 감지:', {
-                        pblanc_no: item.pblanc_no,
-                        house_nm: item.house_nm,
-                        min_price: minPrice,
-                        max_price: maxPrice,
-                    })
                     const temp = minPrice
                     minPrice = maxPrice
                     maxPrice = temp
