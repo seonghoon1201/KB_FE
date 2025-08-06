@@ -246,12 +246,21 @@ function formatToEok(price) {
 
 function calcBadge(start, end) {
     if (!start || !end) return ''
+
     const today = new Date()
+    today.setHours(0, 0, 0, 0) // 오늘 날짜를 자정 기준으로 설정
+
     const s = new Date(start.replace(/\./g, '-'))
     const e = new Date(end.replace(/\./g, '-'))
+    s.setHours(0, 0, 0, 0)
+    e.setHours(0, 0, 0, 0)
+
     if (today > e) return '마감'
-    if (today < s) return `D-${Math.ceil((e - today) / (1000 * 60 * 60 * 24))}`
-    return '진행중'
+    if (today < s) {
+        const diff = Math.ceil((s - today) / (1000 * 60 * 60 * 24))
+        return `D-${diff}`
+    }
+    return 'D-DAY'
 }
 
 const scheduleItems = computed(() => {
