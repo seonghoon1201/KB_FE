@@ -86,6 +86,7 @@ function next() {
     } else {
         scoreStore.disposalDate = null
     }
+    scoreStore.saveToLocal()
 
     router.push('/score/step3')
 }
