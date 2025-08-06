@@ -236,12 +236,12 @@ const imagePath = computed(() => {
     return [zibi0, zibi1, zibi2, zibi3, zibi4, zibi5][idx]
 })
 
-// 초기 로드 시 계좌 정보 및 주소 fetch
-onMounted(async () => {
-    if (accountStore.isRegistered) {
-        await accountStore.fetchAccount()
-    }
-})
+// // 초기 로드 시 계좌 정보 및 주소 fetch
+// onMounted(async () => {
+//     if (accountStore.isRegistered) {
+//         await accountStore.fetchAccount()
+//     }
+// })
 
 // 계좌 해지 핸들러
 const disconnectAccount = async () => {
