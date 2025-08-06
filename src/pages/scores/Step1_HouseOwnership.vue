@@ -66,6 +66,7 @@ const selected = ref(
 function select(val) {
     selected.value = val
     scoreStore.houseOwner = val === 'owner' ? 1 : 0
+    scoreStore.saveToLocal()
 }
 
 function btnClass(val) {
