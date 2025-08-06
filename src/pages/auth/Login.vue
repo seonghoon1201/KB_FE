@@ -104,14 +104,12 @@ async function handleLogin() {
             accountStore.setAccount(res2.data)
         } catch (err) {
             console.error(err)
-            alert('계좌 정보 불러오기에 실패했습니다.')
         }
         try {
             const res2 = await accountApi.fetch()
             accountStore.setAccount(res2.data)
         } catch (err) {
             console.error(err)
-            alert('계좌 정보 불러오기에 실패했습니다.')
         }
 
         // ✅ ③ 가점 점수 정보도 불러오기
@@ -120,7 +118,6 @@ async function handleLogin() {
             scoreStore.setScore(res3.data)
         } catch (err) {
             console.error(err)
-            alert('가점 정보 불러오기에 실패했습니다.')
         }
 
         // ④ 홈으로 이동
