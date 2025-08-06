@@ -61,6 +61,7 @@ import { useRouter } from 'vue-router'
 import PrimaryButton from '@/components/common/PrimaryButton.vue'
 import authApi from '@/api/authApi'
 import accountApi from '@/api/accountApi'
+import scoreApi from '@/api/scoreApi'
 import { useUserStore } from '@/stores/user'
 import { useAccountStore } from '@/stores/account'
 import { useScoreStore } from '@/stores/scoreStore'
@@ -97,38 +98,31 @@ async function handleLogin() {
             user,
         })
 
+        // 계좌 정보 불러오기
         try {
             const res2 = await accountApi.fetch()
-
-            const {
-                account_balance,
-                account_display,
-                account_start_date,
-                bank_name,
-                is_payment,
-                res_account,
-                res_account_name,
-                res_account_tr_date,
-                res_final_round_no,
-            } = res2.data
-            console.log(res2.data)
-            accountStore.setAccount({
-                account_balance,
-                account_display,
-                account_start_date,
-                bank_name,
-                is_payment,
-                res_account,
-                res_account_name,
-                res_account_tr_date,
-                res_final_round_no,
-            })
+            accountStore.setAccount(res2.data)
         } catch (err) {
             console.error(err)
             alert('계좌 정보 불러오기에 실패했습니다.')
-        } finally {
-            loading.value = false
         }
+        try {
+            const res2 = await accountApi.fetch()
+            accountStore.setAccount(res2.data)
+        } catch (err) {
+            console.error(err)
+            alert('계좌 정보 불러오기에 실패했습니다.')
+        }
+
+        // ✅ ③ 가점 점수 정보도 불러오기
+        try {
+            const res3 = await scoreApi.getLastScore()
+            scoreStore.setScore(res3.data)
+        } catch (err) {
+            console.error(err)
+            alert('가점 정보 불러오기에 실패했습니다.')
+        }
+
         // ④ 홈으로 이동
         router.push('/home')
     } catch (err) {

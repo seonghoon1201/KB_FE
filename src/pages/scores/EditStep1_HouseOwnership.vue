@@ -50,6 +50,7 @@ watchEffect(() => {
 function select(val) {
     selected.value = val
     scoreStore.houseOwner = val
+    scoreStore.saveToLocal()
 }
 
 function btnClass(val) {
