@@ -34,8 +34,15 @@
                 </p>
 
                 <p class="flex items-center mt-1 text-sm text-gray-500">
-                    <Heart class="inline mr-1" :size="16" stroke-width="1.5" />{{
-                        isFavorite ? subscription.favorite_count : subscription.favorite_count - 1
+                    <Heart class="inline mr-1" :size="16" stroke-width="1.5" />
+                    {{
+                        isFavorite
+                            ? subscription.favorite_count === 0
+                                ? subscription.favorite_count + 1
+                                : subscription.favorite_count
+                            : subscription.favorite_count - 1 <= 0
+                              ? 0
+                              : subscription.favorite_count - 1
                     }}
                     / <Eye class="inline ml-1 mr-1" :size="16" stroke-width="1.5" />{{
                         subscription.view_count
