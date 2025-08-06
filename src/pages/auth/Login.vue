@@ -1,5 +1,5 @@
 <template>
-    <div class="h-screen w-screen bg-white flex items-center justify-center px-6">
+    <div class="min-h-screen bg-white flex items-center justify-center px-6 overflow-x-hidden">
         <div class="w-full max-w-[328px] flex flex-col items-center gap-2">
             <img
                 src="@/assets/images/logo.png"
@@ -60,6 +60,8 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import PrimaryButton from '@/components/common/PrimaryButton.vue'
 import authApi from '@/api/authApi'
+import accountApi from '@/api/accountApi'
+import scoreApi from '@/api/scoreApi'
 import { useUserStore } from '@/stores/user'
 import { useAccountStore } from '@/stores/account'
 import { useScoreStore } from '@/stores/scoreStore'
@@ -96,7 +98,28 @@ async function handleLogin() {
             user,
         })
 
-        await accountStore.fetchAccount()
+        // 계좌 정보 불러오기
+        try {
+            const res2 = await accountApi.fetch()
+            accountStore.setAccount(res2.data)
+        } catch (err) {
+            console.error(err)
+        }
+        try {
+            const res2 = await accountApi.fetch()
+            accountStore.setAccount(res2.data)
+        } catch (err) {
+            console.error(err)
+        }
+
+        // ✅ ③ 가점 점수 정보도 불러오기
+        try {
+            const res3 = await scoreApi.getLastScore()
+            scoreStore.setScore(res3.data)
+        } catch (err) {
+            console.error(err)
+        }
+
         // ④ 홈으로 이동
         router.push('/home')
     } catch (err) {

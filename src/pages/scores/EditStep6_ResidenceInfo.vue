@@ -47,13 +47,11 @@ const loading = ref(false)
 
 async function confirmEdit() {
     scoreStore.residenceStartDate = localDate.value
-    localStorage.setItem('residenceStartDate', localDate.value)
+    scoreStore.saveToLocal() // ✅ 공식 메서드로 로컬 저장
 
-    // 3) 가점 계산 호출
     loading.value = true
     try {
         await scoreStore.calculateScore()
-
         router.push('/score/info')
     } catch (err) {
         console.error('[EditStep6] calculateScore error', err)
