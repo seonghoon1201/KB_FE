@@ -37,6 +37,19 @@ export const useScoreStore = defineStore('score', {
     }),
 
     actions: {
+        setInputsFromResult(data) {
+            this.headOfHousehold = data.head_of_household
+            this.houseOwner = data.house_owner
+            this.houseDisposal = data.house_disposal
+            this.disposalDate = data.disposal_date
+            this.maritalStatus = data.marital_status
+            this.weddingDate = data.wedding_date
+            this.dependentsNm = data.dependents_nm
+            this.residenceStartDate = data.residence_start_date
+            this.noHousePeriod = data.no_house_period
+
+            this.saveToLocal()
+        },
         saveToLocal() {
             localStorage.setItem('headOfHousehold', JSON.stringify(this.headOfHousehold))
             localStorage.setItem('houseOwner', JSON.stringify(this.houseOwner))
@@ -84,7 +97,6 @@ export const useScoreStore = defineStore('score', {
 
             const res = await scoreApi.calculateScore(payload)
 
-            // ✅ 백엔드 응답 확인 로그 추가
             console.log('[📥 API 응답 수신]', res.data)
             console.log('👉 dependents_score:', res.data.dependents_score)
 
@@ -95,6 +107,7 @@ export const useScoreStore = defineStore('score', {
 
             return res.data
         },
+
         setScore(data) {
             this.result = {
                 head_of_household: data.head_of_household,
@@ -121,7 +134,6 @@ export const useScoreStore = defineStore('score', {
             let newPeriod = 0
 
             if (this.houseDisposal === 1 && /^\d{4}-\d{2}$/.test(this.disposalDate)) {
-                // 처분한 경우
                 const [yStr, mStr] = this.disposalDate.split('-')
                 const y = parseInt(yStr, 10)
                 const m = parseInt(mStr, 10)
@@ -130,12 +142,28 @@ export const useScoreStore = defineStore('score', {
                 if (now.getMonth() + 1 < m) years--
                 newPeriod = Math.max(0, years)
             } else if (this.houseDisposal === 0) {
-                // 현재 무주택 상태이므로 최대치로 설정 (예: 10년)
                 newPeriod = 10
             }
 
             this.noHousePeriod = newPeriod
             console.log(`[scoreStore] ▶ noHousePeriod 재계산: ${newPeriod}년`)
+        },
+
+        // ✅ 서버에서 점수 정보를 불러오는 액션 추가
+        async fetchScoreFromServer() {
+            try {
+                const res = await scoreApi.getLastScore()
+                const data = res.data
+
+                this.setScore(data) // 점수 설정
+                this.setInputsFromResult(data) // 입력값 일괄 설정
+
+                console.log('[scoreStore] ✅ 서버에서 점수 및 입력값 불러오기 완료:', data)
+                return data // ← ✔ 반환도 추가
+            } catch (err) {
+                console.error('[scoreStore] ❌ 서버 점수 정보 불러오기 실패:', err)
+                throw err
+            }
         },
     },
 })

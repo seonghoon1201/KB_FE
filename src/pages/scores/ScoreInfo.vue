@@ -171,15 +171,13 @@ const userStore = useUserStore()
 
 // 페이지 진입 시 자동 재계산
 onMounted(async () => {
-    // localStorage에서 값을 불러와서 scoreStore에 수동으로 주입
-    store.headOfHousehold = JSON.parse(localStorage.getItem('headOfHousehold') ?? 'null')
-    store.houseOwner = JSON.parse(localStorage.getItem('houseOwner') ?? 'null')
-    store.houseDisposal = JSON.parse(localStorage.getItem('houseDisposal') ?? 'null')
-    store.maritalStatus = JSON.parse(localStorage.getItem('maritalStatus') ?? 'null')
-
-    // 나머지는 그대로 두고 재계산 시도
-    const data = await store.calculateScore()
-    console.log('[ScoreInfoPage] calculateScore 완료:', data)
+    try {
+        const res = await store.fetchScoreFromServer() // GET /ga-score
+        const data = await store.calculateScore()
+        console.log('[ScoreInfoPage] calculateScore 완료:', data)
+    } catch (e) {
+        console.error('초기 점수 불러오기 실패:', e)
+    }
 })
 
 // 순서: 로컬 입력값 먼저, 없으면 API 결과
