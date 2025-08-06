@@ -1,5 +1,5 @@
 <template>
-    <div class="h-screen w-screen bg-white flex items-center justify-center px-6">
+    <div class="min-h-screen bg-white flex items-center justify-center px-6 overflow-x-hidden">
         <div class="w-full max-w-[328px] flex flex-col items-center gap-2">
             <img
                 src="@/assets/images/logo.png"
@@ -60,13 +60,18 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import PrimaryButton from '@/components/common/PrimaryButton.vue'
 import authApi from '@/api/authApi'
+import accountApi from '@/api/accountApi'
 import { useUserStore } from '@/stores/user'
+import { useAccountStore } from '@/stores/account'
+import { useScoreStore } from '@/stores/scoreStore'
 
 const email = ref('')
 const password = ref('')
 const loading = ref(false)
 const router = useRouter()
 const userStore = useUserStore()
+const accountStore = useAccountStore()
+const scoreStore = useScoreStore()
 
 async function handleLogin() {
     if (!email.value || !password.value) {
@@ -92,6 +97,38 @@ async function handleLogin() {
             user,
         })
 
+        try {
+            const res2 = await accountApi.fetch()
+
+            const {
+                account_balance,
+                account_display,
+                account_start_date,
+                bank_name,
+                is_payment,
+                res_account,
+                res_account_name,
+                res_account_tr_date,
+                res_final_round_no,
+            } = res2.data
+            console.log(res2.data)
+            accountStore.setAccount({
+                account_balance,
+                account_display,
+                account_start_date,
+                bank_name,
+                is_payment,
+                res_account,
+                res_account_name,
+                res_account_tr_date,
+                res_final_round_no,
+            })
+        } catch (err) {
+            console.error(err)
+            alert('계좌 정보 불러오기에 실패했습니다.')
+        } finally {
+            loading.value = false
+        }
         // ④ 홈으로 이동
         router.push('/home')
     } catch (err) {
