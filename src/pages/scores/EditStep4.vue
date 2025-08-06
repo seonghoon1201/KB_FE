@@ -74,14 +74,17 @@ function btnClass(val) {
     ]
 }
 
-function confirmEdit() {
+async function confirmEdit() {
     if (selected.value === '') return
     if (selected.value === 1 && !weddingDate.value) {
         alert('혼인 신고 연월을 입력해주세요.')
         return
     }
-    // 날짜도 store에 저장
+
     scoreStore.weddingDate = weddingDate.value
+    scoreStore.saveToLocal() // ✅ 로컬 저장
+    await scoreStore.calculateScore() // ✅ 점수 재계산
+
     router.push('/score/info')
 }
 </script>
