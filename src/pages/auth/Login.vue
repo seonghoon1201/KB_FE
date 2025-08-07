@@ -105,12 +105,6 @@ async function handleLogin() {
         } catch (err) {
             console.error(err)
         }
-        try {
-            const res2 = await accountApi.fetch()
-            accountStore.setAccount(res2.data)
-        } catch (err) {
-            console.error(err)
-        }
 
         // ✅ ③ 가점 점수 정보도 불러오기
         try {

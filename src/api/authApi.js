@@ -6,7 +6,7 @@ export default {
         return api.post('/auth/login', { user_id, password })
     },
     kakaoLogin(code) {
-        return api.post('/oauth/kakao/callback', { code })
+        return api.post('/auth/kakao/callback', { code })
     },
     // 회원가입
     signup({ user_id, password, user_name, address, birthdate }) {

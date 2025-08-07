@@ -1,4 +1,4 @@
-<!-- src/pages/KakaoCallbackPage.vue -->
+<!-- src/pages/auth/KakaoCallbackPage.vue -->
 <template>
     <div class="min-h-screen flex items-center justify-center">
         <p class="text-gray-500">카카오 로그인 처리 중입니다...</p>
@@ -24,6 +24,7 @@ const scoreStore = useScoreStore()
 onMounted(async () => {
     const code = route.query.code
     console.log('카카오 code:', code)
+
     if (!code) {
         alert('카카오 로그인 코드가 없습니다.')
         router.push('/login')
@@ -31,6 +32,7 @@ onMounted(async () => {
     }
 
     try {
+        // ✅ 서버에 code 전달
         const res = await authApi.kakaoLogin(code)
         const { access_token, refresh_token, user } = res.data
 
@@ -40,13 +42,15 @@ onMounted(async () => {
             user,
         })
 
-        try { 
+        // ✅ 계좌 정보 불러오기
+        try {
             const res2 = await accountApi.fetch()
             accountStore.setAccount(res2.data)
         } catch (e) {
             console.error('계좌 불러오기 실패:', e)
         }
 
+        // ✅ 가점 정보 불러오기
         try {
             const res3 = await scoreApi.getLastScore()
             scoreStore.setScore(res3.data)
