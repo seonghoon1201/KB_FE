@@ -105,12 +105,6 @@ async function handleLogin() {
         } catch (err) {
             console.error(err)
         }
-        try {
-            const res2 = await accountApi.fetch()
-            accountStore.setAccount(res2.data)
-        } catch (err) {
-            console.error(err)
-        }
 
         // ✅ ③ 가점 점수 정보도 불러오기
         try {
@@ -130,8 +124,21 @@ async function handleLogin() {
     }
 }
 
-function handleKakaoLogin() {
-    console.log('카카오 로그인 (추후 SDK 연동)')
+async function handleKakaoLogin() {
+    loading.value = true
+    try {
+        // ① 카카오 로그인 페이지로 리디렉션해서 code 받기
+        const clientId = '53da207a5cc86b7ec03890c960d2937b' // 실제 REST API 키로 교체
+        const redirectUri = 'http://localhost:5173/kakao/callback' // 프론트엔드 콜백 URL
+        const kakaoAuthUrl = `https://kauth.kakao.com/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code`
+
+        window.location.href = kakaoAuthUrl
+    } catch (err) {
+        console.error(err)
+        alert('카카오 로그인 중 오류가 발생했습니다.')
+    } finally {
+        loading.value = false
+    }
 }
 
 function goToSignUp() {

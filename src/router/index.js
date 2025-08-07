@@ -79,6 +79,12 @@ const routes = [
         name: 'Login',
         component: () => import('@/pages/auth/Login.vue'),
     },
+    // 카카오 콜백
+    {
+        path: '/v1/kakao/callback',
+        name: 'KakaoLogin',
+        component: () => import('@/pages/auth/KakaoCallbackpage.vue'),
+    },
     // 회원가입 화면
     {
         path: '/signup',
