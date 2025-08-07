@@ -108,11 +108,11 @@ const isFavorite = computed(() => {
 // D-Day 계산 (computed)
 const dDayInfo = computed(() => {
     const period = props.subscription.application_period
-    if (!period) return { dDay: 0, text: 'D-Day' }
+    if (!period) return { dDay: 0, text: '오늘 마감' }
 
     // "2025.08.04 ~ 2025.08.06" 에서 끝 날짜 부분만 가져오기
     const parts = period.split('~')
-    if (parts.length < 2) return { dDay: 0, text: 'D-Day' }
+    if (parts.length < 2) return { dDay: 0, text: '오늘 마감' }
 
     // // 날짜 없으면 기본값
     // if (!end) return { dDay: 0, text: '일정없음' }
@@ -131,7 +131,7 @@ const dDayInfo = computed(() => {
     if (diffDays > 0) {
         return { dDay: diffDays, text: `D-${diffDays}` }
     } else if (diffDays === 0) {
-        return { dDay: 0, text: 'D-DAY' }
+        return { dDay: 0, text: '오늘 마감' }
     } else {
         return { dDay: diffDays, text: '마감' }
     }
