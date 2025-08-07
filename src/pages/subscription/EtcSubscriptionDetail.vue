@@ -140,6 +140,7 @@ import {
     Calendar,
     TrainFront,
     GraduationCap,
+    Baby,
     Stethoscope,
     ShoppingBag,
 } from 'lucide-vue-next'
@@ -321,9 +322,13 @@ function badgeColor(label) {
     return 'bg-gray-100 text-gray-700'
 }
 
+const preferredOrder = ['의료 시설', '교통', '편의 시설', '학교', '유치원 · 어린이집']
+
 const iconMap = {
     subway: { title: '교통', icon: TrainFront, color: 'text-green-600' },
-    school: { title: '교육 시설', icon: GraduationCap, color: 'text-purple-600' },
+    bus: { title: '교통', icon: TrainFront, color: 'text-green-600' },
+    school: { title: '학교', icon: GraduationCap, color: 'text-purple-600' },
+    kindergarten: { title: '유치원 · 어린이집', icon: Baby, color: 'text-purple-600' },
     hospital: { title: '의료 시설', icon: Stethoscope, color: 'text-red-500' },
     mart: { title: '편의 시설', icon: ShoppingBag, color: 'text-orange-500' },
 }
@@ -340,7 +345,9 @@ const facilityGroups = computed(() => {
             desc: `${(place.distance / 1000).toFixed(1)}km · 도보 ${walkingTimeFromKm(place.distance / 1000)}분`,
         })
     })
-    return Object.values(grouped)
+    return Object.values(grouped).sort(
+        (a, b) => preferredOrder.indexOf(a.title) - preferredOrder.indexOf(b.title),
+    )
 })
 
 function goToApply() {
