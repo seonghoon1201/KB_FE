@@ -7,7 +7,7 @@
         <div v-if="!subscription" class="flex items-center justify-center h-64">
             <p class="text-gray-500">불러오는 중...</p>
         </div>
-        <div v-else >
+        <div v-else>
             <!-- 공고 기본 정보 -->
             <section class="bg-white px-4 pt-4 pb-6">
                 <div class="flex items-center justify-between mb-2">
@@ -148,6 +148,7 @@ import {
     Calendar,
     TrainFront,
     GraduationCap,
+    Baby,
     Stethoscope,
     ShoppingBag,
     FileText,
@@ -465,10 +466,19 @@ function badgeColor(label) {
     return 'bg-gray-100 text-gray-700'
 }
 
+const preferredOrder = [
+  '의료 시설',
+  '교통',
+  '편의 시설',
+  '학교',
+  '유치원 · 어린이집',
+]
+
 const iconMap = {
     subway: { title: '교통', icon: TrainFront, color: 'text-green-600' },
     bus: { title: '교통', icon: TrainFront, color: 'text-green-600' },
-    school: { title: '교육 시설', icon: GraduationCap, color: 'text-purple-600' },
+    school: { title: '학교', icon: GraduationCap, color: 'text-purple-600' },
+    kindergarten: { title: '유치원 · 어린이집', icon: Baby, color: 'text-purple-600' },
     hospital: { title: '의료 시설', icon: Stethoscope, color: 'text-red-500' },
     mart: { title: '편의 시설', icon: ShoppingBag, color: 'text-orange-500' },
 }
@@ -492,8 +502,10 @@ const facilityGroups = computed(() => {
         })
     })
 
-    // 2. 객체 → 배열 변환
-    return Object.values(grouped)
+    // 2. 객체 → 배열 변환 + 정렬
+    return Object.values(grouped).sort(
+        (a, b) => preferredOrder.indexOf(a.title) - preferredOrder.indexOf(b.title)
+    )
 })
 
 const formatToEok = (priceValue) => {

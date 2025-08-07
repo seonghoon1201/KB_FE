@@ -38,7 +38,7 @@
 
             <!-- 인증코드 입력 -->
             <div>
-                <label class="text-base font-medium block mb-2">인증코드 입력</label>
+                <label class="text-base font-medium block mb-2">코드 전송</label>
                 <div class="flex gap-2 items-end">
                     <input
                         v-model="code"
