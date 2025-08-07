@@ -7,7 +7,7 @@ export default {
     },
     kakaoLogin(code) {
         return api.post('/kakao/callback', {
-            parmas: { code },
+            params: { code },
         })
     },
     // 회원가입
