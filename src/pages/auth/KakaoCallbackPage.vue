@@ -34,6 +34,7 @@ onMounted(async () => {
     try {
         // ✅ 서버에 code 전달
         const res = await authApi.kakaoLogin(code)
+        console.log('[Kakao 응답]', res)
         const { access_token, refresh_token, user } = res.data
 
         userStore.setAuth({
