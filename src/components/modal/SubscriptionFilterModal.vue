@@ -9,7 +9,7 @@
             <h2 class="text-lg font-semibold text-gray-800 mb-4">필터 설정</h2>
 
             <!-- 지역 선택 -->
-            <label class="text-sm font-semibold text-gray-800 mb-1 block">선호 지역</label>
+            <label class="text-sm font-semibold text-gray-800 mb-1 block">지역</label>
             <div class="space-y-2 mb-3">
                 <!-- 시/도 선택 -->
                 <select
@@ -55,7 +55,7 @@
             </div>
 
             <!-- 평수 -->
-            <label class="text-sm font-semibold text-gray-800 block mt-3 mb-1">선호 평수</label>
+            <label class="text-sm font-semibold text-gray-800 block mt-3 mb-1">평수</label>
             <div class="grid grid-cols-3 gap-2 text-xs mb-4">
                 <button
                     v-for="option in areaOptions"
@@ -76,7 +76,7 @@
 
             <!-- 가격 -->
             <label class="text-sm font-semibold text-gray-800 block mb-2"
-                >희망 가격대 (만원 단위)</label
+                >가격대 (만원 단위)</label
             >
             <div class="flex items-center gap-2 mb-6">
                 <input

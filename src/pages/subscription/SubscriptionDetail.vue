@@ -385,15 +385,21 @@ const areaList = computed(() => {
 
 function calcBadge(start, end) {
     if (!start || !end) return ''
+
     const today = new Date()
+    today.setHours(0, 0, 0, 0)
+
     const s = new Date(start.replace(/\./g, '-'))
     const e = new Date(end.replace(/\./g, '-'))
+    s.setHours(0, 0, 0, 0)
+    e.setHours(0, 0, 0, 0)
 
     if (today > e) return '마감'
     if (today < s) {
-        const diff = Math.ceil((e - today) / (1000 * 60 * 60 * 24))
+        const diff = Math.ceil((s - today) / (1000 * 60 * 60 * 24))
         return `D-${diff}`
     }
+    if (today.getTime() === e.getTime()) return '오늘 마감'
     return '진행중'
 }
 
@@ -444,7 +450,7 @@ function badgeColor(label) {
     }
 
     // 진행중
-    if (label === '진행중') {
+    if (label === '진행중' || label === '오늘 마감') {
         return 'bg-red-100 text-red-700'
     }
 
