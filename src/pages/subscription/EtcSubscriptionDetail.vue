@@ -263,18 +263,45 @@ function calcBadge(start, end) {
     return 'D-DAY'
 }
 
+// 날짜 포맷 함수
+function formatDate(dateString) {
+    if (!dateString) return ''
+    const parts = dateString.split('-')
+    return parts.length === 3 ? `${parts[0]}.${parts[1]}.${parts[2]}` : dateString
+}
+
 const scheduleItems = computed(() => {
     const d = subscription.value
-    if (!d) return []
-    const text = (s, e) => (!s && !e ? '일정이 정해지지 않았습니다!' : `${s || '-'} ~ ${e || '-'}`)
+
+    // 변환할 날짜 필드 목록
+    const dateFields = [
+        'rcrit_pblanc_de',
+        'rcept_bgnde',
+        'rcept_endde',
+        'przwner_presnatn_de',
+        'cntrct_cncls_bgnde',
+        'cntrct_cncls_endde',
+    ]
+
+    // 날짜 필드 포맷팅
+    dateFields.forEach((key) => {
+        if (d[key]) d[key] = formatDate(d[key])
+    })
+
+    // 헬퍼 함수: 날짜 문자열 두 개가 null이면 안내 문구 반환
+    function makeDateText(start, end) {
+        if (!start && !end) return '일정이 정해지지 않았습니다!'
+        return `${start || '-'} ~ ${end || '-'}`
+    }
+
     return [
         {
             label: '청약 접수',
-            date: text(d.rcept_bgnde, d.rcept_endde),
+            date: makeDateText(d.rcept_bgnde, d.rcept_endde),
             badge: calcBadge(d.rcept_bgnde, d.rcept_endde),
         },
-        { label: '당첨자 발표', date: text(d.przwner_presnatn_de, d.przwner_presnatn_de) },
-        { label: '계약', date: text(d.cntrct_cncls_bgnde, d.cntrct_cncls_endde) },
+        { label: '당첨자 발표', date: makeDateText(d.przwner_presnatn_de, d.przwner_presnatn_de) },
+        { label: '계약', date: makeDateText(d.cntrct_cncls_bgnde, d.cntrct_cncls_endde) },
     ]
 })
 
@@ -301,7 +328,7 @@ const facilityGroups = computed(() => {
         if (!grouped[meta.title]) grouped[meta.title] = { ...meta, items: [] }
         grouped[meta.title].items.push({
             name: place.place_name,
-            desc: `${(place.distance / 1000).toFixed(1)}km ·도보 ${walkingTimeFromKm(place.distance / 1000)}분`,
+            desc: `${(place.distance / 1000).toFixed(1)}km · 도보 ${walkingTimeFromKm(place.distance / 1000)}분`,
         })
     })
     return Object.values(grouped)
