@@ -387,7 +387,7 @@ function calcBadge(start, end) {
     if (!start || !end) return ''
 
     const today = new Date()
-    today.setHours(0, 0, 0, 0) // 오늘 날짜를 자정 기준으로 설정
+    today.setHours(0, 0, 0, 0)
 
     const s = new Date(start.replace(/\./g, '-'))
     const e = new Date(end.replace(/\./g, '-'))
@@ -399,7 +399,8 @@ function calcBadge(start, end) {
         const diff = Math.ceil((s - today) / (1000 * 60 * 60 * 24))
         return `D-${diff}`
     }
-    return 'D-DAY'
+    if (today.getTime() === e.getTime()) return '오늘 마감'
+    return '진행중'
 }
 
 const scheduleItems = computed(() => {
@@ -449,7 +450,7 @@ function badgeColor(label) {
     }
 
     // 진행중
-    if (label === '진행중') {
+    if (label === '진행중' || label === '오늘 마감') {
         return 'bg-red-100 text-red-700'
     }
 

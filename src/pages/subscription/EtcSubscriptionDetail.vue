@@ -64,7 +64,7 @@
                     <div
                         v-for="item in scheduleItems"
                         :key="item.label"
-                        class="flex justify-between py-1"
+                        class="flex justify-between items-center py-1"
                     >
                         <div>
                             <p class="text-sm font-medium">{{ item.label }}</p>
@@ -248,7 +248,7 @@ function calcBadge(start, end) {
     if (!start || !end) return ''
 
     const today = new Date()
-    today.setHours(0, 0, 0, 0) // 오늘 날짜를 자정 기준으로 설정
+    today.setHours(0, 0, 0, 0)
 
     const s = new Date(start.replace(/\./g, '-'))
     const e = new Date(end.replace(/\./g, '-'))
@@ -260,7 +260,8 @@ function calcBadge(start, end) {
         const diff = Math.ceil((s - today) / (1000 * 60 * 60 * 24))
         return `D-${diff}`
     }
-    return 'D-DAY'
+    if (today.getTime() === e.getTime()) return '오늘 마감'
+    return '진행중'
 }
 
 // 날짜 포맷 함수
@@ -300,8 +301,16 @@ const scheduleItems = computed(() => {
             date: makeDateText(d.rcept_bgnde, d.rcept_endde),
             badge: calcBadge(d.rcept_bgnde, d.rcept_endde),
         },
-        { label: '당첨자 발표', date: makeDateText(d.przwner_presnatn_de, d.przwner_presnatn_de) },
-        { label: '계약', date: makeDateText(d.cntrct_cncls_bgnde, d.cntrct_cncls_endde) },
+        {
+            label: '당첨자 발표',
+            date: makeDateText(d.przwner_presnatn_de, d.przwner_presnatn_de),
+            badge: calcBadge(d.przwner_presnatn_de, d.przwner_presnatn_de),
+        },
+        {
+            label: '계약',
+            date: makeDateText(d.cntrct_cncls_bgnde, d.cntrct_cncls_endde),
+            badge: calcBadge(d.cntrct_cncls_bgnde, d.cntrct_cncls_endde),
+        },
     ]
 })
 
