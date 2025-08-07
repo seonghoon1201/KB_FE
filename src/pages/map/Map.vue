@@ -284,20 +284,40 @@ onMounted(async () => {
 watch(activeTab, () => {
     if (!map.value) return
 
-    // 1. favorite 탭이면 is_favorite=true만, 아니면 전체
     let list = subscriptionList.value
+
     if (activeTab.value === 'favorite') {
+        // ⭐ 찜한 공고만 필터링
         list = list.filter((item) => item.is_favorite)
+
+        // ✅ 마커 렌더링
+        renderMarkers(list, true)
+
+        // ✅ 찜한 공고가 하나 이상 있을 경우 모든 마커가 보이도록 bounds 설정
+        if (list.length > 0) {
+            const bounds = new kakao.maps.LatLngBounds()
+            list.forEach((item) => {
+                const lat = parseFloat(item.latitude)
+                const lng = parseFloat(item.longitude)
+                if (!isNaN(lat) && !isNaN(lng)) {
+                    bounds.extend(new kakao.maps.LatLng(lat, lng))
+                }
+            })
+            map.value.setBounds(bounds)
+        }
+    } else {
+        // ⭐ 전체 탭일 경우: 전체 렌더링 + 서울 중심 고정 + 확대 레벨 고정
+        renderMarkers(list, true)
+
+        const geocoder = new kakao.maps.services.Geocoder()
+        geocoder.addressSearch('서울특별시', (result, status) => {
+            if (status === kakao.maps.services.Status.OK) {
+                const coords = new kakao.maps.LatLng(result[0].y, result[0].x)
+                map.value.setCenter(coords)
+                map.value.setLevel(9) // ✅ 확대 레벨 고정
+            }
+        })
     }
-
-    // 2. bounds 체크를 하고 싶으면 renderMarkers(list, false)
-    //    그냥 전체 다시 그리고 싶으면 renderMarkers(list, true)
-    renderMarkers(list, true)
-})
-
-// 시/도 선택 초기화
-watch(selectedCity, () => {
-    selectedDistrict.value = ''
 })
 
 const close = () => {
