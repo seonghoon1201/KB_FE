@@ -92,9 +92,9 @@
                 class="flex items-center bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full"
             >
                 <span>
-                    {{ appliedFilters.priceMin ? appliedFilters.priceMin + '만원' : '' }}
+                    {{ appliedFilters.priceMin ? formatToEok(appliedFilters.priceMin) + '원' : '' }}
                     ~
-                    {{ appliedFilters.priceMax ? appliedFilters.priceMax + '만원' : '' }}
+                    {{ appliedFilters.priceMax ? formatToEok(appliedFilters.priceMax)+ '원' : '' }}
                 </span>
                 <button class="ml-1 font-bold" @click="removeFilter('price')">✕</button>
             </div>
@@ -348,6 +348,22 @@ const finalSubscriptions = computed(() => {
 
     return result
 })
+
+const formatToEok = (priceValue) => {
+    if (priceValue == null) return ''
+
+    // 문자열이면 쉼표 제거
+    let num = priceValue
+    if (typeof priceValue === 'string') {
+        num = parseFloat(priceValue.replace(/,/g, ''))
+    }
+
+    if (isNaN(num)) return ''
+
+    // 서버 단위가 '만원'이므로 10,000으로 나눠야 '억' 단위가 됨
+    const eok = num / 10000
+    return `${eok.toFixed(1)}억`
+}
 // --- 스크롤 / 초기화 ---
 const hasActiveFilters = computed(
     () =>

@@ -19,7 +19,7 @@
         <!-- 입력 부분 -->
         <div class="space-y-4">
             <input
-                v-model="localDate"
+                v-model="scoreStore.residenceStartDate"
                 type="month"
                 class="w-full border px-4 py-2 rounded"
                 placeholder="거주 시작 연월"
@@ -31,7 +31,7 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
+import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useScoreStore } from '@/stores/scoreStore'
 import ScoreStepWrapper from '@/components/score/ScoreStepWrapper.vue'
@@ -40,23 +40,15 @@ import PrimaryButton from '@/components/common/PrimaryButton.vue'
 
 const router = useRouter()
 const scoreStore = useScoreStore()
-
-// EditStep6과 동일한 로컬 ref 사용
-const localDate = ref(scoreStore.residenceStartDate)
 const loading = ref(false)
 
-// (선택) 입력값 변경 감지 로그
-watch(localDate, (v) => console.log('[Step6] localDate →', v))
-
 async function onSubmit() {
-    // 1) 로컬 ref → store, localStorage 동기화
-    console.log('[Step6] saving residenceStartDate=', localDate.value)
-    scoreStore.residenceStartDate = localDate.value
-    localStorage.setItem('residenceStartDate', localDate.value)
-
-    // 2) 계산 호출
     loading.value = true
     try {
+        if (!scoreStore.residenceStartDate) {
+            alert('거주 시작 연월을 입력해 주세요.')
+            return
+        }
         await scoreStore.calculateScore()
         router.push('/score/result')
     } catch (e) {
