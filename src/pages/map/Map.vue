@@ -106,6 +106,7 @@ import BottomNavbar from '@/components/common/BottomNavbar.vue'
 import SubscriptionCard from '@/components/subscription/SubscriptionCard.vue'
 import { districts } from '@/data/districts'
 import { ListFilter, CircleAlert } from 'lucide-vue-next'
+import { useFavoritesStore } from '@/stores/favorites'
 import api from '@/api/axios'
 
 const subscriptionList = ref([]) // 전체 공고 리스트 (서울 포함)
@@ -149,22 +150,6 @@ async function getCoords(addr) {
         })
     })
 }
-
-// const clusterer = new kakao.maps.MarkerClusterer({
-//     map: map.value,
-//     averageCenter: true,
-//     minLevel: 7
-// })
-
-// // 모든 공고 좌표를 한 번에 준비
-// async function prepareCoords(list) {
-//     for (const item of list) {
-//         const addr = `${item.si} ${item.sigungu}`
-//         if (!coordsCache[addr]) {
-//             await getCoords(addr)
-//         }
-//     }
-// }
 
 // 병렬요청으로 수정
 async function prepareCoords(list) {
@@ -237,6 +222,9 @@ const applyFilters = async () => {
 
 // ------------------- onMounted -------------------
 onMounted(async () => {
+    const favoritesStore = useFavoritesStore()
+    await favoritesStore.getFavorite()
+
     const kakao = await loadKakaoMapScript()
     map.value = new kakao.maps.Map(mapRef.value, {
         center: new kakao.maps.LatLng(37.5665, 126.978), // 서울 시청
@@ -267,18 +255,6 @@ onMounted(async () => {
         }
     })
 })
-
-// 탭 변경 시
-// watch(activeTab, () => {
-//     const bounds = map.value.getBounds()
-//     const visible = subscriptionList.value.filter((item) => {
-//         const coords = coordsCache[`${item.si} ${item.sigungu}`]
-//         if (!coords) return false
-//         const pos = new kakao.maps.LatLng(coords.lat, coords.lng)
-//         return bounds.contains(pos)
-//     })
-//     renderMarkers(visible)
-// })
 
 // 찜한 청약 지도 탭 변환 준비중....
 watch(activeTab, () => {
