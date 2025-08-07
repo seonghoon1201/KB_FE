@@ -39,15 +39,17 @@
             </div>
 
             <!-- 질문 리스트 -->
-            <div class="px-4 pb-20 pt-2">
+            <div class="px-4 pb-20 pt-2" ref="scrollContainerRef">
                 <div
                     v-for="({ id, title, content, isHtml }, index) in filteredFaqs"
                     :key="id"
                     class="w-full mb-1 border-b"
+                    ref="scrollContainerRef"
                 >
                     <div
                         class="flex justify-between items-center py-3 cursor-pointer"
                         @click="toggleDetail(id)"
+                        :ref="(el) => setScrollRef(el, id)"
                     >
                         <p class="text-sm text-left font-medium">{{ title }}</p>
                         <ChevronRight :class="[isOpen(id) ? 'rotate-90' : '', 'transition']" />
@@ -71,7 +73,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, nextTick } from 'vue'
 import { ChevronRight } from 'lucide-vue-next'
 import BackHeader from '@/components/common/BackHeader.vue'
 import BottomNavbar from '@/components/common/BottomNavbar.vue'
@@ -446,10 +448,35 @@ const faqs = ref([
 // 검색어
 const searchQuery = ref('')
 
+// 스크롤
+const scrollRef = ref({})
+const scrollContainerRef = ref(null)
+
 // 열림 상태 관리
 const openedId = ref(null)
 const toggleDetail = (id) => {
     openedId.value = openedId.value === id ? null : id
+    if (openedId.value) {
+        nextTick(() => {
+            setTimeout(() => {
+                const target = scrollRef.value[id]
+                if (target) {
+                    // 간단하게 해당 요소로 스크롤하되 상단에서 70px 여백 두기
+                    const rect = target.getBoundingClientRect()
+                    const scrollTop =
+                        window.pageYOffset ||
+                        document.documentElement.scrollTop ||
+                        document.body.scrollTop
+                    const targetY = rect.top + scrollTop - 120
+
+                    window.scrollTo({
+                        top: targetY,
+                        behavior: 'smooth',
+                    })
+                }
+            }, 200) // 콘텐츠가 완전히 펼쳐질 때까지 충분한 대기
+        })
+    }
 }
 const isOpen = (id) => openedId.value === id
 
@@ -457,6 +484,11 @@ const isOpen = (id) => openedId.value === id
 const filteredFaqs = computed(() =>
     faqs.value.filter((item) => item.title.includes(searchQuery.value)),
 )
+
+function setScrollRef(el, id) {
+    if (!scrollRef.value) scrollRef.value = {}
+    scrollRef.value[id] = el
+}
 </script>
 
 <style scoped>

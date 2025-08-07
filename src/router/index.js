@@ -144,12 +144,12 @@ const routes = [
         name: 'Notice',
         component: () => import('@/pages/mypage/Notice.vue'),
     },
-    // FAQ 상세 화면
-    {
-        path: '/mypage/notice/:id',
-        name: 'NoticeDetail',
-        component: () => import('@/pages/mypage/NoticeDetail.vue'),
-    },
+    // // FAQ 상세 화면
+    // {
+    //     path: '/mypage/notice/:id',
+    //     name: 'NoticeDetail',
+    //     component: () => import('@/pages/mypage/NoticeDetail.vue'),
+    // },
     // 이용약관 화면
     {
         path: '/mypage/terms',
