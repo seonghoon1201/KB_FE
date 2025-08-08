@@ -109,7 +109,6 @@ import authApi from '@/api/authApi'
 import { useUserStore } from '@/stores/user'
 import BackHeader from '@/components/common/BackHeader.vue'
 
-const password = ref('')
 const isModalOpen = ref(false)
 const isRealModalOpen = ref(false)
 const sending = ref(false)
@@ -127,7 +126,7 @@ async function handleWithdraw() {
 
     sending.value = true
     try {
-        // 1) 회원탈퇴 API 호출 (DELETE /auth/signout + body)
+        // 1) 회원탈퇴 API 호출 (DELETE /auth/signout)
         await authApi.signout()
 
         // 2) 로컬 스토어 초기화 (토큰, 유저정보 삭제)
