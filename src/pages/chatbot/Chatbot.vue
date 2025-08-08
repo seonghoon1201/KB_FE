@@ -7,7 +7,7 @@
             class="flex-1 min-h-0 overflow-y-auto px-4 py-4 space-y-3"
             ref="containerRef"
             :style="{
-                paddingBottom: showQuickQuestions ? '160px' : '120px',
+                paddingBottom: showQuickQuestions ? '280px' : '120px',
                 scrollPaddingBottom: showQuickQuestions ? '160px' : '148px',
             }"
         >
@@ -46,14 +46,14 @@
                             @click="showQuickQuestions = !showQuickQuestions"
                             class="text-xs text-gray-500 hover:underline"
                         >
-                            {{ showQuickQuestions ? '접기 ∧' : '펼치기 ∨' }}
+                            {{ showQuickQuestions ? '접기 ∨' : '펼치기 ∧' }}
                         </button>
                     </div>
 
                     <!-- 질문 목록 -->
                     <div
                         v-if="showQuickQuestions"
-                        class="flex gap-2 overflow-x-auto no-scrollbar transition-all"
+                        class="flex flex-col gap-2 max-h-[160px] overflow-y-auto no-scrollbar transition-all"
                     >
                         <button
                             v-for="(q, idx) in quickQuestions"
