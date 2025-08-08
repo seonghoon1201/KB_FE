@@ -83,6 +83,11 @@
                 </div>
             </section>
 
+            <!-- 나의 당첨 가능성 -->
+            <section class="px-4 mt-6">
+                <PossibilitySection />
+            </section>
+
             <!-- 버튼 그룹 -->
             <section class="px-4 mt-6 space-y-3">
                 <!-- 청약 신청 버튼 -->
@@ -144,6 +149,7 @@ import {
     Stethoscope,
     ShoppingBag,
 } from 'lucide-vue-next'
+import PossibilitySection from '@/components/SubDetail/PossibilitySection.vue'
 import { loadKakaoMapScript } from '@/utils/KakaoMapLoader'
 import { useFavoritesStore } from '@/stores/favorites'
 

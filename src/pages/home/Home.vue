@@ -1,7 +1,10 @@
 <template>
-    <div class="bg-white min-h-screen flex flex-col pt-[56px] pb-[60px]">
+    <div class="bg-white min-h-screen flex flex-col pt-[56px] pb-[60px] relative">
         <MainHeader />
-        <main class="flex-1 px-4 py-6 space-y-6 overflow-y-auto" @click="commonStore.modalClose">
+        <main
+            class="flex-1 px-4 py-6 space-y-6 overflow-y-auto relative"
+            @click="commonStore.modalClose"
+        >
             <!-- 계좌 등록 파트 -->
             <AccountSection
                 :hasAccount="accountStore.isRegistered"
@@ -19,6 +22,14 @@
             />
             <!-- 선호 설정 파트 -->
             <RecommendSection :isPreferenceSet="isPreferenceSet" :recommendList="recommendList" />
+
+            <!-- 화면 오른쪽 하단 챗봇 플로팅 -->
+            <!-- 화면 오른쪽 하단 챗봇 플로팅 -->
+            <div class="fixed bottom-[78px] right-4 z-50">
+                <div class="bg-[#00AEFF] rounded-full p-3 shadow-lg">
+                    <BotMessageSquare class="text-white" @click="goToChatbot" />
+                </div>
+            </div>
         </main>
         <BottomNavbar />
     </div>
@@ -32,6 +43,7 @@ import { useAccountStore } from '@/stores/account'
 import { useCommonStore } from '@/stores/common'
 import { usePreferenceStore } from '@/stores/preference'
 import { useScoreStore } from '@/stores/scoreStore'
+import { BotMessageSquare } from 'lucide-vue-next'
 
 import MainHeader from '@/components/common/MainHeader.vue'
 import BottomNavbar from '@/components/common/BottomNavbar.vue'
@@ -114,5 +126,9 @@ const isPreferenceSet = computed(() => {
 const router = useRouter()
 const goToScoreInput = () => {
     router.push('/score/step1')
+}
+
+const goToChatbot = () => {
+    router.push('/chatbot')
 }
 </script>
