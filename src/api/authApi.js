@@ -44,9 +44,7 @@ export default {
         return api.post('/auth/logout')
     },
     // 회원탈퇴
-    signout({ password }) {
-        return api.delete('/auth/signout', {
-            data: { password },
-        })
+    signout() {
+        return api.delete('/auth/signout')
     },
 }
