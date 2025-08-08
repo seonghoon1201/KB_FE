@@ -13,11 +13,11 @@
         </div>
 
         <div class="space-y-4">
-            <button @click="select('yes')" :class="btnClass('yes')">네</button>
-            <button @click="select('no')" :class="btnClass('no')">아니요</button>
+            <button @click="select(1)" :class="btnClass(1)">네</button>
+            <button @click="select(0)" :class="btnClass(0)">아니요</button>
         </div>
 
-        <div v-if="selected.value === 'yes'" class="mt-6">
+        <div v-if="selected === 1" class="mt-6">
             <label class="block mb-2 text-sm font-medium text-gray-700">혼인 신고 연월</label>
             <input
                 v-model="marriageDate"
@@ -42,24 +42,21 @@ import PrimaryButton from '@/components/common/PrimaryButton.vue'
 const router = useRouter()
 const scoreStore = useScoreStore()
 
-const selected = ref(
-    scoreStore.maritalStatus === 1 ? 'yes' : scoreStore.maritalStatus === 0 ? 'no' : '',
-)
-
+const selected = ref(scoreStore.maritalStatus) // 1, 0, 또는 null
 const marriageDate = ref(scoreStore.weddingDate || '')
 
 function select(val) {
     selected.value = val
-    scoreStore.maritalStatus = val === 'yes' ? 1 : 0
+    scoreStore.maritalStatus = val
 
-    if (val === 'no') {
+    if (val === 0) {
         marriageDate.value = ''
         scoreStore.weddingDate = null
     }
 
     scoreStore.saveToLocal()
 }
-
+ 
 function btnClass(val) {
     return [
         'w-full px-4 py-3 rounded-md border font-semibold',
@@ -70,9 +67,9 @@ function btnClass(val) {
 }
 
 function next() {
-    if (!selected.value) return
+    if (selected.value === null) return
 
-    if (selected.value === 'yes') {
+    if (selected.value === 1) {
         if (!marriageDate.value) {
             alert('혼인 신고 연월을 입력해주세요.')
             return
@@ -82,6 +79,7 @@ function next() {
         scoreStore.weddingDate = null
     }
 
+    scoreStore.saveToLocal()
     router.push('/score/step5')
 }
 </script>
