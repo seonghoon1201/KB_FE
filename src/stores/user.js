@@ -114,7 +114,6 @@ export const useUserStore = defineStore('user', {
         },
 
         async updateProfile(payload) {
-            // payload = { user_name, birthdate, address }
             try {
                 await api.put('/auth/update', payload)
 
