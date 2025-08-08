@@ -129,7 +129,11 @@ export const useScoreStore = defineStore('score', {
             }
 
             this.noHousePeriod = data.no_house_period
-            this.isCalculated = true
+            this.isCalculated =
+                data.total_ga_score > 0 ||
+                data.dependents_score > 0 ||
+                data.no_house_score > 0 ||
+                data.payment_period_score > 0
         },
 
         recomputeNoHousePeriodIfNeeded() {
