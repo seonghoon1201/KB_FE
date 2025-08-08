@@ -34,7 +34,8 @@
             <div class="flex flex-col gap-3">
                 <!-- 위치 정보 -->
                 <p class="text-gray-500 text-sm text-left">
-                    {{ subscription.city }} {{ subscription.district }}
+                    {{ subscription.city ? subscription.city : subscription.si }}
+                    {{ subscription.district ? subscription.district : subscription.sigungu }}
                 </p>
                 <!-- 모집 기간 -->
                 <span v-if="subscription.application_start_date" class="text-gray-500 text-sm">
@@ -216,5 +217,4 @@ const formatToEok = (priceValue) => {
     const eok = num / 10000
     return `${eok.toFixed(1)}억`
 }
-
 </script>
