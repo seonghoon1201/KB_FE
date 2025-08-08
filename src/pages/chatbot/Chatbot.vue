@@ -4,9 +4,12 @@
 
         <!-- 대화 스크롤 영역 (하단 여백만 고정) -->
         <div
-            class="flex-1 min-h-0 overflow-y-auto px-4 py-4 space-y-3 pb-[132px]"
+            class="flex-1 min-h-0 overflow-y-auto px-4 py-4 space-y-3"
             ref="containerRef"
-            :style="{ scrollPaddingBottom: '160px' }"
+            :style="{
+                paddingBottom: showQuickQuestions ? '160px' : '120px',
+                scrollPaddingBottom: showQuickQuestions ? '160px' : '148px',
+            }"
         >
             <div
                 v-for="(chat, index) in chatLog"
@@ -31,12 +34,27 @@
         </div>
 
         <!-- 빠른 질문: 입력창 바로 위에 고정 (값만 고정) -->
-        <div class="fixed left-0 right-0 bottom-[72px] px-4 py-2">
+        <div class="fixed left-0 right-0 bottom-[72px] px-4 transition-all mb-1">
             <div class="mx-auto max-w-screen-md">
                 <div
                     class="rounded-2xl border border-gray-200 bg-white/90 backdrop-blur-sm shadow-sm px-3 py-2"
                 >
-                    <div class="flex gap-2 overflow-x-auto no-scrollbar">
+                    <!-- 토글 버튼 -->
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="text-sm font-medium text-gray-700">빠른 질문</span>
+                        <button
+                            @click="showQuickQuestions = !showQuickQuestions"
+                            class="text-xs text-gray-500 hover:underline"
+                        >
+                            {{ showQuickQuestions ? '접기 ∧' : '펼치기 ∨' }}
+                        </button>
+                    </div>
+
+                    <!-- 질문 목록 -->
+                    <div
+                        v-if="showQuickQuestions"
+                        class="flex gap-2 overflow-x-auto no-scrollbar transition-all"
+                    >
                         <button
                             v-for="(q, idx) in quickQuestions"
                             :key="idx"
@@ -74,12 +92,24 @@
 <script setup>
 import { ref, nextTick, watch, onMounted } from 'vue'
 import BackHeader from '@/components/common/BackHeader.vue'
+import api from '@/api/axios'
 
 const chatLog = ref([
     { sender: 'bot', message: '안녕하세요! 청약 관련해서 무엇이든 물어보세요 😊' },
 ])
 const userInput = ref('')
-const quickQuestions = ref(['청약 일정 알려줘', '가점 계산 방법', '내 조건에 맞는 공고'])
+const showQuickQuestions = ref(false)
+const quickQuestions = ref([
+    '청약 자격은 어떻게 되나요?',
+    '청약 가점제는 뭔가요?',
+    '청약 통장은 꼭 있어야 하나요?',
+    '1순위 조건은 뭔가요?',
+    '청약 당첨되면 무조건 사야 하나요?',
+    '신혼부부 특별 공급이 뭔가요?',
+    '당첨 확률을 높이려면 어떻게 해야 하나요?',
+    '청약은 어디서 신청 하나요?',
+    '청약에 떨어지면 불이익 있나요?',
+])
 
 const containerRef = ref(null)
 const bottomAnchor = ref(null)
@@ -101,27 +131,57 @@ const scrollToBottom = async () => {
     }
 }
 
-
 // 처음/메시지 추가 때마다 최하단으로
 onMounted(() => scrollToBottom())
 watch(
     () => chatLog.value.length,
     () => scrollToBottom(),
+    (showQuickQuestions,
+    async () => {
+        await scrollToBottom()
+    }),
 )
+
+const sendToChatbotAPI = async (message) => {
+    const res = await api.post('/chatbot', { message })
+    return res.data?.response // 백엔드 응답 구조에 따라 조정
+}
 
 const sendMessage = async (text) => {
     const msg = (text ?? userInput.value).trim()
     if (!msg) return
+
     chatLog.value.push({ sender: 'user', message: msg })
     userInput.value = ''
     await scrollToBottom()
-    setTimeout(async () => {
+
+    // 일단 로딩 메시지 표시
+    const loadingMsg = {
+        sender: 'bot',
+        message: '답변을 불러오는 중입니다...',
+    }
+    chatLog.value.push(loadingMsg)
+    await scrollToBottom()
+
+    try {
+        const response = await sendToChatbotAPI(msg)
+
+        // 로딩 메시지 제거하고 실제 응답 삽입
+        chatLog.value.pop()
         chatLog.value.push({
             sender: 'bot',
-            message: `“${msg}”에 대한 정보를 정리 중이에요. 잠시만요!`,
+            message: response || '답변을 불러오지 못했습니다.',
         })
-        await scrollToBottom()
-    }, 600)
+    } catch (e) {
+        console.error(e)
+        chatLog.value.pop()
+        chatLog.value.push({
+            sender: 'bot',
+            message: '오류가 발생했어요. 잠시 후 다시 시도해주세요.',
+        })
+    }
+
+    await scrollToBottom()
 }
 </script>
 
