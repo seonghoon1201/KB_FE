@@ -25,8 +25,15 @@
                         />
                     </button>
                 </div>
-                <p class="text-sm text-gray-500">아파트 · {{ subscription.householdCount }}세대</p>
-                <p class="text-sm text-gray-500">{{ areaList }}</p>
+                <!-- 수평선 -->
+                <div class="border-b border-gray-200 mb-3"></div>
+                <p class="text-sm text-gray-500">
+                    <House class="inline mr-1" :size="16" /> 아파트 ·
+                    {{ subscription.householdCount }}세대
+                </p>
+                <p class="text-sm text-gray-500">
+                    <Expand class="inline mr-1" :size="14" /> {{ areaList }}
+                </p>
                 <p class="mt-1 text-sm text-gray-500">
                     <MapPin class="inline mr-1" :size="16" />{{ subscription.address }}
                 </p>
@@ -153,6 +160,9 @@ import {
     ShoppingBag,
     FileText,
     Building2,
+    Expand,
+    House,
+    ExpandIcon,
 } from 'lucide-vue-next'
 import { onMounted, ref, computed, nextTick, watchEffect } from 'vue'
 import api from '@/api/axios'
@@ -466,13 +476,7 @@ function badgeColor(label) {
     return 'bg-gray-100 text-gray-700'
 }
 
-const preferredOrder = [
-  '의료 시설',
-  '교통',
-  '편의 시설',
-  '학교',
-  '유치원 · 어린이집',
-]
+const preferredOrder = ['의료 시설', '교통', '편의 시설', '학교', '유치원 · 어린이집']
 
 const iconMap = {
     subway: { title: '교통', icon: TrainFront, color: 'text-green-600' },
@@ -504,7 +508,7 @@ const facilityGroups = computed(() => {
 
     // 2. 객체 → 배열 변환 + 정렬
     return Object.values(grouped).sort(
-        (a, b) => preferredOrder.indexOf(a.title) - preferredOrder.indexOf(b.title)
+        (a, b) => preferredOrder.indexOf(a.title) - preferredOrder.indexOf(b.title),
     )
 })
 

@@ -21,7 +21,7 @@
             <button @click="select('no')" :class="btnClass('no')">아니요</button>
         </div>
 
-        <div v-if="selected.value === 'yes'" class="mt-6">
+        <div v-if="selected === 'yes'" class="mt-6">
             <label class="block mb-2 text-sm font-medium text-gray-700">처분한 연월</label>
             <input
                 v-model="disposedDate"
