@@ -23,11 +23,14 @@
                         />
                     </button>
                 </div>
+                <!-- 수평선 -->
+                <div class="border-b border-gray-200 mb-3"></div>
                 <p class="text-sm text-gray-500">
-                    {{ subscription.house_dtl_secd_nm }} · {{ subscription.householdCount }}세대
+                    <House class="inline mr-1" :size="16" /> {{ subscription.house_dtl_secd_nm }} ·
+                    {{ subscription.householdCount }}세대
                 </p>
                 <p class="text-sm text-gray-500">
-                    {{ areaList }}
+                    <Expand class="inline mr-1" :size="14" /> {{ areaList }}
                 </p>
                 <p class="mt-1 text-sm text-gray-500">
                     <MapPin class="inline mr-1" :size="16" /> {{ subscription.address }}
@@ -148,6 +151,8 @@ import {
     Baby,
     Stethoscope,
     ShoppingBag,
+    Expand,
+    House,
 } from 'lucide-vue-next'
 import PossibilitySection from '@/components/SubDetail/PossibilitySection.vue'
 import { loadKakaoMapScript } from '@/utils/KakaoMapLoader'
