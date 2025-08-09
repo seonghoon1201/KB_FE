@@ -106,11 +106,14 @@ import BottomNavbar from '@/components/common/BottomNavbar.vue'
 import SubscriptionCard from '@/components/subscription/SubscriptionCard.vue'
 import { districts } from '@/data/districts'
 import { ListFilter, CircleAlert } from 'lucide-vue-next'
+import { useUserStore } from '@/stores/user'
 import { useFavoritesStore } from '@/stores/favorites'
 import api from '@/api/axios'
 
 const subscriptionList = ref([]) // 전체 공고 리스트 (서울 포함)
 const coordsCache = {} // 주소 → {lat, lng}
+
+const userStore = useUserStore()
 
 const mapRef = ref(null)
 const map = ref(null)
@@ -132,6 +135,26 @@ const mapHeightStyle = computed(() => ({
 }))
 
 // ------------------- 유틸 함수 -------------------
+
+import { reactive } from 'vue'
+
+const viewState = reactive({
+    all: null, // { center: kakao.maps.LatLng, level: number }
+    favorite: null,
+})
+
+function snapshotView() {
+    return {
+        center: map.value.getCenter(),
+        level: map.value.getLevel(),
+    }
+}
+
+function restoreView(v) {
+    if (!v) return
+    map.value.setCenter(v.center)
+    map.value.setLevel(v.level)
+}
 
 // 주소를 좌표로 변환 (캐싱)
 async function getCoords(addr) {
@@ -221,40 +244,72 @@ const applyFilters = async () => {
     isFilterOpen.value = false
 }
 
+async function getUserCenter() {
+    // 좌표가 스토어에 있으면 바로 사용
+    if (userStore.coords?.lat && userStore.coords?.lng) {
+        return userStore.coords
+    }
+
+    // 주소 → 좌표 1회 지오코딩 후 스토어에 저장
+    const kakao = await loadKakaoMapScript()
+    const geocoder = new kakao.maps.services.Geocoder()
+
+    const addr = userStore.fullAddress || userStore.address
+    const target = addr && addr.trim().length > 0 ? addr.trim() : '서울특별시청'
+
+    const coords = await new Promise((resolve) => {
+        geocoder.addressSearch(target, (result, status) => {
+            if (status === kakao.maps.services.Status.OK) {
+                resolve({ lat: parseFloat(result[0].y), lng: parseFloat(result[0].x) })
+            } else {
+                resolve({ lat: 37.5665, lng: 126.978 }) // 서울시청 폴백
+            }
+        })
+    })
+
+    userStore.coords = coords // 다음 진입부터 즉시 사용
+    return coords
+}
+
+watch(
+    () => userStore.coords,
+    (c) => {
+        if (c && map.value) {
+            map.value.setCenter(new kakao.maps.LatLng(c.lat, c.lng))
+            // level은 유지
+        }
+    },
+)
+
 // ------------------- onMounted -------------------
 onMounted(async () => {
     const favoritesStore = useFavoritesStore()
-    await favoritesStore.getFavorite()
 
-    const kakao = await loadKakaoMapScript()
+    // 1) 병렬로 수행
+    const [kakao, userCenter, favoritesResult, subsRes] = await Promise.all([
+        loadKakaoMapScript(),
+        getUserCenter(),
+        favoritesStore.getFavorite(),
+        api.get('/subscriptions'),
+    ])
+
+    // 2) 맵을 '처음부터' 유저 좌표로 생성 (확대 레벨 유지)
     map.value = new kakao.maps.Map(mapRef.value, {
-        center: new kakao.maps.LatLng(37.5665, 126.978), // 서울 시청
-        level: 9,
+        center: new kakao.maps.LatLng(userCenter.lat, userCenter.lng),
+        level: 8, // 그대로 유지
     })
 
-    // 지도 클릭시 카드 선택 해제
     kakao.maps.event.addListener(map.value, 'click', () => {
         selectedItem.value = null
     })
 
-    // 1. 전체 청약 리스트 가져오기
-    const res = await api.get('/subscriptions')
-    subscriptionList.value = res.data
+    // 3) 데이터 세팅
+    subscriptionList.value = subsRes.data
 
-    // 2. 모든 공고 좌표 미리 캐싱
-    await prepareCoords(subscriptionList.value)
-
-    // 3. 모든 마커 한 번에 찍기 (skipBoundsCheck = true)
+    // 4) 마커 렌더 (불필요한 지오코딩 제거!)
     renderMarkers(subscriptionList.value, true)
 
-    // 4. 지도 중심만 서울로 이동
-    const geocoder = new kakao.maps.services.Geocoder()
-    geocoder.addressSearch('서울특별시', (result, status) => {
-        if (status === kakao.maps.services.Status.OK) {
-            const coords = new kakao.maps.LatLng(result[0].y, result[0].x)
-            map.value.setCenter(coords)
-        }
-    })
+    // ✅ 더 이상 '서울로 다시 이동'하는 코드 넣지 마세요
 })
 
 // 찜한 청약 지도 탭 변환 준비중....
