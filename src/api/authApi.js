@@ -5,8 +5,9 @@ export default {
     login({ user_id, password }) {
         return api.post('/auth/login', { user_id, password })
     },
+    // 카카오 로그인
     kakaoLogin(code) {
-        return api.post('/auth/kakao/callback', { code })
+        return api.post('/kakao/callback', { code })
     },
     // 회원가입
     signup({ user_id, password, user_name, address, birthdate }) {
@@ -43,9 +44,7 @@ export default {
         return api.post('/auth/logout')
     },
     // 회원탈퇴
-    signout({ password }) {
-        return api.delete('/auth/signout', {
-            data: { password },
-        })
+    signout() {
+        return api.delete('/auth/signout')
     },
 }

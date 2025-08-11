@@ -4,6 +4,8 @@
         <User class="w-4 h-4 text-purple-500" />
         <span class="text-extrabold">나의 순위</span>
     </div>
+
+    <!-- 계산된 상태 -->
     <div
         v-if="isCalculated"
         class="bg-purple-50 border border-purple-200 rounded-xl p-4 text-center space-y-6"
@@ -42,39 +44,117 @@
             👤 순위 계산하기
         </button>
     </div>
+
+    <!-- 안내 모달 -->
+    <CommonModal v-if="showModal" @close="showModal = false">
+        <template #title>순위 계산 전 확인 필요</template>
+        <template #default>
+            <p class="text-sm text-gray-700 mb-4">
+                청약 순위를 계산하려면 아래 항목을 먼저 완료해야 해요.
+            </p>
+            <ul class="text-sm text-gray-800 mb-4 list-disc list-inside space-y-1">
+                <li v-if="!isAccountReady">✔ 계좌 등록</li>
+                <li v-if="!isScoreReady">✔ 가점 계산</li>
+            </ul>
+            <div class="flex gap-2">
+                <button
+                    v-if="!isAccountReady"
+                    @click="goToAccount"
+                    class="flex-1 bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium py-2.5 rounded-md"
+                >
+                    계좌 등록하기
+                </button>
+                <button
+                    v-if="!isScoreReady"
+                    @click="goToScore"
+                    class="flex-1 bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium py-2.5 rounded-md"
+                >
+                    가점 계산하기
+                </button>
+            </div>
+        </template>
+    </CommonModal>
 </template>
 
 <script setup>
-import { ref } from 'vue'
-import { useRoute } from 'vue-router'
-import rankApi from '@/api/rankApi'
+import { ref, computed, onMounted } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import { User } from 'lucide-vue-next'
+import { useScoreStore } from '@/stores/scoreStore'
+import { useAccountStore } from '@/stores/account'
+import { useRankStore } from '@/stores/rank'
+import rankApi from '@/api/rankApi'
+import CommonModal from '@/components/modal/CommonModal.vue'
+
+const route = useRoute()
+const router = useRouter()
+const pblancNo = route.params.id
+
+const scoreStore = useScoreStore()
+const accountStore = useAccountStore()
+const rankStore = useRankStore()
 
 const isCalculated = ref(false)
 const rankData = ref([])
 
-const route = useRoute()
-const pblancNo = route.params.id
+const showModal = ref(false)
+
+// 조건 확인용 computed
+const isAccountReady = computed(() => accountStore.isRegistered)
+const isScoreReady = computed(() => scoreStore.isCalculated)
+
+// // 새로고침/재방문 시 기존 저장된 순위 복원
+// onMounted(() => {
+//     rankStore.loadFromLocal(pblancNo)
+//     const saved = rankStore.byPblancNo[pblancNo]
+//     if (saved?.rankByArea) {
+//         rankData.value = Object.entries(saved.rankByArea).map(([area, rank]) => ({
+//             area,
+//             rank_name: rank,
+//         }))
+//         isCalculated.value = true
+//     }
+// })
 
 async function calculateRank() {
+    // 조건 불충족 시 모달 띄움
+    if (!isAccountReady.value || !isScoreReady.value) {
+        showModal.value = true
+        return
+    }
+
     try {
         const res = await rankApi.getRankByArea(pblancNo)
         const raw = res.data.rankByArea
 
-        // 객체를 배열로 변환
         rankData.value = Object.entries(raw).map(([area, rank]) => ({
-            area, // "85 이하"
-            rank_name: rank, // "1순위"
+            area,
+            rank_name: rank,
         }))
 
         isCalculated.value = true
+
+        // ✅ 스토어에 원본/베스트 순위 저장 (localStorage 포함)
+        rankStore.setRankByArea(pblancNo, raw)
+
+        const bestRankToSend = rankStore.getBestRank(pblancNo) // '1순위' 등
+        console.log('[대표 순위]', bestRankToSend, rankStore.getSummary(pblancNo))
     } catch (err) {
-        console.error(err)
+        console.error('[순위 계산 실패]', err)
     }
 }
 
 function resetRank() {
     isCalculated.value = false
     rankData.value = []
+    rankStore.resetRank(pblancNo)
+}
+
+// 모달 내 이동 버튼
+function goToAccount() {
+    router.push('/bank/select')
+}
+function goToScore() {
+    router.push('/score/step1')
 }
 </script>

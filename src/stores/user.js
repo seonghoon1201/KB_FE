@@ -99,22 +99,6 @@ export const useUserStore = defineStore('user', {
             accountStore.$reset() // ✅ Pinia 자체 상태 초기화
 
             const scoreStore = useScoreStore()
-            // scoreStore.result = {
-            //     head_of_household: 0,
-            //     house_owner: 0,
-            //     house_disposal: 0,
-            //     disposal_date: null,
-            //     marital_status: 0,
-            //     wedding_date: null,
-            //     dependents_nm: 0,
-            //     no_house_period: 0,
-            //     residence_start_date: '',
-            //     payment_period: 0,
-            //     dependents_score: 0,
-            //     no_house_score: 0,
-            //     payment_period_score: 0,
-            //     total_ga_score: 0,
-            // }
             scoreStore.isCalculated = false
             scoreStore.$reset() // ✅ Pinia 자체 상태 초기화
             // ✅ axios header 정리
@@ -122,7 +106,6 @@ export const useUserStore = defineStore('user', {
         },
 
         async signout(payload) {
-            await authApi.signout(payload)
             return this.logout()
         },
 
@@ -131,7 +114,6 @@ export const useUserStore = defineStore('user', {
         },
 
         async updateProfile(payload) {
-            // payload = { user_name, birthdate, address }
             try {
                 await api.put('/auth/update', payload)
 

@@ -97,6 +97,12 @@
                     </div>
                 </div>
             </div>
+            <!-- 화면 오른쪽 하단 챗봇 플로팅 -->
+            <div class="fixed bottom-[78px] right-4 z-50">
+                <div class="bg-[#00AEFF] rounded-full p-3 shadow-lg">
+                    <BotMessageSquare class="text-white" @click="goToChatbot" />
+                </div>
+            </div>
         </main>
 
         <!-- 하단 네비게이션 바 -->
@@ -115,7 +121,10 @@ import SubscriptionCard from '@/components/subscription/SubscriptionCard.vue'
 import FullCalendar from '@fullcalendar/vue3'
 import dayGridPlugin from '@fullcalendar/daygrid'
 import interactionPlugin from '@fullcalendar/interaction'
+import { BotMessageSquare } from 'lucide-vue-next'
+import { useRouter } from 'vue-router'
 
+const router = useRouter()
 // 상태값(reactive/ref)
 const calendarRef = ref(null) // FullCalendar DOM 접근 ref
 const showCalendar = ref(true) // 월간 뷰(true)/주간 뷰(false)
@@ -160,6 +169,9 @@ const filteredSubscriptions = computed(() => {
     }
 })
 
+const colors = ['#fdcedf', '#a6e3ff', '#baffc9', '#FFD59E']
+const eventColorMap = {} // 이벤트 ID별로 한 번만 색을 할당
+
 // FullCalendar 옵션 (월간 뷰만)
 const calendarOptions = reactive({
     plugins: [dayGridPlugin, interactionPlugin],
@@ -169,12 +181,28 @@ const calendarOptions = reactive({
     displayEventTime: false,
     contentHeight: 350,
     fixedWeekCount: false,
-    dayMaxEvents: 1,
+    dayMaxEvents: 2,
     headerToolbar: { left: false, center: false, right: false },
     views: { dayGridMonth: { showNonCurrentDates: true } },
     events: loadCalendarEvents, // 이벤트(청약 데이터) 동적 로드
     dateClick: handleDateClick, // 날짜 클릭 이벤트
     moreLinkClick: handleMoreClick,
+
+    eventDidMount({ event, el }) {
+        // 1) 고유 키 생성 (pblanc_no가 없으면 시작일 기준)
+        const key = event.extendedProps.pblanc_no || event.startStr
+
+        // 2) 키가 없으면 다음 색을 지정
+        if (!eventColorMap[key]) {
+            const idx = Object.keys(eventColorMap).length
+            eventColorMap[key] = colors[idx % colors.length]
+        }
+
+        // 3) 스타일 적용
+        const color = eventColorMap[key]
+        el.style.backgroundColor = color
+        el.style.borderColor = color
+    },
 })
 
 // API에서 데이터 로딩
@@ -256,6 +284,10 @@ watch(showCalendar, (val) => {
         calendarRef.value.getApi().render()
     }
 })
+
+const goToChatbot = () => {
+    router.push('/chatbot')
+}
 </script>
 <style>
 /* FullCalendar 스타일(월간 뷰) */
@@ -311,10 +343,28 @@ watch(showCalendar, (val) => {
     padding-left: 0.2rem !important;
     padding-right: 0.2rem !important;
 }
-.fc .fc-event {
-    background-color: #d1fae5 !important;
+/* .fc .fc-event { */
+/* background-color: #ffccda !important;
     color: #000000 !important;
-    border: 2px solid #d1fae5 !important; /* 이벤트 전체의 테두리(초록) */
+    border: 2px solid #ffccda !important;  */
+/* 이벤트 전체의 테두리(초록) */
+/* border-radius: 0.375rem !important;
+    margin-bottom: 0.25rem !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) !important;
+    display: flex !important;
+    justify-content: center;
+    align-items: center !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+} */
+/* .fc .fc-event:nth-child(odd) {
+    background-color: #ffccda !important;
+    opacity: 0.9;
+} */
+
+.fc .fc-event {
+    color: #000000 !important;
     border-radius: 0.375rem !important;
     margin-bottom: 0.25rem !important;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) !important;
@@ -324,9 +374,8 @@ watch(showCalendar, (val) => {
     white-space: nowrap !important;
     overflow: hidden !important;
     text-overflow: ellipsis !important;
-}
-.fc .fc-event:nth-child(odd) {
-    background-color: #d1fae5 !important;
+    border-width: 2px !important;
+    border-style: solid !important;
 }
 
 .fc .fc-event,

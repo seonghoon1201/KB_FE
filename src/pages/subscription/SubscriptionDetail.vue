@@ -7,7 +7,7 @@
         <div v-if="!subscription" class="flex items-center justify-center h-64">
             <p class="text-gray-500">불러오는 중...</p>
         </div>
-        <div v-else >
+        <div v-else>
             <!-- 공고 기본 정보 -->
             <section class="bg-white px-4 pt-4 pb-6">
                 <div class="flex items-center justify-between mb-2">
@@ -25,8 +25,15 @@
                         />
                     </button>
                 </div>
-                <p class="text-sm text-gray-500">아파트 · {{ subscription.householdCount }}세대</p>
-                <p class="text-sm text-gray-500">{{ areaList }}</p>
+                <!-- 수평선 -->
+                <div class="border-b border-gray-200 mb-3"></div>
+                <p class="text-sm text-gray-500">
+                    <House class="inline mr-1" :size="16" /> 아파트 ·
+                    {{ subscription.householdCount }}세대
+                </p>
+                <p class="text-sm text-gray-500">
+                    <Expand class="inline mr-1" :size="14" /> {{ areaList }}
+                </p>
                 <p class="mt-1 text-sm text-gray-500">
                     <MapPin class="inline mr-1" :size="16" />{{ subscription.address }}
                 </p>
@@ -138,6 +145,12 @@
             </section>
         </div>
     </div>
+    <!-- 화면 오른쪽 하단 챗봇 플로팅 -->
+    <div class="fixed bottom-[78px] right-4 z-50">
+        <div class="bg-[#00AEFF] rounded-full p-3 shadow-lg">
+            <BotMessageSquare class="text-white" @click="goToChatbot" />
+        </div>
+    </div>
 </template>
 
 <script setup>
@@ -148,10 +161,14 @@ import {
     Calendar,
     TrainFront,
     GraduationCap,
+    Baby,
     Stethoscope,
     ShoppingBag,
     FileText,
     Building2,
+    Expand,
+    House,
+    ExpandIcon,
 } from 'lucide-vue-next'
 import { onMounted, ref, computed, nextTick, watchEffect } from 'vue'
 import api from '@/api/axios'
@@ -161,7 +178,10 @@ import PossibilitySection from '@/components/SubDetail/PossibilitySection.vue'
 import RankSection from '@/components/SubDetail/RankSection.vue'
 import { useFavoritesStore } from '@/stores/favorites'
 import { loadKakaoMapScript } from '@/utils/KakaoMapLoader'
+import { BotMessageSquare } from 'lucide-vue-next'
+import { useRouter } from 'vue-router'
 
+const router = useRouter()
 const route = useRoute()
 const favoritesStore = useFavoritesStore()
 const subscription = ref(null)
@@ -465,10 +485,13 @@ function badgeColor(label) {
     return 'bg-gray-100 text-gray-700'
 }
 
+const preferredOrder = ['의료 시설', '교통', '편의 시설', '학교', '유치원 · 어린이집']
+
 const iconMap = {
     subway: { title: '교통', icon: TrainFront, color: 'text-green-600' },
     bus: { title: '교통', icon: TrainFront, color: 'text-green-600' },
-    school: { title: '교육 시설', icon: GraduationCap, color: 'text-purple-600' },
+    school: { title: '학교', icon: GraduationCap, color: 'text-purple-600' },
+    kindergarten: { title: '유치원 · 어린이집', icon: Baby, color: 'text-purple-600' },
     hospital: { title: '의료 시설', icon: Stethoscope, color: 'text-red-500' },
     mart: { title: '편의 시설', icon: ShoppingBag, color: 'text-orange-500' },
 }
@@ -492,8 +515,10 @@ const facilityGroups = computed(() => {
         })
     })
 
-    // 2. 객체 → 배열 변환
-    return Object.values(grouped)
+    // 2. 객체 → 배열 변환 + 정렬
+    return Object.values(grouped).sort(
+        (a, b) => preferredOrder.indexOf(a.title) - preferredOrder.indexOf(b.title),
+    )
 })
 
 const formatToEok = (priceValue) => {
@@ -553,5 +578,9 @@ function walkingTimeFromKm(km) {
 
     const minutesPerKm = 12
     return Math.round(km * minutesPerKm)
+}
+
+const goToChatbot = () => {
+    router.push('/chatbot')
 }
 </script>

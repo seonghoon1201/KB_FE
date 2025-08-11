@@ -23,11 +23,14 @@
                         />
                     </button>
                 </div>
+                <!-- 수평선 -->
+                <div class="border-b border-gray-200 mb-3"></div>
                 <p class="text-sm text-gray-500">
-                    {{ subscription.house_dtl_secd_nm }} · {{ subscription.householdCount }}세대
+                    <House class="inline mr-1" :size="16" /> {{ subscription.house_dtl_secd_nm }} ·
+                    {{ subscription.householdCount }}세대
                 </p>
                 <p class="text-sm text-gray-500">
-                    {{ areaList }}
+                    <Expand class="inline mr-1" :size="14" /> {{ areaList }}
                 </p>
                 <p class="mt-1 text-sm text-gray-500">
                     <MapPin class="inline mr-1" :size="16" /> {{ subscription.address }}
@@ -83,6 +86,11 @@
                 </div>
             </section>
 
+            <!-- 나의 당첨 가능성 -->
+            <section class="px-4 mt-6">
+                <PossibilitySection />
+            </section>
+
             <!-- 버튼 그룹 -->
             <section class="px-4 mt-6 space-y-3">
                 <!-- 청약 신청 버튼 -->
@@ -128,6 +136,12 @@
             </section>
         </div>
     </div>
+    <!-- 화면 오른쪽 하단 챗봇 플로팅 -->
+    <div class="fixed bottom-[78px] right-4 z-50">
+        <div class="bg-[#00AEFF] rounded-full p-3 shadow-lg">
+            <BotMessageSquare class="text-white" @click="goToChatbot" />
+        </div>
+    </div>
 </template>
 
 <script setup>
@@ -140,12 +154,19 @@ import {
     Calendar,
     TrainFront,
     GraduationCap,
+    Baby,
     Stethoscope,
     ShoppingBag,
+    Expand,
+    House,
 } from 'lucide-vue-next'
+import PossibilitySection from '@/components/SubDetail/PossibilitySection.vue'
 import { loadKakaoMapScript } from '@/utils/KakaoMapLoader'
 import { useFavoritesStore } from '@/stores/favorites'
+import { BotMessageSquare } from 'lucide-vue-next'
+import { useRouter } from 'vue-router'
 
+const router = useRouter()
 const route = useRoute()
 const subscription = ref(null)
 const mapRef = ref(null)
@@ -321,9 +342,13 @@ function badgeColor(label) {
     return 'bg-gray-100 text-gray-700'
 }
 
+const preferredOrder = ['의료 시설', '교통', '편의 시설', '학교', '유치원 · 어린이집']
+
 const iconMap = {
     subway: { title: '교통', icon: TrainFront, color: 'text-green-600' },
-    school: { title: '교육 시설', icon: GraduationCap, color: 'text-purple-600' },
+    bus: { title: '교통', icon: TrainFront, color: 'text-green-600' },
+    school: { title: '학교', icon: GraduationCap, color: 'text-purple-600' },
+    kindergarten: { title: '유치원 · 어린이집', icon: Baby, color: 'text-purple-600' },
     hospital: { title: '의료 시설', icon: Stethoscope, color: 'text-red-500' },
     mart: { title: '편의 시설', icon: ShoppingBag, color: 'text-orange-500' },
 }
@@ -340,7 +365,9 @@ const facilityGroups = computed(() => {
             desc: `${(place.distance / 1000).toFixed(1)}km · 도보 ${walkingTimeFromKm(place.distance / 1000)}분`,
         })
     })
-    return Object.values(grouped)
+    return Object.values(grouped).sort(
+        (a, b) => preferredOrder.indexOf(a.title) - preferredOrder.indexOf(b.title),
+    )
 })
 
 function goToApply() {
@@ -363,5 +390,9 @@ function walkingTimeFromKm(km) {
 
     const minutesPerKm = 12
     return Math.round(km * minutesPerKm)
+}
+
+const goToChatbot = () => {
+    router.push('/chatbot')
 }
 </script>

@@ -5,6 +5,8 @@ const routes = [
     { path: '/', name: 'First', component: () => import('@/pages/auth/Login.vue') },
     // 홈 화면
     { path: '/home', name: 'Home', component: () => import('@/pages/home/Home.vue') },
+    // 챗봇 페이지
+    { path: '/chatbot', name: 'Chabot', component: () => import('@/pages/chatbot/Chatbot.vue') },
     // 선호 설정 화면
     {
         path: '/preference',
@@ -81,9 +83,9 @@ const routes = [
     },
     // 카카오 콜백
     {
-        path: '/v1/kakao/callback',
+        path: '/kakao/callback',
         name: 'KakaoLogin',
-        component: () => import('@/pages/auth/KakaoCallbackpage.vue'),
+        component: () => import('@/pages/auth/KakaoCallbackPage.vue'),
     },
     // 회원가입 화면
     {
