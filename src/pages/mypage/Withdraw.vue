@@ -35,25 +35,9 @@
                 삭제된 정보는 복구할 수 없으니 신중하게 결정해주세요.
             </p>
 
-            <!-- 비밀번호 입력 -->
-            <div class="mt-6">
-                <label for="password" class="text-sm font-medium text-gray-700"
-                    >비밀번호 확인</label
-                >
-                <input
-                    id="password"
-                    v-model="password"
-                    type="password"
-                    placeholder="비밀번호를 입력해 주세요."
-                    class="mt-2 w-full px-4 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
-                    :disabled="sending"
-                />
-            </div>
-
             <!-- 탈퇴 버튼 -->
             <button
                 type="button"
-                :disabled="!password || sending"
                 @click="isModalOpen = true"
                 class="mt-6 w-full py-2.5 rounded-md text-base font-semibold text-white transition bg-red-500 hover:bg-red-600 disabled:bg-gray-300 disabled:cursor-not-allowed"
             >
@@ -139,16 +123,12 @@ function handleAgain() {
 }
 
 async function handleWithdraw() {
-    if (!password.value) {
-        alert('비밀번호를 입력해주세요.')
-        return
-    }
     if (sending.value) return
 
     sending.value = true
     try {
         // 1) 회원탈퇴 API 호출 (DELETE /auth/signout + body)
-        await authApi.signout({ password: password.value })
+        await authApi.signout()
 
         // 2) 로컬 스토어 초기화 (토큰, 유저정보 삭제)
         await userStore.signout()
@@ -157,7 +137,8 @@ async function handleWithdraw() {
         router.replace('/login')
     } catch (err) {
         console.error('회원탈퇴 에러:', err)
-        alert(err.response?.data || '회원탈퇴에 실패했습니다.')
+        const msg = err.response?.data
+        alert(typeof msg === 'string' ? msg : msg?.message || '회원탈퇴에 실패했습니다.')
     } finally {
         sending.value = false
         isRealModalOpen.value = false

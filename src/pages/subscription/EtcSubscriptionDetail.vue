@@ -64,7 +64,7 @@
                     <div
                         v-for="item in scheduleItems"
                         :key="item.label"
-                        class="flex justify-between py-1"
+                        class="flex justify-between items-center py-1"
                     >
                         <div>
                             <p class="text-sm font-medium">{{ item.label }}</p>
@@ -140,6 +140,7 @@ import {
     Calendar,
     TrainFront,
     GraduationCap,
+    Baby,
     Stethoscope,
     ShoppingBag,
 } from 'lucide-vue-next'
@@ -246,26 +247,71 @@ function formatToEok(price) {
 
 function calcBadge(start, end) {
     if (!start || !end) return ''
+
     const today = new Date()
+    today.setHours(0, 0, 0, 0)
+
     const s = new Date(start.replace(/\./g, '-'))
     const e = new Date(end.replace(/\./g, '-'))
+    s.setHours(0, 0, 0, 0)
+    e.setHours(0, 0, 0, 0)
+
     if (today > e) return '마감'
-    if (today < s) return `D-${Math.ceil((e - today) / (1000 * 60 * 60 * 24))}`
+    if (today < s) {
+        const diff = Math.ceil((s - today) / (1000 * 60 * 60 * 24))
+        return `D-${diff}`
+    }
+    if (today.getTime() === e.getTime()) return '오늘 마감'
     return '진행중'
+}
+
+// 날짜 포맷 함수
+function formatDate(dateString) {
+    if (!dateString) return ''
+    const parts = dateString.split('-')
+    return parts.length === 3 ? `${parts[0]}.${parts[1]}.${parts[2]}` : dateString
 }
 
 const scheduleItems = computed(() => {
     const d = subscription.value
-    if (!d) return []
-    const text = (s, e) => (!s && !e ? '일정이 정해지지 않았습니다!' : `${s || '-'} ~ ${e || '-'}`)
+
+    // 변환할 날짜 필드 목록
+    const dateFields = [
+        'rcrit_pblanc_de',
+        'rcept_bgnde',
+        'rcept_endde',
+        'przwner_presnatn_de',
+        'cntrct_cncls_bgnde',
+        'cntrct_cncls_endde',
+    ]
+
+    // 날짜 필드 포맷팅
+    dateFields.forEach((key) => {
+        if (d[key]) d[key] = formatDate(d[key])
+    })
+
+    // 헬퍼 함수: 날짜 문자열 두 개가 null이면 안내 문구 반환
+    function makeDateText(start, end) {
+        if (!start && !end) return '일정이 정해지지 않았습니다!'
+        return `${start || '-'} ~ ${end || '-'}`
+    }
+
     return [
         {
             label: '청약 접수',
-            date: text(d.rcept_bgnde, d.rcept_endde),
+            date: makeDateText(d.rcept_bgnde, d.rcept_endde),
             badge: calcBadge(d.rcept_bgnde, d.rcept_endde),
         },
-        { label: '당첨자 발표', date: text(d.przwner_presnatn_de, d.przwner_presnatn_de) },
-        { label: '계약', date: text(d.cntrct_cncls_bgnde, d.cntrct_cncls_endde) },
+        {
+            label: '당첨자 발표',
+            date: makeDateText(d.przwner_presnatn_de, d.przwner_presnatn_de),
+            badge: calcBadge(d.przwner_presnatn_de, d.przwner_presnatn_de),
+        },
+        {
+            label: '계약',
+            date: makeDateText(d.cntrct_cncls_bgnde, d.cntrct_cncls_endde),
+            badge: calcBadge(d.cntrct_cncls_bgnde, d.cntrct_cncls_endde),
+        },
     ]
 })
 
@@ -276,9 +322,13 @@ function badgeColor(label) {
     return 'bg-gray-100 text-gray-700'
 }
 
+const preferredOrder = ['의료 시설', '교통', '편의 시설', '학교', '유치원 · 어린이집']
+
 const iconMap = {
     subway: { title: '교통', icon: TrainFront, color: 'text-green-600' },
-    school: { title: '교육 시설', icon: GraduationCap, color: 'text-purple-600' },
+    bus: { title: '교통', icon: TrainFront, color: 'text-green-600' },
+    school: { title: '학교', icon: GraduationCap, color: 'text-purple-600' },
+    kindergarten: { title: '유치원 · 어린이집', icon: Baby, color: 'text-purple-600' },
     hospital: { title: '의료 시설', icon: Stethoscope, color: 'text-red-500' },
     mart: { title: '편의 시설', icon: ShoppingBag, color: 'text-orange-500' },
 }
@@ -292,10 +342,12 @@ const facilityGroups = computed(() => {
         if (!grouped[meta.title]) grouped[meta.title] = { ...meta, items: [] }
         grouped[meta.title].items.push({
             name: place.place_name,
-            desc: `${(place.distance / 1000).toFixed(1)}km ·도보 ${walkingTimeFromKm(place.distance / 1000)}분`,
+            desc: `${(place.distance / 1000).toFixed(1)}km · 도보 ${walkingTimeFromKm(place.distance / 1000)}분`,
         })
     })
-    return Object.values(grouped)
+    return Object.values(grouped).sort(
+        (a, b) => preferredOrder.indexOf(a.title) - preferredOrder.indexOf(b.title),
+    )
 })
 
 function goToApply() {

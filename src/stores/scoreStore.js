@@ -71,12 +71,14 @@ export const useScoreStore = defineStore('score', {
                 this.houseDisposal === null ||
                 this.maritalStatus === null
             ) {
-                console.warn('[scoreStore] calculateScore skipped: missing inputs', {
-                    headOfHousehold: this.headOfHousehold,
-                    houseOwner: this.houseOwner,
-                    houseDisposal: this.houseDisposal,
-                    maritalStatus: this.maritalStatus,
-                })
+                if (import.meta.env.DEV) {
+                    console.log('[scoreStore] calculateScore skipped: missing inputs', {
+                        headOfHousehold: headOfHousehold.value,
+                        houseOwner: houseOwner.value,
+                        houseDisposal: houseDisposal.value,
+                        maritalStatus: maritalStatus.value,
+                    })
+                }
                 return
             }
 
