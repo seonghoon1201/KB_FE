@@ -369,7 +369,7 @@ const areaList = computed(() => {
     if (!types || types.length === 0) return ''
 
     // 면적만 추출
-    const areas = types.map((t) => parseFloat(t.SUPLY_AR || t.EXCLUSE_AR)).filter((a) => !isNaN(a))
+    const areas = types.map((t) => parseFloat(t.HOUSE_TY || t.EXCLUSE_AR)).filter((a) => !isNaN(a))
     if (areas.length === 0) return ''
 
     const min = Math.min(...areas)
