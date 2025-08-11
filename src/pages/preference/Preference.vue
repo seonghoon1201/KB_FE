@@ -63,21 +63,23 @@
         <!-- 선호 평수 -->
         <div class="mb-5">
             <label class="text-sm font-semibold text-gray-800 block mb-2"
-                >선호 평수 (복수 선택 가능)</label
+                >선호 평수 (1개만 선택 가능)</label
             >
             <div class="grid grid-cols-3 gap-2 text-sm">
                 <button
-                    v-for="option in areaOptions"
+                    v-for="option in formattedAreaOptions"
                     :key="option.value"
                     @click="toggleArea(option.value)"
                     :class="[
                         'px-3 py-2 rounded-full border',
-                        selectedAreas.includes(option.value)
+                        isSelected(option.value)
                             ? 'bg-primary text-white'
                             : 'bg-white text-gray-600',
                     ]"
                 >
-                    {{ option.label }}
+                    <span class="block text-center whitespace-pre-line leading-tight">
+                        {{ option.labelMultiline }}
+                    </span>
                 </button>
             </div>
         </div>
@@ -143,8 +145,7 @@ import BackHeader from '@/components/common/BackHeader.vue'
 import { usePreferenceStore } from '@/stores/preference'
 import { districts } from '@/data/districts'
 import { areaOptions } from '@/data/area'
-import api from '@/api/axios' 
-
+import api from '@/api/axios'
 
 const router = useRouter()
 const preferenceStore = usePreferenceStore()
@@ -156,6 +157,13 @@ const selectedDistrict = ref('')
 const selectedRegions = ref([])
 const filteredDistricts = computed(() => districts[selectedCity.value] || [])
 const showRegionError = ref(false)
+
+const formattedAreaOptions = computed(() =>
+    areaOptions.map((o) => ({
+        ...o,
+        labelMultiline: o.label.replace(' ', '\n'),
+    })),
+)
 
 const addSelectedRegion = () => {
     if (!selectedCity.value || !selectedDistrict.value) return
@@ -203,18 +211,14 @@ const removeSelectedRegion = (index) => {
     selectedRegions.value.splice(index, 1)
 }
 
-const selectedAreas = ref([])
+// 단일 선택
+const selectedArea = ref(null) // 예: [60, 85] 또는 null
+const equalsRange = (a, b) =>
+    Array.isArray(a) && Array.isArray(b) && a.length === b.length && a.every((v, i) => v === b[i])
+const isSelected = (val) => equalsRange(selectedArea.value, val)
 const toggleArea = (val) => {
-    const exists = selectedAreas.value.includes(val)
-    if (exists) {
-        selectedAreas.value = selectedAreas.value.filter((a) => a !== val)
-    } else {
-        selectedAreas.value.push(val)
-    }
-}
-
-const expandAreaRanges = (ranges) => {
-    return ranges.map((val) => Number(val))
+    // 같은 걸 다시 누르면 해제(원치 않으면 해제 로직 제거)
+    selectedArea.value = isSelected(val) ? null : val
 }
 
 const priceMin = ref(null)
@@ -230,47 +234,44 @@ const toggleType = (type) => {
     }
 }
 
-
 const onSubmit = async () => {
-  if (selectedRegions.value.length === 0) {
-    showRegionError.value = true
-    return
-  }
-  showRegionError.value = false
-
-  const expandedSizes = expandAreaRanges(selectedAreas.value)
-
-  // 1) 백엔드 스펙에 맞는 데이터 변환
-  const preferenceData = {
-    selected_homesize: expandedSizes.length > 0
-      ? [{
-          min_homesize: Math.min(...expandedSizes),
-          max_homesize: Math.max(...expandedSizes)
-        }]
-      : [],
-    selected_hometype: selectedTypes.value.map(t => ({
-      selected_house_secd: t
-    })),
-    selected_region: selectedRegions.value.map(r => ({
-      si: r.city,
-      gun_gu: r.district
-    })),
-    user_info: {
-      hope_min_price: priceMin.value || null,
-      hope_max_price: priceMax.value || null
+    if (selectedRegions.value.length === 0) {
+        showRegionError.value = true
+        return
     }
-  }
+    showRegionError.value = false
+    const preferenceData = {
+        selected_homesize: selectedArea.value
+            ? [
+                  {
+                      min_homesize: selectedArea.value[0],
+                      max_homesize: selectedArea.value[1],
+                  },
+              ]
+            : [],
+        selected_hometype: selectedTypes.value.map((t) => ({
+            selected_house_secd: t,
+        })),
+        selected_region: selectedRegions.value.map((r) => ({
+            si: r.city,
+            gun_gu: r.district,
+        })),
+        user_info: {
+            hope_min_price: priceMin.value || null,
+            hope_max_price: priceMax.value || null,
+        },
+    }
 
-  try {
-    // 2) API로 POST 요청
-    await api.post('/user/preferences', preferenceData)
+    try {
+        // 2) API로 POST 요청
+        await api.post('/user/preferences', preferenceData)
 
-    alert('설정이 저장되었습니다.')
-    router.push('/home')
-  } catch (error) {
-    console.error('선호 정보 저장 실패:', error)
-    alert('저장에 실패했습니다. 다시 시도해주세요.')
-  }
+        alert('설정이 저장되었습니다.')
+        router.push('/home')
+    } catch (error) {
+        console.error('선호 정보 저장 실패:', error)
+        alert('저장에 실패했습니다. 다시 시도해주세요.')
+    }
 }
 </script>
 

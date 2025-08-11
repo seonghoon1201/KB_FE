@@ -97,6 +97,12 @@
                     </div>
                 </div>
             </div>
+            <!-- 화면 오른쪽 하단 챗봇 플로팅 -->
+            <div class="fixed bottom-[78px] right-4 z-50">
+                <div class="bg-[#00AEFF] rounded-full p-3 shadow-lg">
+                    <BotMessageSquare class="text-white" @click="goToChatbot" />
+                </div>
+            </div>
         </main>
 
         <!-- 하단 네비게이션 바 -->
@@ -115,7 +121,10 @@ import SubscriptionCard from '@/components/subscription/SubscriptionCard.vue'
 import FullCalendar from '@fullcalendar/vue3'
 import dayGridPlugin from '@fullcalendar/daygrid'
 import interactionPlugin from '@fullcalendar/interaction'
+import { BotMessageSquare } from 'lucide-vue-next'
+import { useRouter } from 'vue-router'
 
+const router = useRouter()
 // 상태값(reactive/ref)
 const calendarRef = ref(null) // FullCalendar DOM 접근 ref
 const showCalendar = ref(true) // 월간 뷰(true)/주간 뷰(false)
@@ -275,6 +284,10 @@ watch(showCalendar, (val) => {
         calendarRef.value.getApi().render()
     }
 })
+
+const goToChatbot = () => {
+    router.push('/chatbot')
+}
 </script>
 <style>
 /* FullCalendar 스타일(월간 뷰) */
