@@ -136,6 +136,12 @@
             </section>
         </div>
     </div>
+    <!-- 화면 오른쪽 하단 챗봇 플로팅 -->
+    <div class="fixed bottom-[78px] right-4 z-50">
+        <div class="bg-[#00AEFF] rounded-full p-3 shadow-lg">
+            <BotMessageSquare class="text-white" @click="goToChatbot" />
+        </div>
+    </div>
 </template>
 
 <script setup>
@@ -157,7 +163,10 @@ import {
 import PossibilitySection from '@/components/SubDetail/PossibilitySection.vue'
 import { loadKakaoMapScript } from '@/utils/KakaoMapLoader'
 import { useFavoritesStore } from '@/stores/favorites'
+import { BotMessageSquare } from 'lucide-vue-next'
+import { useRouter } from 'vue-router'
 
+const router = useRouter()
 const route = useRoute()
 const subscription = ref(null)
 const mapRef = ref(null)
@@ -381,5 +390,9 @@ function walkingTimeFromKm(km) {
 
     const minutesPerKm = 12
     return Math.round(km * minutesPerKm)
+}
+
+const goToChatbot = () => {
+    router.push('/chatbot')
 }
 </script>
