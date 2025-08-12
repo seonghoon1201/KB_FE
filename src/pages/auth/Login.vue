@@ -65,6 +65,7 @@ import scoreApi from '@/api/scoreApi'
 import { useUserStore } from '@/stores/user'
 import { useAccountStore } from '@/stores/account'
 import { useScoreStore } from '@/stores/scoreStore'
+import { setupMessaging } from '@/firebase'
 
 const email = ref('')
 const password = ref('')
@@ -112,6 +113,16 @@ async function handleLogin() {
             scoreStore.setScore(res3.data)
         } catch (err) {
             console.error(err)
+        }
+
+        // fcm 토큰 저장
+        try {
+            const { token } = await setupMessaging(import.meta.env.VITE_VAPID_PUBLIC_KEY)
+            if (token) {
+                await authApi.notificationApi(token)
+            }
+        } catch (err) {
+            console.error('FCM 토큰 저장 실패:', err)
         }
 
         // ④ 홈으로 이동

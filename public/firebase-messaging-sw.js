@@ -14,7 +14,7 @@ self.addEventListener('activate', function (e) {
 const firebaseConfig = {
     apiKey: '',
     authDomain: '',
-    projectId: '',
+    projectId: 'zibi-b79d7',
     storageBucket: '',
     messagingSenderId: '274112151209',
     appId: '',
