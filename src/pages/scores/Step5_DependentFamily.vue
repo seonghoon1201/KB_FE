@@ -70,7 +70,16 @@
                         <span class="font-medium">무주택 부모 (배우자 부모 포함)</span>
                         <InfoTooltip title="부모 부양가족 기준">
                             <ul class="list-disc list-inside text-base text-gray-600 space-y-2">
-                                <li>...</li>
+                                <li>
+                                    본인 / 배우자의 부모님 모두 무주택이어야 해요. 또한
+                                    주민등록등본에 최근 3년 이상 등재되어 있어야 인정돼요. 부모님이
+                                    만 60세 이상이시라면 주택을 소유하셔도 부양가족으로 인정돼요
+                                </li>
+                                <li>
+                                    만 60세 이상 부모가 2주택 이상을 소유하신 경우, 1주택 초과
+                                    주택마다 5점씩 감점돼요<br />
+                                    ex) 2주택 소유: 5점 감점
+                                </li>
                             </ul>
                         </InfoTooltip>
                     </div>
@@ -85,8 +94,17 @@
                     <div class="flex items-center">
                         <span class="font-medium">자녀</span>
                         <InfoTooltip title="자녀 부양가족 기준">
-                            <ul class="list-disc list-inside text-base text-gray-600 space-y-2">
-                                <li>...</li>
+                            <ul>
+                                <li>
+                                    만 30세 미만의 미혼 자녀는 부양가족으로 인정돼요. 만 30세 이상의
+                                    미혼 자녀는 주민등록등본에 최근 1년 이상 등재되어 있어야
+                                    인정돼요
+                                </li>
+                                <li>
+                                    부양가족인 자녀가 2주택 이상을 소유한 경우, 소유 주택 수마다
+                                    5점씩 감점돼요<br />
+                                    ex) 2주택 소유: 10점 감점
+                                </li>
                             </ul>
                         </InfoTooltip>
                     </div>
@@ -101,7 +119,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useScoreStore } from '@/stores/scoreStore'
 import ScoreStepWrapper from '@/components/score/ScoreStepWrapper.vue'
@@ -115,6 +133,10 @@ const scoreStore = useScoreStore()
 const spouse = ref(0)
 const parents = ref(0)
 const children = ref(0)
+
+onMounted(() => {
+    spouse.value = Number(scoreStore.maritalStatus) === 1 ? 1 : 0
+})
 
 function next() {
     scoreStore.dependentsNm = spouse.value + parents.value + children.value
