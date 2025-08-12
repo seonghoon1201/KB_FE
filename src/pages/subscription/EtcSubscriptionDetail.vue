@@ -142,7 +142,7 @@
         </div>
     </div>
     <!-- 화면 오른쪽 하단 챗봇 플로팅 -->
-    <div class="fixed bottom-[78px] right-4 z-50">
+    <div class="fixed bottom-[16px] right-4 z-50">
         <div class="bg-[#00AEFF] rounded-full p-3 shadow-lg">
             <BotMessageSquare class="text-white" @click="goToChatbot" />
         </div>
