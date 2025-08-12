@@ -12,22 +12,22 @@
         <h2 class="text-2xl font-bold mb-6">반갑습니다!</h2>
 
         <!-- 폼 전체 -->
-        <form @submit.prevent="submit" class="flex flex-col gap-6 pb-10">
+        <form @submit.prevent="submit" class="flex flex-col w-full gap-6 pb-10">
             <!-- 이메일 -->
-            <div>
+            <div class="w-full">
                 <label class="text-base font-medium block mb-2">이메일</label>
-                <div class="flex gap-2 items-end">
+                <div class="w-full flex items-end">
                     <input
                         v-model="email"
                         type="email"
                         placeholder="이메일을 입력해 주세요."
-                        class="flex-1 border-b border-gray-300 py-2 text-base focus:outline-none"
+                        class="w-[80%] border-b border-gray-300 py-2 text-base focus:outline-none mr-4"
                     />
                     <!-- (1) 이메일 인증코드 전송 버튼 -->
                     <PrimaryButton
                         type="button"
                         :fullWidth="false"
-                        customClass="px-4 h-[36px] text-sm"
+                        customClass="w-[20%] px-4 h-[36px] text-sm"
                         :disabled="sending || !email"
                         @click="sendAuthCode"
                     >
@@ -44,14 +44,14 @@
                         v-model="code"
                         type="text"
                         placeholder="인증코드를 입력해 주세요."
-                        class="flex-1 border-b border-gray-300 py-2 text-base focus:outline-none"
+                        class="w-[80%] border-b border-gray-300 py-2 text-base focus:outline-none mr-4"
                         :disabled="!emailSent || verified"
                     />
                     <!-- (2) 인증코드 확인 버튼 -->
                     <PrimaryButton
                         type="button"
                         :fullWidth="false"
-                        customClass="px-4 h-[36px] text-sm"
+                        customClass="w-[20%] px-4 h-[36px] text-sm"
                         :disabled="verifying || !code || verified"
                         @click="verifyAuthCode"
                     >
