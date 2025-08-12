@@ -173,7 +173,7 @@
         </div>
     </div>
     <!-- 화면 오른쪽 하단 챗봇 플로팅 -->
-    <div class="fixed bottom-[78px] right-4 z-50">
+    <div class="fixed bottom-[16px] right-4 z-50">
         <div class="bg-[#00AEFF] rounded-full p-3 shadow-lg">
             <BotMessageSquare class="text-white" @click="goToChatbot" />
         </div>
@@ -209,7 +209,6 @@ import { BotMessageSquare } from 'lucide-vue-next'
 import { useRouter } from 'vue-router'
 // Font Awesome icon defs
 import {
-    faLocationDot,
     faMapPin, // 기준(청약) 마커용
 } from '@fortawesome/free-solid-svg-icons'
 
@@ -222,14 +221,11 @@ const mapRef = ref(null)
 const mapInstance = ref(null)
 const baseMarker = ref(null)
 const infraMarkers = ref([])
-const openInfoWindow = ref(null)
 const openMarker = ref(null)
 let lastMarkerClickAt = 0
-let didFitBounds = false // 초기 1번만 setBounds
-let userInteracted = false // 유저가 드래그/줌했는지
-const markerImageCache = {}
 
 const sharedInfoWindow = ref(null)
+const didFirstRender = ref(false) // 첫 draw 이후엔 뷰를 절대 건드리지 않음
 
 // 필터 상태: 'all' | 그룹 타이틀(의료 시설/교통/편의 시설/학교/유치원 · 어린이집)
 const infraFilter = ref('all')
@@ -272,9 +268,9 @@ function makeFAImage(iconDef, { size = 28, color = '#ef4444' } = {}) {
 
 // 타입별 아이콘/색 매핑
 const ICON_BY_TYPE = {
-    subway: { icon: faLocationDot, color: '#16a34a' }, //초록
-    bus: { icon: faLocationDot, color: '#16a34a' },
-    school: { icon: faLocationDot, color: '#9333ea' },
+    subway: { icon: faMapPin, color: '#16a34a' }, //초록
+    bus: { icon: faMapPin, color: '#16a34a' },
+    school: { icon: faMapPin, color: '#9333ea' },
     kindergarten: { icon: faMapPin, color: '#9333ea' },
     hospital: { icon: faMapPin, color: '#ef4444' },
     mart: { icon: faMapPin, color: '#f97316' },
@@ -359,7 +355,7 @@ async function initMap(lat, lng) {
         })
 
         // ✅ 공용 InfoWindow
-        sharedInfoWindow.value = new kakao.maps.InfoWindow({ removable: false })
+        sharedInfoWindow.value = new kakao.maps.InfoWindow({ removable: false, zIndex: 1000 })
 
         kakao.maps.event.addListener(map, 'click', () => {
             // closeOpenInfo()
@@ -386,41 +382,50 @@ function clearInfraMarkers() {
 }
 
 function drawInfraMarkers() {
-  const kakao = window.kakao
-  if (!mapInstance.value || !subscription.value?.infra_places) return
+    const kakao = window.kakao
+    if (!mapInstance.value || !subscription.value?.infra_places) return
 
-  clearInfraMarkers()
-  const bounds = new kakao.maps.LatLngBounds()
-  if (baseMarker.value) bounds.extend(baseMarker.value.getPosition())
+    //   clearInfraMarkers()
+    //   const bounds = new kakao.maps.LatLngBounds()
+    //   if (baseMarker.value) bounds.extend(baseMarker.value.getPosition())
 
-  subscription.value.infra_places.forEach((place) => {
-    const lat = Number(place.latitude)
-    const lng = Number(place.longitude)
-    if (!Number.isFinite(lat) || !Number.isFinite(lng)) return
+    // 👇 현재 뷰 저장 (필터 변경 시 복원)
+    const map = mapInstance.value
+    const prevCenter = map.getCenter()
+    const prevLevel = map.getLevel()
 
-    // 1) 카테고리 필터 (place_type 기준)
-    const types = filterKeyToTypes[infraFilter.value]
-    if (types && !types.includes(place.place_type)) return
+    clearInfraMarkers()
+    const bounds = new kakao.maps.LatLngBounds()
+    if (baseMarker.value) bounds.extend(baseMarker.value.getPosition())
 
-    const pos = new kakao.maps.LatLng(lat, lng)
+    subscription.value.infra_places.forEach((place) => {
+        const lat = Number(place.latitude)
+        const lng = Number(place.longitude)
+        if (!Number.isFinite(lat) || !Number.isFinite(lng)) return
 
-    // 2) 마커 이미지 (Font Awesome 매핑 사용!)
-    const meta = ICON_BY_TYPE[place.place_type] || { icon: faMapPin, color: '#3b82f6' }
-    const markerImage = makeFAImage(meta.icon, { size: 24, color: meta.color })
+        // 1) 카테고리 필터 (place_type 기준)
+        const types = filterKeyToTypes[infraFilter.value]
+        if (types && !types.includes(place.place_type)) return
 
-    const marker = new kakao.maps.Marker({
-      position: pos,
-      map: mapInstance.value,
-      image: markerImage,
-      title: place.place_name,
-      zIndex: 150,
-    })
+        const pos = new kakao.maps.LatLng(lat, lng)
 
-    // 3) InfoWindow
-    const km = Number(place.distance) / 1000
-    const kmText = Number.isFinite(km) ? km.toFixed(1) : '-'
-    const walk = walkingTimeFromKm(km)
-    const html = `
+        // 2) 마커 이미지 (Font Awesome 매핑 사용!)
+        const meta = ICON_BY_TYPE[place.place_type] || { icon: faMapPin, color: '#3b82f6' }
+        const markerImage = makeFAImage(meta.icon, { size: 24, color: meta.color })
+
+        const marker = new kakao.maps.Marker({
+            position: pos,
+            map: mapInstance.value,
+            image: markerImage,
+            title: place.place_name,
+            zIndex: 150,
+        })
+
+        // 3) InfoWindow
+        const km = Number(place.distance) / 1000
+        const kmText = Number.isFinite(km) ? km.toFixed(1) : '-'
+        const walk = walkingTimeFromKm(km)
+        const html = `
       <div style="padding:8px 10px; max-width:220px;">
         <div style="font-weight:700; font-size:13px; color:#111827; margin-bottom:2px;">
           ${place.place_name}
@@ -430,20 +435,37 @@ function drawInfraMarkers() {
         </div>
       </div>`
 
-    kakao.maps.event.addListener(marker, 'click', () => {
-      lastMarkerClickAt = Date.now()
-      if (openMarker.value === marker) { closeInfo(); return }
-      closeInfo()
-      sharedInfoWindow.value.setContent(html)
-      sharedInfoWindow.value.open(mapInstance.value, marker)
-      openMarker.value = marker
+        kakao.maps.event.addListener(marker, 'click', () => {
+            lastMarkerClickAt = Date.now()
+            if (openMarker.value === marker) {
+                closeInfo()
+                return
+            }
+            closeInfo()
+            sharedInfoWindow.value.setContent(html)
+            sharedInfoWindow.value.open(mapInstance.value, marker)
+            openMarker.value = marker
+        })
+
+        infraMarkers.value.push(marker)
+        // bounds.extend(pos)
     })
 
-    infraMarkers.value.push(marker)
-    bounds.extend(pos)
-  })
-
-  if (!bounds.isEmpty()) mapInstance.value.setBounds(bounds)
+    // if (!bounds.isEmpty()) mapInstance.value.setBounds(bounds)
+    // ✅ 뷰 유지/고정 규칙
+    if (!didFirstRender.value) {
+        // 첫 렌더: 청약 좌표를 확실히 중심으로
+        if (baseMarker.value) {
+            map.setCenter(baseMarker.value.getPosition())
+            // 필요하면 기본 확대 수준 고정 (주석 해제)
+            // map.setLevel(5)
+        }
+        didFirstRender.value = true
+    } else {
+        // 이후(필터 변경 등): 기존 뷰 그대로 복원
+        map.setCenter(prevCenter)
+        map.setLevel(prevLevel)
+    }
 }
 
 onMounted(async () => {
