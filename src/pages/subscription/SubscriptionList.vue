@@ -79,12 +79,17 @@
             </span>
 
             <!-- 평수 필터 -->
-            <span v-for="(range, index) in appliedFilters.squareMeters" :key="'area-' + index">
+            <div v-if="appliedFilters.squareMeters" class="flex flex-wrap gap-2">
                 <div class="flex items-center bg-green-100 text-green-700 px-2 py-1 rounded-full">
-                    <span>{{ range[0] }}~{{ range[1] }}㎡</span>
-                    <button class="ml-1 font-bold" @click="removeFilter('area', index)">✕</button>
+                    <span>
+                        {{ appliedFilters.squareMeters[0] }}㎡ ~
+                        {{ appliedFilters.squareMeters[1] }}㎡
+                        <!-- (선택) 평 단위도 함께 표시하려면 아래 주석 해제 -->
+                        <!-- · {{ toPyeong(appliedFilters.squareMeters).join(' ~ ') }}평 -->
+                    </span>
+                    <button class="ml-1 font-bold" @click="removeFilter('area')">✕</button>
                 </div>
-            </span>
+            </div>
 
             <!-- 가격 필터 -->
             <div
@@ -94,7 +99,7 @@
                 <span>
                     {{ appliedFilters.priceMin ? formatToEok(appliedFilters.priceMin) + '원' : '' }}
                     ~
-                    {{ appliedFilters.priceMax ? formatToEok(appliedFilters.priceMax)+ '원' : '' }}
+                    {{ appliedFilters.priceMax ? formatToEok(appliedFilters.priceMax) + '원' : '' }}
                 </span>
                 <button class="ml-1 font-bold" @click="removeFilter('price')">✕</button>
             </div>
@@ -104,7 +109,7 @@
         <SubscriptionFilterModal
             :visible="isFilterOpen"
             :selectedRegions="selectedRegions"
-            :selectedAreas="selectedAreas"
+            :selectedArea="selectedArea"
             :priceMin="priceMin"
             :priceMax="priceMax"
             :selectedCity="selectedCity"
@@ -141,6 +146,12 @@
             <ArrowUp class="w-5 h-5" />
         </button>
     </div>
+    <!-- 화면 오른쪽 하단 챗봇 플로팅 -->
+    <div class="fixed bottom-[78px] right-4 z-50">
+        <div class="bg-[#00AEFF] rounded-full p-3 shadow-lg">
+            <BotMessageSquare class="text-white" @click="goToChatbot" />
+        </div>
+    </div>
 </template>
 
 <script setup>
@@ -153,7 +164,10 @@ import { useSubscriptionsStore } from '@/stores/subscription'
 import { useFavoritesStore } from '@/stores/favorites'
 import { TrendingUp, Clock, ListFilter, ThumbsUp } from 'lucide-vue-next'
 import SubscriptionFilterModal from '@/components/modal/SubscriptionFilterModal.vue'
+import { BotMessageSquare } from 'lucide-vue-next'
+import { useRouter } from 'vue-router'
 
+const router = useRouter()
 const route = useRoute()
 const subscriptionsStore = useSubscriptionsStore()
 const favoritesStore = useFavoritesStore()
@@ -171,11 +185,11 @@ const showSortMenu = ref(false)
 
 const appliedFilters = ref({
     regions: [],
-    squareMeters: [],
+    squareMeters: null,
     priceMin: null,
     priceMax: null,
 })
-const selectedAreas = ref([])
+const selectedArea = ref(null)
 
 const props = defineProps({
     showExpired: { type: Boolean, default: false }, // 기본은 false
@@ -197,7 +211,9 @@ const toggleFilter = () => {
     if (!isFilterOpen.value) {
         // 기존 값 유지
         selectedRegions.value = [...appliedFilters.value.regions]
-        selectedAreas.value = [...appliedFilters.value.squareMeters]
+        selectedArea.value = appliedFilters.value.squareMeters
+            ? [...appliedFilters.value.squareMeters]
+            : null
         priceMin.value = appliedFilters.value.priceMin
         priceMax.value = appliedFilters.value.priceMax
         selectedCity.value = ''
@@ -206,42 +222,68 @@ const toggleFilter = () => {
     isFilterOpen.value = !isFilterOpen.value
 }
 const handleFilterUpdate = ({ field, value }) => {
-    if (field === 'selectedCity') selectedCity.value = value
-    else if (field === 'selectedDistrict') selectedDistrict.value = value
-    else if (field === 'selectedRegions') selectedRegions.value = value
-    else if (field === 'selectedAreas') selectedAreas.value = value
-    else if (field === 'priceMin') priceMin.value = value
-    else if (field === 'priceMax') priceMax.value = value
+  if (field === 'selectedCity') {
+    selectedCity.value = value
+  } else if (field === 'selectedDistrict') {
+    selectedDistrict.value = value
+  } else if (field === 'selectedRegions') {
+    selectedRegions.value = value
+  } else if (field === 'selectedArea') {
+    // ✅ null 또는 [min, max]로 강제 변환
+    if (Array.isArray(value) && value.length === 2) {
+      selectedArea.value = value.map(Number)
+    } else {
+      selectedArea.value = null
+    }
+  } else if (field === 'priceMin') {
+    priceMin.value = value
+  } else if (field === 'priceMax') {
+    priceMax.value = value
+  }
 }
 const removeFilter = (type, index) => {
     if (type === 'region') appliedFilters.value.regions.splice(index, 1)
-    else if (type === 'area') appliedFilters.value.squareMeters.splice(index, 1)
-    else if (type === 'price') {
+    else if (type === 'area') {
+        appliedFilters.value.squareMeters = null // ✅ 단일 범위이므로 null로 해제
+        selectedArea.value = null
+    } else if (type === 'price') {
         appliedFilters.value.priceMin = null
         appliedFilters.value.priceMax = null
     }
 }
+// ✅ helper: 단일 선택된 평수 값을 [min, max] 배열로 정규화
+const normalizeAreaRange = (val) => {
+    if (!val) return null // '', null, undefined => 해제
+    if (Array.isArray(val)) return val.map(Number) // [10,20]
+    if (typeof val === 'string') {
+        const arr = val
+            .split(',')
+            .map((s) => Number(s.trim()))
+            .filter((n) => !Number.isNaN(n))
+        return arr.length ? arr : null // '10,20'
+    }
+    return null
+}
 
-// 필터 적용 부분
+// ✅ 필터 적용
 const applyFilters = () => {
-    const parsedAreas = selectedAreas.value.map((val) =>
-        typeof val === 'string' ? val.split(',').map(Number) : val,
-    )
+    const v = selectedArea.value
+    const normalized = Array.isArray(v) && v.length === 2 ? v.map(Number) : null
     appliedFilters.value = {
-        regions: selectedRegions.value.map((r) => {
-            if (typeof r === 'string') {
-                const [city, district] = r.split(' ')
-                return { city, district: district || '__all__' }
-            }
-            return r
-        }),
-        squareMeters: parsedAreas,
-        priceMin: priceMin.value,
-        priceMax: priceMax.value,
+        regions: selectedRegions.value.map((r) =>
+            typeof r === 'string'
+                ? (() => {
+                      const [city, district] = r.split(' ')
+                      return { city, district: district || '__all__' }
+                  })()
+                : r,
+        ),
+        squareMeters: normalized, // ✅ 항상 null 또는 [min,max]
+        priceMin: priceMin.value ?? null,
+        priceMax: priceMax.value ?? null,
     }
     isFilterOpen.value = false
 }
-
 // --- 최종 목록 계산 ---
 const finalSubscriptions = computed(() => {
     if (!subscriptionsStore.subscriptions || subscriptionsStore.subscriptions.length === 0)
@@ -290,14 +332,17 @@ const finalSubscriptions = computed(() => {
         )
     }
 
-    // 3. 면적 필터
-    if (appliedFilters.value.squareMeters.length > 0) {
+    // 3. 면적 필터 (수정)
+    const range = appliedFilters.value.squareMeters
+
+    if (Array.isArray(range) && range.length === 2) {
+        const [rangeMin, rangeMax] = range.map(Number)
+
         result = result.filter((item) => {
             const min = Number(item.min_area) || 0
             const max = Number(item.max_area) || 0
-            return appliedFilters.value.squareMeters.some(
-                ([rangeMin, rangeMax]) => max >= rangeMin && min <= rangeMax,
-            )
+            // 공고의 [min, max]가 선택 범위와 겹치면 통과
+            return max >= rangeMin && min <= rangeMax
         })
     }
 
@@ -368,7 +413,8 @@ const formatToEok = (priceValue) => {
 const hasActiveFilters = computed(
     () =>
         appliedFilters.value.regions.length > 0 ||
-        appliedFilters.value.squareMeters.length > 0 ||
+        (Array.isArray(appliedFilters.value.squareMeters) &&
+            appliedFilters.value.squareMeters.length === 2) || // ✅
         appliedFilters.value.priceMin !== null ||
         appliedFilters.value.priceMax !== null,
 )
@@ -392,4 +438,8 @@ onMounted(() => {
     window.addEventListener('scroll', handleScroll)
 })
 onUnmounted(() => window.removeEventListener('scroll', handleScroll))
+
+const goToChatbot = () => {
+    router.push('/chatbot')
+}
 </script>

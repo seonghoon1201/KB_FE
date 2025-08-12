@@ -117,7 +117,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useScoreStore } from '@/stores/scoreStore'
 import ScoreStepWrapper from '@/components/score/ScoreStepWrapper.vue'
@@ -132,6 +132,14 @@ const scoreStore = useScoreStore()
 const spouse = ref(0) // 배우자: 1 or 0
 const parents = ref(0) // 부모 수
 const children = ref(0) // 자녀 수
+
+onMounted(() => {
+    if (scoreStore.maritalStatus === 1) {
+        spouse.value = 1 // 혼인했으면 O
+    } else {
+        spouse.value = 0 // 혼인 안했으면 X
+    }
+})
 
 async function next() {
     const total = spouse.value + parents.value + children.value

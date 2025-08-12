@@ -1,3 +1,4 @@
+<!-- 오피스텔 상세 페이지 -->
 <template>
     <div class="bg-gray-50 min-h-screen pt-12">
         <BackHeader title="오피스텔 상세" />
@@ -88,7 +89,11 @@
 
             <!-- 나의 당첨 가능성 -->
             <section class="px-4 mt-6">
-                <PossibilitySection />
+                <PossibilitySection
+                    :pblanc-no="String(subscription.pblanc_no || route.params.id)"
+                    :title="subscription.house_nm"
+                    :house-type="subscription.type"
+                />
             </section>
 
             <!-- 버튼 그룹 -->
@@ -136,6 +141,12 @@
             </section>
         </div>
     </div>
+    <!-- 화면 오른쪽 하단 챗봇 플로팅 -->
+    <div class="fixed bottom-[16px] right-4 z-50">
+        <div class="bg-[#00AEFF] rounded-full p-3 shadow-lg">
+            <BotMessageSquare class="text-white" @click="goToChatbot" />
+        </div>
+    </div>
 </template>
 
 <script setup>
@@ -157,7 +168,10 @@ import {
 import PossibilitySection from '@/components/SubDetail/PossibilitySection.vue'
 import { loadKakaoMapScript } from '@/utils/KakaoMapLoader'
 import { useFavoritesStore } from '@/stores/favorites'
+import { BotMessageSquare } from 'lucide-vue-next'
+import { useRouter } from 'vue-router'
 
+const router = useRouter()
 const route = useRoute()
 const subscription = ref(null)
 const mapRef = ref(null)
@@ -381,5 +395,9 @@ function walkingTimeFromKm(km) {
 
     const minutesPerKm = 12
     return Math.round(km * minutesPerKm)
+}
+
+const goToChatbot = () => {
+    router.push('/chatbot')
 }
 </script>

@@ -77,11 +77,12 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { User } from 'lucide-vue-next'
 import { useScoreStore } from '@/stores/scoreStore'
 import { useAccountStore } from '@/stores/account'
+import { useRankStore } from '@/stores/rank'
 import rankApi from '@/api/rankApi'
 import CommonModal from '@/components/modal/CommonModal.vue'
 
@@ -91,6 +92,7 @@ const pblancNo = route.params.id
 
 const scoreStore = useScoreStore()
 const accountStore = useAccountStore()
+const rankStore = useRankStore()
 
 const isCalculated = ref(false)
 const rankData = ref([])
@@ -100,6 +102,19 @@ const showModal = ref(false)
 // 조건 확인용 computed
 const isAccountReady = computed(() => accountStore.isRegistered)
 const isScoreReady = computed(() => scoreStore.isCalculated)
+
+// // 새로고침/재방문 시 기존 저장된 순위 복원
+// onMounted(() => {
+//     rankStore.loadFromLocal(pblancNo)
+//     const saved = rankStore.byPblancNo[pblancNo]
+//     if (saved?.rankByArea) {
+//         rankData.value = Object.entries(saved.rankByArea).map(([area, rank]) => ({
+//             area,
+//             rank_name: rank,
+//         }))
+//         isCalculated.value = true
+//     }
+// })
 
 async function calculateRank() {
     // 조건 불충족 시 모달 띄움
@@ -118,6 +133,12 @@ async function calculateRank() {
         }))
 
         isCalculated.value = true
+
+        // ✅ 스토어에 원본/베스트 순위 저장 (localStorage 포함)
+        rankStore.setRankByArea(pblancNo, raw)
+
+        const bestRankToSend = rankStore.getBestRank(pblancNo) // '1순위' 등
+        console.log('[대표 순위]', bestRankToSend, rankStore.getSummary(pblancNo))
     } catch (err) {
         console.error('[순위 계산 실패]', err)
     }
@@ -126,6 +147,7 @@ async function calculateRank() {
 function resetRank() {
     isCalculated.value = false
     rankData.value = []
+    rankStore.resetRank(pblancNo)
 }
 
 // 모달 내 이동 버튼

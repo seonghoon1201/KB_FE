@@ -15,6 +15,12 @@
                 />
             </div>
         </div>
+        <!-- 화면 오른쪽 하단 챗봇 플로팅 -->
+        <div class="fixed bottom-[78px] right-4 z-50">
+            <div class="bg-[#00AEFF] rounded-full p-3 shadow-lg">
+                <BotMessageSquare class="text-white" @click="goToChatbot" />
+            </div>
+        </div>
         <BottomNavbar />
     </div>
 </template>
@@ -25,6 +31,10 @@ import BackHeader from '@/components/common/BackHeader.vue'
 import BottomNavbar from '@/components/common/BottomNavbar.vue'
 import SubscriptionCard from '@/components/subscription/SubscriptionCard.vue'
 import recentApi from '@/api/recentApi'
+import { BotMessageSquare } from 'lucide-vue-next'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
 
 const recentSubscriptions = ref([])
 
@@ -32,4 +42,8 @@ onMounted(async () => {
     recentSubscriptions.value = await recentApi.getRecentView()
     console.log('data : ', recentSubscriptions.value)
 })
+
+const goToChatbot = () => {
+    router.push('/chatbot')
+}
 </script>
