@@ -180,6 +180,11 @@ import { useFavoritesStore } from '@/stores/favorites'
 import { loadKakaoMapScript } from '@/utils/KakaoMapLoader'
 import { BotMessageSquare } from 'lucide-vue-next'
 import { useRouter } from 'vue-router'
+// Font Awesome icon defs
+import {
+    faCartShopping,
+    faMapPin, // 기준(청약) 마커용
+} from '@fortawesome/free-solid-svg-icons'
 
 const router = useRouter()
 const route = useRoute()
@@ -198,6 +203,35 @@ let userInteracted = false // 유저가 드래그/줌했는지
 const markerImageCache = {}
 
 const sharedInfoWindow = ref(null)
+
+// FA 아이콘을 SVG data URL로 변환
+function faToSvgDataUrl(iconDef, { size = 28, color = '#ef4444' } = {}) {
+    const [w, h, , , d] = iconDef.icon
+    const svg = `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" width="${size}" height="${size}">
+      <path d="${d}" fill="${color}"/>
+    </svg>`
+    return 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg)
+}
+
+// Kakao MarkerImage 생성 (앵커: 아래 중앙)
+function makeFAImage(iconDef, { size = 28, color = '#ef4444' } = {}) {
+    const kakao = window.kakao
+    const url = faToSvgDataUrl(iconDef, { size, color })
+    return new kakao.maps.MarkerImage(url, new kakao.maps.Size(size, size), {
+        offset: new kakao.maps.Point(size / 2, size),
+    })
+}
+
+// 타입별 아이콘/색 매핑
+const ICON_BY_TYPE = {
+    subway: { icon: faMapPin, color: '#16a34a' },
+    bus: { icon: faMapPin, color: '#16a34a' },
+    school: { icon: faMapPin, color: '#9333ea' },
+    kindergarten: { icon: faMapPin, color: '#9333ea' },
+    hospital: { icon: faMapPin, color: '#ef4444' },
+    mart: { icon: faMapPin, color: '#f97316' },
+}
 
 function closeInfo() {
     if (sharedInfoWindow.value) sharedInfoWindow.value.close()
@@ -278,7 +312,7 @@ function overlayHtml(place) {
     return `
     <div class="customoverlay">
       <div class="co-title">${place.place_name}</div>
-      <div class="co-sub">${km}km · ${addr}</div>
+      <div class="co-sub">${km}km · 도보 ${minutesPerKm(km)}분</div>
     </div>`
 }
 
@@ -296,10 +330,10 @@ async function initMap(lat, lng) {
         })
         mapInstance.value = map
 
-        // 단지(기준) 마커
         baseMarker.value = new kakao.maps.Marker({
             map,
             position: new kakao.maps.LatLng(lat, lng),
+            zIndex: 200, // 인프라/POI 위
         })
 
         // ✅ 공용 InfoWindow
@@ -321,14 +355,6 @@ async function initMap(lat, lng) {
         // 주변 시설 마커 그리기
         drawInfraMarkers()
     })
-}
-
-function closeOpenInfo() {
-    if (openInfoWindow.value) {
-        openInfoWindow.value.close()
-        openInfoWindow.value = null
-        openMarker.value = null
-    }
 }
 
 function clearInfraMarkers() {
@@ -353,13 +379,9 @@ function drawInfraMarkers() {
 
         const pos = new kakao.maps.LatLng(lat, lng)
 
-        // ✔ 기본 핀: Kakao 샘플 정석 사이즈/오프셋 (중요!)
-        const url = 'https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/marker_red.png'
-        const markerImage = new kakao.maps.MarkerImage(
-            url,
-            new kakao.maps.Size(30, 34), // ← 실제 크기
-            { offset: new kakao.maps.Point(27, 69) }, // ← 핀 끝이 좌표에 딱 맞음
-        )
+        // (새) Font Awesome 아이콘으로 이미지 생성
+        const meta = ICON_BY_TYPE[place.place_type] || { icon: faCartShopping, color: '#3b82f6' }
+        const markerImage = makeFAImage(meta.icon, { size: 24, color: meta.color })
 
         const marker = new kakao.maps.Marker({
             position: pos,
@@ -369,13 +391,13 @@ function drawInfraMarkers() {
         })
 
         // InfoWindow 내용 (여기서 배경/라운드 직접 넣어주면 '배경 없음' 문제 회피)
-   const html = `
+        const html = `
      <div style="padding:8px 10px; max-width:220px;">
        <div style="font-weight:700; font-size:13px; color:#111827; margin-bottom:2px;">
          ${place.place_name}
        </div>
        <div style="font-size:12px; color:#6b7280;">
-         ${(Number(place.distance)/1000).toFixed(1)}km · ${place.road_address_name ?? ''}
+         ${(Number(place.distance) / 1000).toFixed(1)}km · 도보 ${walkingTimeFromKm(place.distance / 1000) ?? ''}분
        </div>
      </div>`
 
