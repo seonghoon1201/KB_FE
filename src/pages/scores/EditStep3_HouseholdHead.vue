@@ -8,7 +8,10 @@
         <div class="flex items-center mb-6">
             <h2 class="text-lg font-bold">본인이 세대주이신가요?</h2>
             <InfoTooltip title="세대주 기준">
-                <!-- …tooltip 내용… -->
+                <ul class="text-base list-disc list-inside text-gray-600 space-y-2">
+                    <li>주민등록본상 가족 구성원의 대표를 세대주라고 해요</li>
+                    <li>세대주를 제외한 구성원은 모두 세대원이에요</li>
+                </ul>
             </InfoTooltip>
         </div>
 
