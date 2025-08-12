@@ -30,7 +30,8 @@ coverage
 *.tsbuildinfo
 
 # .env
-*.env
+.env.production
+.env.development
 
 # myMemo
 .myMemo
