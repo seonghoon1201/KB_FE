@@ -195,6 +195,92 @@ const openMarker = ref(null)
 let lastMarkerClickAt = 0
 let didFitBounds = false // 초기 1번만 setBounds
 let userInteracted = false // 유저가 드래그/줌했는지
+const markerImageCache = {}
+
+const sharedInfoWindow = ref(null)
+
+function closeInfo() {
+    if (sharedInfoWindow.value) sharedInfoWindow.value.close()
+    openMarker.value = null
+}
+
+const typeStyleMap = {
+    subway: { color: '#16a34a', label: TrainFront }, // green-600
+    bus: { color: '#16a34a', label: TrainFront },
+    school: { color: '#9333ea', label: '🎓' }, // purple-600
+    kindergarten: { color: '#9333ea', label: '👶' },
+    hospital: { color: '#ef4444', label: '＋' }, // red-500
+    mart: { color: '#f97316', label: '🛒' }, // orange-500
+}
+
+// 필요시 이모지 대신 'S','B','H','M' 등 한 글자 라벨로 바꿔도 OK
+function makePinSVG({ color, label }) {
+    // 32x40 핀 (오프셋 하단 중앙)
+    return `
+  <svg xmlns="http://www.w3.org/2000/svg" width="32" height="40" viewBox="0 0 32 40">
+    <path d="M16 0c6.6 0 12 5.4 12 12 0 9-12 28-12 28S4 21 4 12C4 5.4 9.4 0 16 0z" fill="${color}"/>
+    <circle cx="16" cy="12" r="8" fill="white"/>
+    <text x="16" y="16" text-anchor="middle" font-size="12" font-family="system-ui, -apple-system, Segoe UI, Roboto" fill="${color}" font-weight="700">${label}</text>
+  </svg>`
+}
+
+// 파일 상단 helpers 근처에 추가
+const markerImgCache = {}
+const typeColorKey = {
+    subway: 'red',
+    bus: 'red',
+    school: 'red',
+    kindergarten: 'red',
+    hospital: 'red',
+    mart: 'red',
+    default: 'red',
+}
+
+function getDefaultMarkerImage(colorKey = 'blue') {
+    const kakao = window.kakao
+    const key = `marker-${colorKey}`
+    if (markerImgCache[key]) return markerImgCache[key]
+
+    const filenameByColor = {
+        red: 'marker_red.png',
+        blue: 'marker_blue.png',
+        green: 'marker_green.png',
+        orange: 'marker_orange.png',
+        purple: 'marker_purple.png',
+        yellow: 'marker_yellow.png',
+    }
+    const filename = filenameByColor[colorKey] || filenameByColor.blue
+    const url = `https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/${filename}`
+
+    // 기본 핀 사이즈/앵커 (너무 크면 size만 줄여도 됩니다)
+    const size = new kakao.maps.Size(30, 35)
+    const offset = new kakao.maps.Point(16, 46)
+
+    const image = new kakao.maps.MarkerImage(url, size, { offset })
+    markerImgCache[key] = image
+    return image
+}
+
+// refs 근처에 추가
+const activeOverlay = ref(null)
+
+function closeOverlay() {
+    if (activeOverlay.value) {
+        activeOverlay.value.setMap(null)
+        activeOverlay.value = null
+    }
+}
+
+// 클릭 시 보여줄 오버레이 HTML (원하면 스타일 수정)
+function overlayHtml(place) {
+    const km = (Number(place.distance) / 1000).toFixed(1)
+    const addr = place.road_address_name || ''
+    return `
+    <div class="customoverlay">
+      <div class="co-title">${place.place_name}</div>
+      <div class="co-sub">${km}km · ${addr}</div>
+    </div>`
+}
 
 async function initMap(lat, lng) {
     const kakao = await loadKakaoMapScript()
@@ -216,14 +302,20 @@ async function initMap(lat, lng) {
             position: new kakao.maps.LatLng(lat, lng),
         })
 
+        // ✅ 공용 InfoWindow
+        sharedInfoWindow.value = new kakao.maps.InfoWindow({ removable: false })
+
         kakao.maps.event.addListener(map, 'click', () => {
-            closeOpenInfo()
+            // closeOpenInfo()
         })
 
         kakao.maps.event.addListener(map, 'click', () => {
             // 마커 클릭 직후엔 무시 (버블/타이밍 이슈 방지)
-            if (Date.now() - lastMarkerClickAt < 180) return
-            closeOpenInfo()
+            if (Date.now() - lastMarkerClickAt < 150) return
+            // closeOverlay()
+            closeInfo()
+            openMarker.value = null
+            // closeOpenInfo()
         })
 
         // 주변 시설 마커 그리기
@@ -240,8 +332,7 @@ function closeOpenInfo() {
 }
 
 function clearInfraMarkers() {
-    closeOpenInfo()
-    if (!infraMarkers.value) return
+    closeOverlay()
     infraMarkers.value.forEach((m) => m.setMap(null))
     infraMarkers.value = []
 }
@@ -250,22 +341,10 @@ function drawInfraMarkers() {
     const kakao = window.kakao
     if (!mapInstance.value || !subscription.value?.infra_places) return
 
+    // 기존 clear + bounds 로직 유지
     clearInfraMarkers()
-
     const bounds = new kakao.maps.LatLngBounds()
-
-    // 기준 마커도 bounds에 포함
     if (baseMarker.value) bounds.extend(baseMarker.value.getPosition())
-
-    // 타입별 아이콘(원하면 커스텀 마커 이미지 사용)
-    const markerIconByType = {
-        subway: 'https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png',
-        bus: 'https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png',
-        hospital: null,
-        mart: null,
-        school: null,
-        kindergarten: null,
-    }
 
     subscription.value.infra_places.forEach((place) => {
         const lat = Number(place.latitude)
@@ -274,13 +353,13 @@ function drawInfraMarkers() {
 
         const pos = new kakao.maps.LatLng(lat, lng)
 
-        // (선택) 커스텀 이미지
-        let markerImage = undefined
-        const iconUrl = markerIconByType[place.place_type]
-        if (iconUrl) {
-            const imageSize = new kakao.maps.Size(24, 35)
-            markerImage = new kakao.maps.MarkerImage(iconUrl, imageSize)
-        }
+        // ✔ 기본 핀: Kakao 샘플 정석 사이즈/오프셋 (중요!)
+        const url = 'https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/marker_red.png'
+        const markerImage = new kakao.maps.MarkerImage(
+            url,
+            new kakao.maps.Size(30, 34), // ← 실제 크기
+            { offset: new kakao.maps.Point(27, 69) }, // ← 핀 끝이 좌표에 딱 맞음
+        )
 
         const marker = new kakao.maps.Marker({
             position: pos,
@@ -289,41 +368,35 @@ function drawInfraMarkers() {
             title: place.place_name,
         })
 
+        // InfoWindow 내용 (여기서 배경/라운드 직접 넣어주면 '배경 없음' 문제 회피)
+   const html = `
+     <div style="padding:8px 10px; max-width:220px;">
+       <div style="font-weight:700; font-size:13px; color:#111827; margin-bottom:2px;">
+         ${place.place_name}
+       </div>
+       <div style="font-size:12px; color:#6b7280;">
+         ${(Number(place.distance)/1000).toFixed(1)}km · ${place.road_address_name ?? ''}
+       </div>
+     </div>`
+
         kakao.maps.event.addListener(marker, 'click', () => {
-            // 같은 마커 다시 클릭 → 닫기(토글)
             lastMarkerClickAt = Date.now()
-            // 같은 마커 재클릭 → 닫기
             if (openMarker.value === marker) {
-                closeOpenInfo()
+                // 같은 마커 재클릭 → 닫기
+                closeInfo()
                 return
             }
-            // 다른 마커 → 기존 닫고 새로 열기
-            closeOpenInfo()
-            infowindow.open(mapInstance.value, marker)
-            openInfoWindow.value = infowindow
+            closeInfo()
+            sharedInfoWindow.value.setContent(html)
+            sharedInfoWindow.value.open(mapInstance.value, marker)
             openMarker.value = marker
-        })
-
-        // (선택) 인포윈도우
-        const iwContent = `<div style="padding:6px 10px; font-size:12px;">
-        <div style="font-weight:600;">${place.place_name}</div>
-        <div>${(place.distance / 1000).toFixed(1)}km</div>
-        <div style="color:#666;">${place.road_address_name ?? ''}</div>
-      </div>`
-        const infowindow = new kakao.maps.InfoWindow({ content: iwContent })
-
-        kakao.maps.event.addListener(marker, 'click', () => {
-            infowindow.open(mapInstance.value, marker)
         })
 
         infraMarkers.value.push(marker)
         bounds.extend(pos)
     })
 
-    // 화면에 모두 보이도록 맞춤 (마커가 하나뿐이어도 OK)
-    if (!bounds.isEmpty()) {
-        mapInstance.value.setBounds(bounds)
-    }
+    if (!bounds.isEmpty()) mapInstance.value.setBounds(bounds)
 }
 
 onMounted(async () => {
