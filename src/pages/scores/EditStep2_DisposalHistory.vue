@@ -7,7 +7,10 @@
         <div class="flex items-center mb-6">
             <h2 class="text-lg font-bold">주택 혹은 분양권을 처분한 적이 있나요?</h2>
             <InfoTooltip title="주택 및 분양권 처분 내역">
-                <!-- …tooltip 내용… -->
+                <p>
+                    <strong>5년 이내</strong> 주택 또는 분양권을 처분한 이력이 있다면 불이익이 있을
+                    수 있어요.
+                </p>
             </InfoTooltip>
         </div>
 

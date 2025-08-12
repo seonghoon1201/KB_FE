@@ -1,3 +1,4 @@
+<!-- 아파트 상세 페이지 -->
 <template>
     <div class="bg-gray-50 min-h-screen pt-12">
         <!-- 상단 헤더 -->
@@ -96,8 +97,12 @@
             </section>
 
             <!-- 나의 당첨 가능성 -->
-            <section class="px-4 mt-6">
-                <PossibilitySection />
+            <section class="px-4 mt-6" v-if="subscription">
+                <PossibilitySection
+                    :pblanc-no="String(subscription.pblanc_no || route.params.id)"
+                    :title="subscription.house_nm"
+                    :house-type="subscription.type"
+                />
             </section>
 
             <!-- 버튼 그룹 -->
