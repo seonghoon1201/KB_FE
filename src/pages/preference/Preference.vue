@@ -108,22 +108,22 @@
 
         <!-- 주택 유형 -->
         <div class="mb-6">
-            <label class="text-sm font-semibold text-gray-800 block mb-2"
-                >주택 유형 (복수 선택 가능)</label
-            >
+            <label class="text-sm font-semibold text-gray-800 block mb-2">
+                주택 유형 (복수 선택 가능)
+            </label>
             <div class="grid grid-cols-3 gap-2 text-sm">
                 <button
                     v-for="type in houseTypes"
-                    :key="type"
-                    @click="toggleType(type)"
+                    :key="type.value"
+                    @click="toggleType(type.value)"
                     :class="[
                         'px-3 py-2 rounded-full border',
-                        selectedTypes.includes(type)
+                        selectedTypes.includes(type.value)
                             ? 'bg-primary text-white'
                             : 'bg-white text-gray-600',
                     ]"
                 >
-                    {{ type }}
+                    {{ type.label }}
                 </button>
             </div>
         </div>
@@ -224,13 +224,16 @@ const toggleArea = (val) => {
 const priceMin = ref(null)
 const priceMax = ref(null)
 
-const houseTypes = ['아파트', '오피스텔', '도시형 생활주택']
+const houseTypes = [
+    { label: '아파트', value: 'APT' },
+    { label: '오피스텔', value: '오피스텔' },
+]
 const selectedTypes = ref([])
-const toggleType = (type) => {
-    if (selectedTypes.value.includes(type)) {
-        selectedTypes.value = selectedTypes.value.filter((v) => v !== type)
+const toggleType = (value) => {
+    if (selectedTypes.value.includes(value)) {
+        selectedTypes.value = selectedTypes.value.filter((v) => v !== value)
     } else {
-        selectedTypes.value.push(type)
+        selectedTypes.value.push(value)
     }
 }
 
