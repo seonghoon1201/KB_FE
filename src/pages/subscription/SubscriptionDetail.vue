@@ -170,7 +170,7 @@ import {
     House,
     ExpandIcon,
 } from 'lucide-vue-next'
-import { onMounted, ref, computed, nextTick, watchEffect } from 'vue'
+import { onMounted, ref, computed, nextTick, watch, watchEffect } from 'vue'
 import api from '@/api/axios'
 import { useRoute } from 'vue-router'
 import BackHeader from '@/components/common/BackHeader.vue'
@@ -187,56 +187,15 @@ const favoritesStore = useFavoritesStore()
 const subscription = ref(null)
 const loading = ref(true)
 const mapRef = ref(null)
+const mapInstance = ref(null)
+const baseMarker = ref(null)
+const infraMarkers = ref([])
+const openInfoWindow = ref(null)
+const openMarker = ref(null)
+let lastMarkerClickAt = 0
+let didFitBounds = false // 초기 1번만 setBounds
+let userInteracted = false // 유저가 드래그/줌했는지
 
-// // 지도 초기화 함수
-// async function initMap(address) {
-//     const kakao = await loadKakaoMapScript()
-//     await nextTick()
-
-//     kakao.maps.load(() => {
-//         if (!mapRef.value) return
-
-//         const geocoder = new kakao.maps.services.Geocoder()
-//         const cleanAddress = normalizeAddress(address)
-//         console.log('주소 검색 시작:', cleanAddress)
-
-//         const map = new kakao.maps.Map(mapRef.value, {
-//             center: new kakao.maps.LatLng(36.5, 127.5),
-//             level: 5,
-//         })
-
-//         geocoder.addressSearch(cleanAddress, function (result, status) {
-//             if (status === kakao.maps.services.Status.OK) {
-//                 const coords = new kakao.maps.LatLng(result[0].y, result[0].x)
-//                 map.setCenter(coords)
-//                 new kakao.maps.Marker({ map, position: coords })
-//             } else {
-//                 console.warn('주소를 좌표로 변환할 수 없습니다:', status, cleanAddress)
-
-//                 // 1차 검색 실패 → 'OO리'까지만 사용해 재검색
-//                 const partialAddr = getAddressUpToRi(subscription.value.address)
-//                 console.log('Fallback 주소 재검색:', partialAddr)
-
-//                 geocoder.addressSearch(partialAddr, function (res2, status2) {
-//                     if (status2 === kakao.maps.services.Status.OK) {
-//                         const coords = new kakao.maps.LatLng(res2[0].y, res2[0].x)
-//                         map.setCenter(coords)
-//                         new kakao.maps.Marker({ map, position: coords })
-//                     } else {
-//                         console.warn('Fallback 주소도 좌표로 변환 실패:', status2, partialAddr)
-
-//                         // 완전 실패 → 기본 좌표 사용
-//                         const fallbackCoords = new kakao.maps.LatLng(36.5, 127.5)
-//                         map.setCenter(fallbackCoords)
-//                         new kakao.maps.Marker({ map, position: fallbackCoords })
-//                     }
-//                 })
-//             }
-//         })
-//     })
-// }
-
-// 지도 초기화 함수
 async function initMap(lat, lng) {
     const kakao = await loadKakaoMapScript()
     await nextTick()
@@ -244,16 +203,127 @@ async function initMap(lat, lng) {
     kakao.maps.load(() => {
         if (!mapRef.value) return
 
+        // 지도 생성
         const map = new kakao.maps.Map(mapRef.value, {
             center: new kakao.maps.LatLng(lat, lng),
             level: 5,
         })
+        mapInstance.value = map
 
-        new kakao.maps.Marker({
+        // 단지(기준) 마커
+        baseMarker.value = new kakao.maps.Marker({
             map,
             position: new kakao.maps.LatLng(lat, lng),
         })
+
+        kakao.maps.event.addListener(map, 'click', () => {
+            closeOpenInfo()
+        })
+
+        kakao.maps.event.addListener(map, 'click', () => {
+            // 마커 클릭 직후엔 무시 (버블/타이밍 이슈 방지)
+            if (Date.now() - lastMarkerClickAt < 180) return
+            closeOpenInfo()
+        })
+
+        // 주변 시설 마커 그리기
+        drawInfraMarkers()
     })
+}
+
+function closeOpenInfo() {
+    if (openInfoWindow.value) {
+        openInfoWindow.value.close()
+        openInfoWindow.value = null
+        openMarker.value = null
+    }
+}
+
+function clearInfraMarkers() {
+    closeOpenInfo()
+    if (!infraMarkers.value) return
+    infraMarkers.value.forEach((m) => m.setMap(null))
+    infraMarkers.value = []
+}
+
+function drawInfraMarkers() {
+    const kakao = window.kakao
+    if (!mapInstance.value || !subscription.value?.infra_places) return
+
+    clearInfraMarkers()
+
+    const bounds = new kakao.maps.LatLngBounds()
+
+    // 기준 마커도 bounds에 포함
+    if (baseMarker.value) bounds.extend(baseMarker.value.getPosition())
+
+    // 타입별 아이콘(원하면 커스텀 마커 이미지 사용)
+    const markerIconByType = {
+        subway: 'https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png',
+        bus: 'https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png',
+        hospital: null,
+        mart: null,
+        school: null,
+        kindergarten: null,
+    }
+
+    subscription.value.infra_places.forEach((place) => {
+        const lat = Number(place.latitude)
+        const lng = Number(place.longitude)
+        if (isNaN(lat) || isNaN(lng)) return
+
+        const pos = new kakao.maps.LatLng(lat, lng)
+
+        // (선택) 커스텀 이미지
+        let markerImage = undefined
+        const iconUrl = markerIconByType[place.place_type]
+        if (iconUrl) {
+            const imageSize = new kakao.maps.Size(24, 35)
+            markerImage = new kakao.maps.MarkerImage(iconUrl, imageSize)
+        }
+
+        const marker = new kakao.maps.Marker({
+            position: pos,
+            map: mapInstance.value,
+            image: markerImage,
+            title: place.place_name,
+        })
+
+        kakao.maps.event.addListener(marker, 'click', () => {
+            // 같은 마커 다시 클릭 → 닫기(토글)
+            lastMarkerClickAt = Date.now()
+            // 같은 마커 재클릭 → 닫기
+            if (openMarker.value === marker) {
+                closeOpenInfo()
+                return
+            }
+            // 다른 마커 → 기존 닫고 새로 열기
+            closeOpenInfo()
+            infowindow.open(mapInstance.value, marker)
+            openInfoWindow.value = infowindow
+            openMarker.value = marker
+        })
+
+        // (선택) 인포윈도우
+        const iwContent = `<div style="padding:6px 10px; font-size:12px;">
+        <div style="font-weight:600;">${place.place_name}</div>
+        <div>${(place.distance / 1000).toFixed(1)}km</div>
+        <div style="color:#666;">${place.road_address_name ?? ''}</div>
+      </div>`
+        const infowindow = new kakao.maps.InfoWindow({ content: iwContent })
+
+        kakao.maps.event.addListener(marker, 'click', () => {
+            infowindow.open(mapInstance.value, marker)
+        })
+
+        infraMarkers.value.push(marker)
+        bounds.extend(pos)
+    })
+
+    // 화면에 모두 보이도록 맞춤 (마커가 하나뿐이어도 OK)
+    if (!bounds.isEmpty()) {
+        mapInstance.value.setBounds(bounds)
+    }
 }
 
 onMounted(async () => {
@@ -342,12 +412,13 @@ onMounted(async () => {
         loading.value = false
     }
 
-    // // --- watchEffect로 map init ---
-    // watchEffect(async () => {
-    //     if (subscription.value?.address && mapRef.value) {
-    //         await initMap(subscription.value.address)
-    //     }
-    // })
+    watch(
+        [() => mapInstance.value, () => subscription.value?.infra_places],
+        ([map, places]) => {
+            if (map && places) drawInfraMarkers()
+        },
+        { immediate: true },
+    )
 })
 
 // 날짜 포맷 함수
@@ -387,21 +458,6 @@ const areaList = computed(() => {
     // 최소 = 최대라면 하나만, 아니면 범위 표기
     return min === max ? `${min.toFixed(1)}㎡` : `${min.toFixed(1)}㎡ ~ ${max.toFixed(1)}㎡`
 })
-
-// 모든 면적 보여주는 함수
-// const areaList = computed(() => {
-//     const types = subscription.value?.apt_type || subscription.value?.officetel_type
-//     if (!types || types.length === 0) return ''
-
-//     return types
-//         .map((t) => {
-//             // 아파트는 SUPLY_AR, 오피스텔은 EXCLUSE_AR 사용
-//             const area = parseFloat(t.SUPLY_AR || t.EXCLUSE_AR)
-//             return isNaN(area) ? null : `${area.toFixed(1)}㎡`
-//         })
-//         .filter(Boolean) // null 제거
-//         .join(' / ')
-// })
 
 function calcBadge(start, end) {
     if (!start || !end) return ''
@@ -499,9 +555,14 @@ const iconMap = {
 const facilityGroups = computed(() => {
     if (!subscription.value?.infra_places) return []
 
+    // ✅ infra_places 전체 데이터 확인
+    console.log('infra_places:', subscription.value.infra_places)
+
     // 1. 타입별로 묶기
     const grouped = {}
     subscription.value.infra_places.forEach((place) => {
+        console.log('place:', place) // 개별 place 정보 확인
+
         const meta = iconMap[place.place_type]
         if (!meta) return
 
@@ -536,27 +597,6 @@ const formatToEok = (priceValue) => {
     const eok = num / 10000
     return `${eok.toFixed(1)}억`
 }
-
-// function normalizeAddress(addr) {
-//     if (!addr) return ''
-//     return addr
-//         .replace(/외\s*\d+필지/, '') // "외 10필지"만 제거
-//         .replace(/일원$/, '') // "일원" 글자만 제거
-//         .replace(/번지/g, '')
-//         .replace(/\s+/g, ' ') // 공백 정리
-//         .trim()
-// }
-
-// function getAddressUpToRi(addr) {
-//     if (!addr) return ''
-//     const match = addr.match(/^(.*?리)/) // 처음 '리'까지 매칭
-//     if (match) return match[1]
-//     return addr
-// }
-
-// const openPromotionLink = () => {
-//     window.open('https://www.applyhome.co.kr/co/coa/selectMainView.do', '_blank')
-// }
 
 function goToApply() {
     window.open(
