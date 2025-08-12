@@ -29,5 +29,8 @@ coverage
 
 *.tsbuildinfo
 
+# .env
+*.env
+
 # myMemo
 .myMemo
