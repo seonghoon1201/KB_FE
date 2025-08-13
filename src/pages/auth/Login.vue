@@ -119,6 +119,7 @@ async function handleLogin() {
         // fcm 토큰 저장
         try {
             const { token } = await setupMessaging(import.meta.env.VITE_VAPID_PUBLIC_KEY)
+            console.log('login token : ', token)
             if (token) {
                 await alarmApi.tokenUpdate(token)
             }
