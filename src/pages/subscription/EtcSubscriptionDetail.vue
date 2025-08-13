@@ -266,8 +266,6 @@ function closeInfo() {
     openMarker.value = null
 }
 
-
-
 function closeOverlay() {
     if (activeOverlay.value) {
         activeOverlay.value.setMap(null)
@@ -424,13 +422,24 @@ onMounted(async () => {
 })
 
 watch(
-    [() => mapInstance.value, () => subscription.value?.infra_places, () => infraFilter.value],
-    ([map, places]) => {
-        if (map && places) drawInfraMarkers()
+    () => subscription.value,
+    async (val) => {
+        if (val && val.lat && val.long) {
+            await nextTick()
+
+            const lat = parseFloat(subscription.value.lat)
+            const lng = parseFloat(subscription.value.long)
+
+            if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+                console.warn('잘못된 좌표:', subscription.value.lat, subscription.value.long)
+                return
+            }
+
+            await initMap(lat, lng)
+        }
     },
     { immediate: true },
 )
-
 const isFavorite = computed(() => {
     if (!subscription.value) return false
     return favoritesStore.isFavorite(
