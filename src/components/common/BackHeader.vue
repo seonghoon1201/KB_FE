@@ -10,15 +10,10 @@
             {{ props.title }}
         </div>
         <div class="flex items-center space-x-4">
-            <div v-if="showAlarm">
-                <Bell @click="alarmClick" />
-            </div>
-            <div v-else class="relative inline-block">
-                <BellDot @click="alarmClick" />
-                <div
-                    class="absolute top-2 right-1.5 w-2 h-2 bg-red-500 rounded-full board-2 border-red"
-                    style="transform: translate(50%, -50%)"
-                ></div>
+            <div>
+                <a-badge :count="firebaseStore.unreadCount">
+                    <Bell @click="alarmClick" />
+                </a-badge>
             </div>
             <div>
                 <Menu @click="menuClick" />
@@ -31,6 +26,7 @@ import { ChevronLeft, Bell, BellDot, Menu } from 'lucide-vue-next'
 import { ref } from 'vue'
 import { useCommonStore } from '@/stores/common'
 import { useRoute, useRouter } from 'vue-router'
+import { useFirebaseStore } from '@/stores/firebaseStore'
 
 // ✅ props로 제목 받기
 const props = defineProps({
@@ -43,7 +39,7 @@ const props = defineProps({
 const router = useRouter()
 const route = useRoute()
 const modalStore = useCommonStore()
-const showAlarm = ref(true)
+const firebaseStore = useFirebaseStore()
 
 const backClick = () => {
     const currentPath = route.path.slice(1).split('/')
