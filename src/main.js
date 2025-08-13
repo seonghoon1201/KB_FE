@@ -13,6 +13,10 @@ import { useAccountStore } from '@/stores/account'
 import { useScoreStore } from '@/stores/scoreStore'
 import * as lucide from 'lucide-vue-next'
 
+// ant design
+import Antd from 'ant-design-vue'
+import 'ant-design-vue/dist/reset.css' // CSS 리셋 포함 (4.x 기준)
+
 const app = createApp(App)
 
 async function initFcmAfterLogin() {
@@ -42,6 +46,7 @@ const pinia = createPinia()
 
 app.use(pinia)
 app.use(router)
+app.use(Antd)
 
 // — 로그인 유지(새로고침 복원) 로직 —
 const userStore = useUserStore()

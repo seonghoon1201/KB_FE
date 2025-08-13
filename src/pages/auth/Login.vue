@@ -62,6 +62,7 @@ import PrimaryButton from '@/components/common/PrimaryButton.vue'
 import authApi from '@/api/authApi'
 import accountApi from '@/api/accountApi'
 import scoreApi from '@/api/scoreApi'
+import alarmApi from '@/api/alarmApi'
 import { useUserStore } from '@/stores/user'
 import { useAccountStore } from '@/stores/account'
 import { useScoreStore } from '@/stores/scoreStore'
@@ -119,7 +120,7 @@ async function handleLogin() {
         try {
             const { token } = await setupMessaging(import.meta.env.VITE_VAPID_PUBLIC_KEY)
             if (token) {
-                await authApi.notificationApi(token)
+                await alarmApi.tokenUpdate(token)
             }
         } catch (err) {
             console.error('FCM 토큰 저장 실패:', err)
