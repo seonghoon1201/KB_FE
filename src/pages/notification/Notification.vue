@@ -66,6 +66,7 @@
 import { ref, computed } from 'vue'
 import BackHeader from '@/components/common/BackHeader.vue'
 import { useNotificationStore } from '@/stores/notificationStore'
+import { useFirebaseStore } from '@/stores/firebaseStore'
 
 // ✅ 알림 상태
 const notifications = ref([
@@ -94,6 +95,7 @@ const notifications = ref([
 
 // ✅ 탭 필터링 상태: all | unread | read
 const store = useNotificationStore()
+const firebaseStore = useFirebaseStore()
 const activeTab = ref('all')
 
 // ✅ 필터링된 알림
@@ -112,6 +114,7 @@ const tabClass = (tab) =>
         : 'text-gray-400 hover:text-black pb-1'
 
 const markAllAsRead = () => {
-    store.markAllAsRead()
+    // store.markAllAsRead()
+    firebaseStore.allRead()
 }
 </script>
