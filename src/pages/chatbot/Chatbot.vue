@@ -40,12 +40,12 @@
                     class="rounded-2xl border border-gray-200 bg-white/90 backdrop-blur-sm shadow-sm px-3 py-2"
                 >
                     <!-- 토글 버튼 -->
-                    <div class="flex justify-between items-center mb-1">
+                    <div
+                        class="flex justify-between items-center mb-1"
+                        @click="showQuickQuestions = !showQuickQuestions"
+                    >
                         <span class="text-sm font-medium text-gray-700">빠른 질문</span>
-                        <button
-                            @click="showQuickQuestions = !showQuickQuestions"
-                            class="text-xs text-gray-500 hover:underline"
-                        >
+                        <button class="text-xs text-gray-500 hover:underline">
                             {{ showQuickQuestions ? '접기 ∨' : '펼치기 ∧' }}
                         </button>
                     </div>
@@ -115,10 +115,10 @@ const containerRef = ref(null)
 const bottomAnchor = ref(null)
 
 const typeText = async (text, indexInLog) => {
-  for (let i = 0; i < text.length; i++) {
-    chatLog.value[indexInLog].message += text[i]
-    await new Promise((resolve) => setTimeout(resolve, 20)) // 20ms 딜레이
-  }
+    for (let i = 0; i < text.length; i++) {
+        chatLog.value[indexInLog].message += text[i]
+        await new Promise((resolve) => setTimeout(resolve, 20)) // 20ms 딜레이
+    }
 }
 
 const scrollToBottom = async () => {
