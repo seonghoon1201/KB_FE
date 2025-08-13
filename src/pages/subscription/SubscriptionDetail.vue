@@ -195,7 +195,6 @@ import {
     Building2,
     Expand,
     House,
-    ExpandIcon,
 } from 'lucide-vue-next'
 import { onMounted, ref, computed, nextTick, watch, watchEffect } from 'vue'
 import api from '@/api/axios'
@@ -207,10 +206,7 @@ import { useFavoritesStore } from '@/stores/favorites'
 import { loadKakaoMapScript } from '@/utils/KakaoMapLoader'
 import { BotMessageSquare } from 'lucide-vue-next'
 import { useRouter } from 'vue-router'
-// Font Awesome icon defs
-import {
-    faMapPin, // 기준(청약) 마커용
-} from '@fortawesome/free-solid-svg-icons'
+import { faMapPin } from '@fortawesome/free-solid-svg-icons'
 
 const router = useRouter()
 const route = useRoute()
@@ -219,6 +215,7 @@ const subscription = ref(null)
 const loading = ref(true)
 const mapRef = ref(null)
 const mapInstance = ref(null)
+const activeOverlay = ref(null)
 const baseMarker = ref(null)
 const infraMarkers = ref([])
 const openMarker = ref(null)
@@ -281,57 +278,11 @@ function closeInfo() {
     openMarker.value = null
 }
 
-const typeStyleMap = {
-    subway: { color: '#16a34a', label: TrainFront }, // green-600
-    bus: { color: '#16a34a', label: TrainFront },
-    school: { color: '#9333ea', label: '🎓' }, // purple-600
-    kindergarten: { color: '#9333ea', label: '👶' },
-    hospital: { color: '#ef4444', label: '＋' }, // red-500
-    mart: { color: '#f97316', label: '🛒' }, // orange-500
-}
-
-// 필요시 이모지 대신 'S','B','H','M' 등 한 글자 라벨로 바꿔도 OK
-function makePinSVG({ color, label }) {
-    // 32x40 핀 (오프셋 하단 중앙)
-    return `
-  <svg xmlns="http://www.w3.org/2000/svg" width="32" height="40" viewBox="0 0 32 40">
-    <path d="M16 0c6.6 0 12 5.4 12 12 0 9-12 28-12 28S4 21 4 12C4 5.4 9.4 0 16 0z" fill="${color}"/>
-    <circle cx="16" cy="12" r="8" fill="white"/>
-    <text x="16" y="16" text-anchor="middle" font-size="12" font-family="system-ui, -apple-system, Segoe UI, Roboto" fill="${color}" font-weight="700">${label}</text>
-  </svg>`
-}
-
-// 파일 상단 helpers 근처에 추가
-const markerImgCache = {}
-const typeColorKey = {
-    subway: 'red',
-    bus: 'red',
-    school: 'red',
-    kindergarten: 'red',
-    hospital: 'red',
-    mart: 'red',
-    default: 'red',
-}
-
-// refs 근처에 추가
-const activeOverlay = ref(null)
-
 function closeOverlay() {
     if (activeOverlay.value) {
         activeOverlay.value.setMap(null)
         activeOverlay.value = null
     }
-}
-
-// 클릭 시 보여줄 오버레이 HTML (원하면 스타일 수정)
-function overlayHtml(place) {
-    const km = (Number(place.distance) / 1000).toFixed(1)
-    const addr = place.road_address_name || ''
-    return `
-    <div class="customoverlay">
-      <div class="co-title">${place.place_name}</div>
-      <div class="co-sub">${km}km · 도보 ${minutesPerKm(km)}분</div>
-    </div>`
 }
 
 async function initMap(lat, lng) {
@@ -357,17 +308,13 @@ async function initMap(lat, lng) {
         // ✅ 공용 InfoWindow
         sharedInfoWindow.value = new kakao.maps.InfoWindow({ removable: false, zIndex: 1000 })
 
-        kakao.maps.event.addListener(map, 'click', () => {
-            // closeOpenInfo()
-        })
+        kakao.maps.event.addListener(map, 'click', () => {})
 
         kakao.maps.event.addListener(map, 'click', () => {
             // 마커 클릭 직후엔 무시 (버블/타이밍 이슈 방지)
             if (Date.now() - lastMarkerClickAt < 150) return
-            // closeOverlay()
             closeInfo()
             openMarker.value = null
-            // closeOpenInfo()
         })
 
         // 주변 시설 마커 그리기
@@ -451,7 +398,6 @@ function drawInfraMarkers() {
         // bounds.extend(pos)
     })
 
-    // if (!bounds.isEmpty()) mapInstance.value.setBounds(bounds)
     // ✅ 뷰 유지/고정 규칙
     if (!didFirstRender.value) {
         // 첫 렌더: 청약 좌표를 확실히 중심으로
@@ -735,7 +681,6 @@ const formatToEok = (priceValue) => {
 
     if (isNaN(num)) return ''
 
-    // 서버 단위가 '만원'이므로 10,000으로 나눠야 '억' 단위가 됨
     const eok = num / 10000
     return `${eok.toFixed(1)}억`
 }
