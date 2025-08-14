@@ -21,10 +21,8 @@
                             <ChevronRight color="gray" size="14px" />
                         </div>
                     </div>
-                    <div
-                        class="border-2 border-black rounded-full w-30 h-30 flex items-center justify-center"
-                    >
-                        <User size="30" />
+                    <div class="gap-2">
+                        <img src="@/assets/images/zibi_2.png" alt="egg" class="w-16 h-16" />
                     </div>
                 </div>
             </div>
@@ -69,7 +67,7 @@
             </div>
 
             <!-- 메뉴 리스트 -->
-            <div class="h-[55%] p-5 flex flex-col justify-between items-center">
+            <div class="h-[60%] p-5 flex flex-col justify-between items-center">
                 <div class="w-full">
                     <div
                         class="w-full h-8 mb-4 flex justify-between border-b-2 cursor-pointer"
@@ -120,7 +118,7 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useCommonStore } from '@/stores/common'
 import { useUserStore } from '@/stores/user'

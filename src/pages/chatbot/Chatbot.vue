@@ -92,7 +92,7 @@
 <script setup>
 import { ref, nextTick, watch, onMounted } from 'vue'
 import BackHeader from '@/components/common/BackHeader.vue'
-import api from '@/api/axios'
+import chatApi from '@/api/chatApi'
 
 const chatLog = ref([
     { sender: 'bot', message: '안녕하세요! 청약 관련해서 무엇이든 물어보세요 😊' },
@@ -149,11 +149,6 @@ watch(
     }),
 )
 
-const sendToChatbotAPI = async (message) => {
-    const res = await api.post('/chatbot', { message })
-    return res.data?.response // 백엔드 응답 구조에 따라 조정
-}
-
 const sendMessage = async (text) => {
     const msg = (text ?? userInput.value).trim()
     if (!msg) return
@@ -172,8 +167,8 @@ const sendMessage = async (text) => {
     await scrollToBottom()
 
     try {
-        const response = await sendToChatbotAPI(msg)
-        const finalText = response || '답변을 불러오지 못했습니다.'
+        const finalText = await chatApi.sendMessage(msg)
+        console.log('finalText : ', finalText)
 
         // 잠깐 대기 후 문구 초기화
         await new Promise((resolve) => setTimeout(resolve, 600))

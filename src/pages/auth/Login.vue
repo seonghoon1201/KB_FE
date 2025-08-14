@@ -121,7 +121,7 @@ async function handleLogin() {
             const { token } = await setupMessaging(import.meta.env.VITE_VAPID_PUBLIC_KEY)
             console.log('login token : ', token)
             if (token) {
-                await alarmApi.tokenUpdate(token)
+                // await alarmApi.tokenUpdate(token)
             }
         } catch (err) {
             console.error('FCM 토큰 저장 실패:', err)
