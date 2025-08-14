@@ -17,7 +17,7 @@ export default defineConfig({
                 start_url: '/',
                 background_color: '#ffffff',
                 theme_color: '#ffffff',
-                icons: [  
+                icons: [
                     {
                         src: '/pwa-192x192.png',
                         sizes: '192x192',
@@ -29,6 +29,10 @@ export default defineConfig({
                         type: 'image/png',
                     },
                 ],
+            },
+            workbox: {
+                // 기본 2 * 1024 * 1024 → 상향
+                maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
             },
         }),
     ],
