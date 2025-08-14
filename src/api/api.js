@@ -3,7 +3,7 @@ import axios from 'axios'
 
 // 기본 axios 인스턴스 생성
 const api = axios.create({
-    baseURL: '15.165.143.27', // 백엔드 주소
+    baseURL: 'https://www.zibitz.shop', // 백엔드 주소
     withCredentials: true, // 필요 시 쿠키 포함
     headers: {
         'Content-Type': 'application/json',

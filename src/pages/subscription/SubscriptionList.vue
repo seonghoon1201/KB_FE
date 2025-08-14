@@ -198,7 +198,7 @@ const props = defineProps({
 const sortStandards = [
     { key: 'latest', label: '최신순', icon: TrendingUp },
     { key: 'deadline-first', label: '마감임박순', icon: Clock },
-    { key: 'recommend', label: '추천순', icon: ThumbsUp },
+    { key: 'recommend', label: '인기순', icon: ThumbsUp },
 ]
 
 // --- UI 핸들러 ---
@@ -222,24 +222,24 @@ const toggleFilter = () => {
     isFilterOpen.value = !isFilterOpen.value
 }
 const handleFilterUpdate = ({ field, value }) => {
-  if (field === 'selectedCity') {
-    selectedCity.value = value
-  } else if (field === 'selectedDistrict') {
-    selectedDistrict.value = value
-  } else if (field === 'selectedRegions') {
-    selectedRegions.value = value
-  } else if (field === 'selectedArea') {
-    // ✅ null 또는 [min, max]로 강제 변환
-    if (Array.isArray(value) && value.length === 2) {
-      selectedArea.value = value.map(Number)
-    } else {
-      selectedArea.value = null
+    if (field === 'selectedCity') {
+        selectedCity.value = value
+    } else if (field === 'selectedDistrict') {
+        selectedDistrict.value = value
+    } else if (field === 'selectedRegions') {
+        selectedRegions.value = value
+    } else if (field === 'selectedArea') {
+        // ✅ null 또는 [min, max]로 강제 변환
+        if (Array.isArray(value) && value.length === 2) {
+            selectedArea.value = value.map(Number)
+        } else {
+            selectedArea.value = null
+        }
+    } else if (field === 'priceMin') {
+        priceMin.value = value
+    } else if (field === 'priceMax') {
+        priceMax.value = value
     }
-  } else if (field === 'priceMin') {
-    priceMin.value = value
-  } else if (field === 'priceMax') {
-    priceMax.value = value
-  }
 }
 const removeFilter = (type, index) => {
     if (type === 'region') appliedFilters.value.regions.splice(index, 1)

@@ -18,6 +18,10 @@ import Antd from 'ant-design-vue'
 /* 마진 생겨서 일단 주석 처리 
 import 'ant-design-vue/dist/reset.css' // CSS 리셋 포함 (4.x 기준)
 */
+
+// 애니메이션 효과
+import 'animate.css'
+
 const app = createApp(App)
 
 async function initFcmAfterLogin() {
