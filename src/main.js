@@ -3,7 +3,7 @@ import { createApp } from 'vue'
 import App from './App.vue'
 import router from './router'
 import { createPinia } from 'pinia'
-import { setupMessaging, onForegroundMessage } from '@/firebase'
+// import { setupMessaging, onForegroundMessage } from '@/firebase'
 import { useNotificationStore } from '@/stores/notificationStore'
 import './assets/main.css'
 
@@ -24,23 +24,23 @@ import 'animate.css'
 
 const app = createApp(App)
 
-async function initFcmAfterLogin() {
-    try {
-        const vapidKey = import.meta.env.VITE_FIREBASE_VAPID_KEY
-        const { token } = await setupMessaging(vapidKey)
-        if (!token) return
-        // 서버에 토큰 저장
-        await axios.post('/v1/me/fcm-token', { token }) // JWT 인증 필요 시 헤더 자동 첨부 가정
+// async function initFcmAfterLogin() {
+//     try {
+//         const vapidKey = import.meta.env.VITE_FIREBASE_VAPID_KEY
+//         const { token } = await setupMessaging(vapidKey)
+//         if (!token) return
+//         // 서버에 토큰 저장
+//         await axios.post('/v1/me/fcm-token', { token }) // JWT 인증 필요 시 헤더 자동 첨부 가정
 
-        const store = useNotificationStore()
-        onForegroundMessage((payload) => {
-            // 포그라운드 수신 → 인앱 토스트/리스트 반영
-            store.add(payload)
-        })
-    } catch (e) {
-        console.error('FCM 초기화 실패:', e)
-    }
-}
+//         const store = useNotificationStore()
+//         onForegroundMessage((payload) => {
+//             // 포그라운드 수신 → 인앱 토스트/리스트 반영
+//             store.add(payload)
+//         })
+//     } catch (e) {
+//         console.error('FCM 초기화 실패:', e)
+//     }
+// }
 
 // 전역 아이콘 등록
 for (const [key, comp] of Object.entries(lucide)) {
