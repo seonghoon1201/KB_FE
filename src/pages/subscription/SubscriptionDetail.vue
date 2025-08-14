@@ -253,33 +253,8 @@ function handleFilterClick(key) {
     infraFilter.value = infraFilter.value === key ? 'none' : key
 }
 
-// // FA 아이콘을 SVG data URL로 변환
-// function faToSvgDataUrl(iconDef, { size = 28, color = '#ef4444' } = {}) {
-//     const [w, h, , , d] = iconDef.icon
-//     const svg = `
-//     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" width="${size}" height="${size}">
-//       <path d="${d}" fill="${color}"/>
-//     </svg>`
-//     return 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg)
-// }
-
-// // Kakao MarkerImage 생성 (앵커: 아래 중앙)
-// function makeFAImage(iconDef, { size = 28, color = '#ef4444' } = {}) {
-//     const kakao = window.kakao
-//     const url = faToSvgDataUrl(iconDef, { size, color })
-//     return new kakao.maps.MarkerImage(url, new kakao.maps.Size(size, size), {
-//         offset: new kakao.maps.Point(size / 2, size),
-//     })
-// }
-
 // 타입별 아이콘/색 매핑
 const ICON_BY_TYPE = {
-    // subway: { icon: faMapPin, color: '#16a34a' }, //초록
-    // bus: { icon: faMapPin, color: '#16a34a' },
-    // school: { icon: faMapPin, color: '#9333ea' },
-    // kindergarten: { icon: faMapPin, color: '#9333ea' },
-    // hospital: { icon: faMapPin, color: '#ef4444' },
-    // mart: { icon: faMapPin, color: '#f97316' },
     subway: { color: '#22c55e' }, // 교통 - 약간 더 선명한 초록
     bus: { color: '#22c55e' },
     school: { color: '#7c3aed' }, // 학교/유아 - 선명 보라
@@ -322,14 +297,6 @@ function makePinImage(color, { size = 34 } = {}) {
 
 function closeInfo() {
     if (sharedInfoWindow.value) sharedInfoWindow.value.close()
-    // openMarker.value = null
-    // if (openMarker.value) {
-    //     // 열려있던 마커 강조 해제
-    //     const meta = ICON_BY_TYPE[openMarker.value.place_type] || { color: '#3b82f6' }
-    //     // place_type을 marker에 달아두면 더 편함 (아래 참고)
-    //     openMarker.value.setImage(makePinImage(meta.color, { size: 34 }))
-    //     openMarker.value.setZIndex(150)
-    // }
     if (openMarker.value) {
         const m = openMarker.value
         m.setImage(
@@ -367,18 +334,6 @@ async function initMap(lat, lng) {
             position: new kakao.maps.LatLng(lat, lng),
             zIndex: 200, // 인프라/POI 위
         })
-        // kakao.maps.event.addListener(marker, 'mouseover', () => {
-        //     if (openMarker.value !== marker) {
-        //         marker.setImage(marker._images.hover)
-        //         marker.setZIndex(220)
-        //     }
-        // })
-        // kakao.maps.event.addListener(marker, 'mouseout', () => {
-        //     if (openMarker.value !== marker) {
-        //         marker.setImage(marker._images.normal)
-        //         marker.setZIndex(150)
-        //     }
-        // })
 
         // ✅ 공용 InfoWindow
         sharedInfoWindow.value = new kakao.maps.InfoWindow({ removable: false, zIndex: 1000 })
@@ -406,10 +361,6 @@ function clearInfraMarkers() {
 function drawInfraMarkers() {
     const kakao = window.kakao
     if (!mapInstance.value || !subscription.value?.infra_places) return
-
-    //   clearInfraMarkers()
-    //   const bounds = new kakao.maps.LatLngBounds()
-    //   if (baseMarker.value) bounds.extend(baseMarker.value.getPosition())
 
     // 👇 현재 뷰 저장 (필터 변경 시 복원)
     const map = mapInstance.value
@@ -443,10 +394,6 @@ function drawInfraMarkers() {
 
         const pos = new kakao.maps.LatLng(lat, lng)
 
-        // // 2) 마커 이미지 (Font Awesome 매핑 사용!)
-        // const meta = ICON_BY_TYPE[place.place_type] || { icon: faMapPin, color: '#3b82f6' }
-        // const markerImage = makeFAImage(meta.icon, { size: 24, color: meta.color })
-
         // 2) 마커 이미지 (커스텀 SVG 핀)
         const meta = ICON_BY_TYPE[place.place_type] || { color: '#3b82f6' }
         const normalImage = makePinImage(meta.color, { size: 34 })
@@ -456,7 +403,6 @@ function drawInfraMarkers() {
         const marker = new kakao.maps.Marker({
             position: pos,
             map: mapInstance.value,
-            // image: markerImage,
             image: normalImage,
             title: place.place_name,
             zIndex: 150,
@@ -477,18 +423,6 @@ function drawInfraMarkers() {
           ${kmText}km · 도보 ${walk ?? '-'}분
         </div>
       </div>`
-
-        // kakao.maps.event.addListener(marker, 'click', () => {
-        //     lastMarkerClickAt = Date.now()
-        //     if (openMarker.value === marker) {
-        //         closeInfo()
-        //         return
-        //     }
-        //     closeInfo()
-        //     sharedInfoWindow.value.setContent(html)
-        //     sharedInfoWindow.value.open(mapInstance.value, marker)
-        //     openMarker.value = marker
-        // })
         kakao.maps.event.addListener(marker, 'click', () => {
             lastMarkerClickAt = Date.now()
             if (openMarker.value === marker) {
@@ -507,32 +441,6 @@ function drawInfraMarkers() {
         infraMarkers.value.push(marker)
         // bounds.extend(pos)
     })
-    // // ✅ 호버/아웃: 마커별로 등록
-    // kakao.maps.event.addListener(marker, 'mouseover', () => {
-    //     if (openMarker.value !== marker) {
-    //         marker.setImage(marker._images.hover)
-    //         marker.setZIndex(220)
-    //     }
-    // })
-    // kakao.maps.event.addListener(marker, 'mouseout', () => {
-    //     if (openMarker.value !== marker) {
-    //         marker.setImage(marker._images.normal)
-    //         marker.setZIndex(150)
-    //     }
-    // })
-    // // 호버 시 살짝 확대
-    // kakao.maps.event.addListener(marker, 'mouseover', () => {
-    //     if (openMarker.value !== marker) {
-    //         marker.setImage(hoverImage)
-    //         marker.setZIndex(220)
-    //     }
-    // })
-    // kakao.maps.event.addListener(marker, 'mouseout', () => {
-    //     if (openMarker.value !== marker) {
-    //         marker.setImage(normalImage)
-    //         marker.setZIndex(150)
-    //     }
-    // })
 
     // ✅ 뷰 유지/고정 규칙
     if (!didFirstRender.value) {
