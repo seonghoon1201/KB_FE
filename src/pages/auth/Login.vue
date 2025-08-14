@@ -62,9 +62,11 @@ import PrimaryButton from '@/components/common/PrimaryButton.vue'
 import authApi from '@/api/authApi'
 import accountApi from '@/api/accountApi'
 import scoreApi from '@/api/scoreApi'
+import alarmApi from '@/api/alarmApi'
 import { useUserStore } from '@/stores/user'
 import { useAccountStore } from '@/stores/account'
 import { useScoreStore } from '@/stores/scoreStore'
+import { setupMessaging } from '@/firebase'
 
 const email = ref('')
 const password = ref('')
@@ -112,6 +114,17 @@ async function handleLogin() {
             scoreStore.setScore(res3.data)
         } catch (err) {
             console.error(err)
+        }
+
+        // fcm 토큰 저장
+        try {
+            const { token } = await setupMessaging(import.meta.env.VITE_VAPID_PUBLIC_KEY)
+            console.log('login token : ', token)
+            if (token) {
+                // await alarmApi.tokenUpdate(token)
+            }
+        } catch (err) {
+            console.error('FCM 토큰 저장 실패:', err)
         }
 
         // ④ 홈으로 이동
