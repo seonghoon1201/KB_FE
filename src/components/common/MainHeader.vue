@@ -8,7 +8,7 @@
         <!-- 오른쪽: 알림, 메뉴 (BackHeader와 동일하게 수정) -->
         <div class="flex items-center space-x-4">
             <div>
-                <a-badge :count="firebaseStore.unreadCount">
+                <a-badge :count="noticeStore.unreadCount">
                     <Bell @click="alarmClick" />
                 </a-badge>
             </div>
@@ -23,10 +23,10 @@
 import { Bell, BellDot, Menu } from 'lucide-vue-next'
 import { useCommonStore } from '@/stores/common'
 import { useRouter } from 'vue-router'
-import { useFirebaseStore } from '@/stores/firebaseStore'
+import { useNotificationStore } from '@/stores/notificationStore'
 
 const modalStore = useCommonStore()
-const firebaseStore = useFirebaseStore()
+const noticeStore = useNotificationStore()
 const router = useRouter()
 
 const goHome = () => {
