@@ -12,7 +12,7 @@
             }"
         >
             <div
-                v-for="(chat, index) in chatLog"
+                v-for="(chat, index) in chatStore.chatLog"
                 :key="index"
                 class="flex"
                 :class="chat.sender === 'user' ? 'justify-end' : 'justify-start'"
@@ -40,12 +40,12 @@
                     class="rounded-2xl border border-gray-200 bg-white/90 backdrop-blur-sm shadow-sm px-3 py-2"
                 >
                     <!-- 토글 버튼 -->
-                    <div class="flex justify-between items-center mb-1">
+                    <div
+                        class="flex justify-between items-center mb-1"
+                        @click="showQuickQuestions = !showQuickQuestions"
+                    >
                         <span class="text-sm font-medium text-gray-700">빠른 질문</span>
-                        <button
-                            @click="showQuickQuestions = !showQuickQuestions"
-                            class="text-xs text-gray-500 hover:underline"
-                        >
+                        <button class="text-xs text-gray-500 hover:underline">
                             {{ showQuickQuestions ? '접기 ∨' : '펼치기 ∧' }}
                         </button>
                     </div>
@@ -93,10 +93,11 @@
 import { ref, nextTick, watch, onMounted } from 'vue'
 import BackHeader from '@/components/common/BackHeader.vue'
 import chatApi from '@/api/chatApi'
+import { useChatStore } from '@/stores/chatStore'
 
-const chatLog = ref([
-    { sender: 'bot', message: '안녕하세요! 청약 관련해서 무엇이든 물어보세요 😊' },
-])
+
+const chatStore = useChatStore()
+// const chatLog = chatStore.chatLog
 const userInput = ref('')
 const showQuickQuestions = ref(false)
 const quickQuestions = ref([
@@ -114,11 +115,17 @@ const quickQuestions = ref([
 const containerRef = ref(null)
 const bottomAnchor = ref(null)
 
-const typeText = async (text, indexInLog) => {
-    for (let i = 0; i < text.length; i++) {
-        chatLog.value[indexInLog].message += text[i]
-        await new Promise((resolve) => setTimeout(resolve, 20)) // 20ms 딜레이
-    }
+const sleep = (ms) => new Promise(r => setTimeout(r, ms))
+
+
+const typeText = async (text, indexInLog, speed = 20) => {
+  if (!chatStore.chatLog[indexInLog]) return
+  chatStore.chatLog[indexInLog].message = ''
+  for (let i = 0; i < text.length; i++) {
+    if (!chatStore.chatLog[indexInLog]) break
+    chatStore.chatLog[indexInLog].message += text[i]
+    await sleep(speed)
+  }
 }
 
 const scrollToBottom = async () => {
@@ -139,49 +146,42 @@ const scrollToBottom = async () => {
 }
 
 // 처음/메시지 추가 때마다 최하단으로
-onMounted(() => scrollToBottom())
-watch(
-    () => chatLog.value.length,
-    () => scrollToBottom(),
-    (showQuickQuestions,
-    async () => {
-        await scrollToBottom()
-    }),
-)
+onMounted(async () => {
+  // 초기 인사 말풍선이 필요하면(스토어가 비어있을 때만)
+  if (chatStore.chatLog.length === 0) {
+    chatStore.chatLog.push({ sender: 'bot', message: '안녕하세요! 청약 관련해서 무엇이든 물어보세요 😊' })
+  }
+  await scrollToBottom()
+})
+
+watch(() => chatStore.chatLog.length, scrollToBottom)
+watch(showQuickQuestions, async () => { await scrollToBottom() })
+
+
 
 const sendMessage = async (text) => {
-    const msg = (text ?? userInput.value).trim()
-    if (!msg) return
+  const msg = (text ?? userInput.value).trim()
+  if (!msg) return
 
-    chatLog.value.push({ sender: 'user', message: msg })
-    userInput.value = ''
-    await scrollToBottom()
+  chatStore.chatLog.push({ sender: 'user', message: msg })
+  userInput.value = ''
+  await scrollToBottom()
 
-    // 로딩 문구 먼저 추가
-    const loadingMsg = {
-        sender: 'bot',
-        message: '지비가 생각하는 중...',
-    }
-    chatLog.value.push(loadingMsg)
-    const botMsgIndex = chatLog.value.length - 1
-    await scrollToBottom()
+  chatStore.chatLog.push({ sender: 'bot', message: '지비가 생각하는 중...' })
+  const botMsgIndex = chatStore.chatLog.length - 1
+  await scrollToBottom()
 
-    try {
-        const finalText = await chatApi.sendMessage(msg)
-        console.log('finalText : ', finalText)
+  try {
+    const finalText = await chatApi.sendMessage(msg)
+    await sleep(600)
+    chatStore.chatLog[botMsgIndex].message = ''   // ✅ .value 제거
+    await typeText(typeof finalText === 'string' ? finalText : (finalText?.response ?? '답변을 불러오지 못했습니다.'), botMsgIndex)
+  } catch (e) {
+    console.error(e)
+    chatStore.chatLog[botMsgIndex].message = '오류가 발생했어요. 잠시 후 다시 시도해주세요.'
+  }
 
-        // 잠깐 대기 후 문구 초기화
-        await new Promise((resolve) => setTimeout(resolve, 600))
-        chatLog.value[botMsgIndex].message = '' // 지우기
-
-        // 한 글자씩 타이핑
-        await typeText(finalText, botMsgIndex)
-    } catch (e) {
-        console.error(e)
-        chatLog.value[botMsgIndex].message = '오류가 발생했어요. 잠시 후 다시 시도해주세요.'
-    }
-
-    await scrollToBottom()
+  await scrollToBottom()
 }
 </script>
 
