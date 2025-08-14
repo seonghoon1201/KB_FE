@@ -27,7 +27,13 @@ KB_FE
 │  │  │  ├─ SC.png
 │  │  │  ├─ SH.png
 │  │  │  ├─ Shinhan.png
-│  │  │  └─ Uri.png
+│  │  │  ├─ Uri.png
+│  │  │  ├─ surprise_zibi_0.png
+│  │  │  ├─ surprise_zibi_1.png
+│  │  │  ├─ surprise_zibi_2.png
+│  │  │  ├─ surprise_zibi_3.png
+│  │  │  ├─ surprise_zibi_4.png
+│  │  │  └─ surprise_zibi_5.png
 │  │  └─ main.css
 │  ├─ components
 │  │  ├─ common
@@ -39,17 +45,17 @@ KB_FE
 │  │  │  ├─ NumberInput.vue
 │  │  │  ├─ QuestionCard.vue
 │  │  │  ├─ YesNoQuestion.vue
-│  │  │  ├─ BackHeader.vue
 │  │  │  ├─ InstallPrompt.vue
 │  │  │  ├─ MainHeader.vue
 │  │  │  ├─ BottomNavbar.vue
-│  │  │  └─ PrimaryButton.vue
+│  │  │  ├─ PrimaryButton.vue
+│  │  │  └─ BackHeader.vue
 │  │  ├─ subscription
 │  │  │  └─ SubscriptionCard.vue
 │  │  ├─ home
 │  │  │  ├─ ScoreSection.vue
-│  │  │  ├─ AccountSection.vue
-│  │  │  └─ RecommendSection.vue
+│  │  │  ├─ RecommendSection.vue
+│  │  │  └─ AccountSection.vue
 │  │  ├─ modal
 │  │  │  ├─ PrivacyModal.vue
 │  │  │  ├─ TermsModal.vue
@@ -57,12 +63,12 @@ KB_FE
 │  │  │  ├─ InfoModal.vue
 │  │  │  ├─ DiagnosisCompleteModal.vue
 │  │  │  ├─ AreaSettingModal.vue
-│  │  │  ├─ ModalBase.vue
+│  │  │  ├─ CommonModal.vue
 │  │  │  ├─ SubscriptionFilterModal.vue
-│  │  │  └─ CommonModal.vue
+│  │  │  └─ ModalBase.vue
 │  │  ├─ SubDetail
-│  │  │  ├─ PossibilitySection.vue
-│  │  │  └─ RankSection.vue
+│  │  │  ├─ RankSection.vue
+│  │  │  └─ PossibilitySection.vue
 │  │  └─ score
 │  │     ├─ DependentCounter.vue
 │  │     ├─ InfoTooltip.vue
@@ -98,14 +104,14 @@ KB_FE
 │  │  │  ├─ NoticeDetail.vue
 │  │  │  └─ Withdraw.vue
 │  │  ├─ notification
-│  │  │  ├─ Notification.vue
-│  │  │  └─ NotoficationDetail.vue
+│  │  │  ├─ NotoficationDetail.vue
+│  │  │  └─ Notification.vue
 │  │  ├─ subscription
-│  │  │  ├─ EtcSubscriptionDetail.vue
 │  │  │  ├─ FavoriteSubscription.vue
 │  │  │  ├─ RecentlyViewedSubscription.vue
-│  │  │  ├─ SubscriptionDetail.vue
-│  │  │  └─ SubscriptionList.vue
+│  │  │  ├─ SubscriptionList.vue
+│  │  │  ├─ EtcSubscriptionDetail.vue
+│  │  │  └─ SubscriptionDetail.vue
 │  │  ├─ calendar
 │  │  │  └─ Calendar.vue
 │  │  ├─ map
@@ -113,25 +119,24 @@ KB_FE
 │  │  ├─ preference
 │  │  │  └─ Preference.vue
 │  │  └─ scores
-│  │     ├─ EditStep1_HouseOwnership.vue
-│  │     ├─ EditStep2_DisposalHistory.vue
-│  │     ├─ EditStep3_HouseholdHead.vue
 │  │     ├─ EditStep4.vue
 │  │     ├─ EditStep6_ResidenceInfo.vue
 │  │     ├─ Step6_ResidenceInfo.vue
-│  │     ├─ EditStep5_DependentFamily.vue
 │  │     ├─ ScoreInfo.vue
 │  │     ├─ ScoreResult.vue
 │  │     ├─ Step1_HouseOwnership.vue
 │  │     ├─ Step3_HouseholdHead.vue
-│  │     ├─ Step5_DependentFamily.vue
 │  │     ├─ Step4.vue
-│  │     └─ Step2_DisposalHistory.vue
+│  │     ├─ Step2_DisposalHistory.vue
+│  │     ├─ EditStep1_HouseOwnership.vue
+│  │     ├─ EditStep2_DisposalHistory.vue
+│  │     ├─ EditStep3_HouseholdHead.vue
+│  │     ├─ EditStep5_DependentFamily.vue
+│  │     └─ Step5_DependentFamily.vue
 │  ├─ router
 │  │  └─ index.js
 │  ├─ stores
 │  │  ├─ common.js
-│  │  ├─ notificationStore.js
 │  │  ├─ preference.js
 │  │  ├─ favorites.js
 │  │  ├─ account.js
@@ -139,7 +144,9 @@ KB_FE
 │  │  ├─ user.js
 │  │  ├─ rank.js
 │  │  ├─ scoreStore.js
-│  │  └─ firebaseStore.js
+│  │  ├─ firebaseStore.js
+│  │  ├─ notificationStore.js
+│  │  └─ chatStore.js
 │  ├─ utils
 │  │  ├─ date.js
 │  │  └─ KakaoMapLoader.js
@@ -157,14 +164,16 @@ KB_FE
 │  │  ├─ accountApi.js
 │  │  ├─ favoriteApi.js
 │  │  ├─ scoreApi.js
-│  │  ├─ api.js
 │  │  ├─ axios.js
 │  │  ├─ recentApi.js
 │  │  ├─ rankApi.js
-│  │  └─ authApi.js
-│  ├─ main.js
+│  │  ├─ authApi.js
+│  │  ├─ possibilityApi.js
+│  │  ├─ chatApi.js
+│  │  └─ notificationApi.js
 │  ├─ App.vue
-│  └─ firebase.js
+│  ├─ firebase.js
+│  └─ main.js
 ├─ jsconfig.json
 ├─ postcss.config.js
 ├─ tailwind.config.js
@@ -175,9 +184,10 @@ KB_FE
 │  ├─ pwa-192x192.png
 │  ├─ pwa-512x512.png
 │  └─ firebase-messaging-sw.js
+├─ README.md
+├─ .hintrc
 ├─ package-lock.json
 ├─ package.json
-├─ .hintrc
 └─ vite.config.js
 
 ```

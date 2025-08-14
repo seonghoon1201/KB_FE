@@ -12,12 +12,14 @@
                 </button>
                 <button :class="tabClass('read')" @click="activeTab = 'read'">읽은 알림</button>
             </div>
-            <button
-                class="text-xs text-blue-500 font-medium hover:underline"
-                @click="markAllAsRead"
-            >
-                모두 읽음 처리
-            </button>
+            <div class="flex justify-between w-28">
+                <button class="text-xs text-blue-500 font-medium hover:underline" @click="readAll">
+                    모두 읽음
+                </button>
+                <button class="text-xs text-red-500 font-medium hover:underline" @click="deleteAll">
+                    모두 삭제
+                </button>
+            </div>
         </div>
 
         <!-- 알림 리스트 -->
@@ -63,43 +65,17 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import BackHeader from '@/components/common/BackHeader.vue'
 import { useNotificationStore } from '@/stores/notificationStore'
-import { useFirebaseStore } from '@/stores/firebaseStore'
-
-// ✅ 알림 상태
-const notifications = ref([
-    {
-        id: 1,
-        title: '7월 예치금 미납',
-        date: '2025.07.31 자정',
-        timeAgo: '3분 전',
-        isRead: false,
-    },
-    {
-        id: 2,
-        title: '힐스테이트 청약',
-        date: '',
-        timeAgo: '1시간 전',
-        isRead: true,
-    },
-    {
-        id: 3,
-        title: '청약 마감 임박 안내',
-        date: '',
-        timeAgo: '2일 전',
-        isRead: false,
-    },
-])
 
 // ✅ 탭 필터링 상태: all | unread | read
 const store = useNotificationStore()
-const firebaseStore = useFirebaseStore()
 const activeTab = ref('all')
 
 // ✅ 필터링된 알림
 const filteredNotifications = computed(() => {
+    console.log('store.notifications : ', store.notifications)
     if (activeTab.value === 'unread') {
         return store.notifications.filter((n) => !n.isRead)
     } else if (activeTab.value === 'read') {
@@ -113,8 +89,17 @@ const tabClass = (tab) =>
         ? 'text-black border-b-2 border-black pb-1'
         : 'text-gray-400 hover:text-black pb-1'
 
-const markAllAsRead = () => {
+const readAll = () => {
     // store.markAllAsRead()
-    firebaseStore.allRead()
+    store.readAll()
 }
+
+const deleteAll = () => {
+    // store.markAllAsRead()
+    store.deleteList()
+}
+
+onMounted(() => {
+    store.getList()
+})
 </script>
