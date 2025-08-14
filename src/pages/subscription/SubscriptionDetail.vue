@@ -58,9 +58,34 @@
                     {{ formatToEok(subscription.min_price) }} ~
                     {{ formatToEok(subscription.max_price) }}
                 </p>
-
-                <!-- 지도 영역 -->
-                <div ref="mapRef" class="rounded-lg mt-4 w-full aspect-video" />
+                <!-- 지도 래퍼를 relative로 감싸기 -->
+                <div class="relative mt-4">
+                    <!-- 지도 영역 -->
+                    <div
+                        ref="mapRef"
+                        class="rounded-lg mt-4 w-full h-[35vh] min-h-72 md:h-[30vh]"
+                    />
+                    <!-- 좌측 상단 필터 바 -->
+                    <div class="absolute top-2 left-2 z-10">
+                        <div
+                            class="bg-white/90 backdrop-blur rounded-xl shadow border border-gray-200 p-1 flex gap-1"
+                        >
+                            <button
+                                v-for="btn in filterButtons"
+                                :key="btn.key"
+                                @click="handleFilterClick(btn.key)"
+                                :class="[
+                                    'px-2.5 py-1 rounded-lg text-xs font-medium border transition',
+                                    infraFilter === btn.key
+                                        ? 'bg-blue-600 text-white border-blue-600'
+                                        : 'bg-white text-gray-700 hover:bg-gray-50 border-gray-200',
+                                ]"
+                            >
+                                {{ btn.label }}
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </section>
 
             <!-- 청약 일정 -->
@@ -151,7 +176,7 @@
         </div>
     </div>
     <!-- 화면 오른쪽 하단 챗봇 플로팅 -->
-    <div class="fixed bottom-[78px] right-4 z-50">
+    <div class="fixed bottom-[16px] right-4 z-50">
         <div class="bg-[#00AEFF] rounded-full p-3 shadow-lg">
             <BotMessageSquare class="text-white" @click="goToChatbot" />
         </div>
@@ -173,9 +198,8 @@ import {
     Building2,
     Expand,
     House,
-    ExpandIcon,
 } from 'lucide-vue-next'
-import { onMounted, ref, computed, nextTick, watchEffect } from 'vue'
+import { onMounted, ref, computed, nextTick, watch, watchEffect } from 'vue'
 import api from '@/api/axios'
 import { useRoute } from 'vue-router'
 import BackHeader from '@/components/common/BackHeader.vue'
@@ -185,6 +209,7 @@ import { useFavoritesStore } from '@/stores/favorites'
 import { loadKakaoMapScript } from '@/utils/KakaoMapLoader'
 import { BotMessageSquare } from 'lucide-vue-next'
 import { useRouter } from 'vue-router'
+import { faMapPin } from '@fortawesome/free-solid-svg-icons'
 
 const router = useRouter()
 const route = useRoute()
@@ -192,56 +217,137 @@ const favoritesStore = useFavoritesStore()
 const subscription = ref(null)
 const loading = ref(true)
 const mapRef = ref(null)
+const mapInstance = ref(null)
+const activeOverlay = ref(null)
+const baseMarker = ref(null)
+const infraMarkers = ref([])
+const openMarker = ref(null)
+let lastMarkerClickAt = 0
 
-// // 지도 초기화 함수
-// async function initMap(address) {
-//     const kakao = await loadKakaoMapScript()
-//     await nextTick()
+const sharedInfoWindow = ref(null)
+const didFirstRender = ref(false) // 첫 draw 이후엔 뷰를 절대 건드리지 않음
 
-//     kakao.maps.load(() => {
-//         if (!mapRef.value) return
+// 필터 상태: 'all' | 그룹 타이틀(의료 시설/교통/편의 시설/학교/유치원 · 어린이집)
+const infraFilter = ref('none')
+const filterKeyToTypes = {
+    none: [],
+    all: null,
+    '의료 시설': ['hospital'],
+    교통: ['subway', 'bus'],
+    '편의 시설': ['mart'],
+    학교: ['school'],
+    '유치원 · 어린이집': ['kindergarten'],
+}
 
-//         const geocoder = new kakao.maps.services.Geocoder()
-//         const cleanAddress = normalizeAddress(address)
-//         console.log('주소 검색 시작:', cleanAddress)
+const filterButtons = [
+    { key: 'all', label: '전체' },
+    { key: '의료 시설', label: '의료' },
+    { key: '교통', label: '교통' },
+    { key: '편의 시설', label: '편의' },
+    { key: '학교', label: '학교' },
+    { key: '유치원 · 어린이집', label: '유치원' },
+]
 
-//         const map = new kakao.maps.Map(mapRef.value, {
-//             center: new kakao.maps.LatLng(36.5, 127.5),
-//             level: 5,
-//         })
+function handleFilterClick(key) {
+    // 같은 버튼을 다시 누르면 모두 해제(none)
+    infraFilter.value = infraFilter.value === key ? 'none' : key
+}
 
-//         geocoder.addressSearch(cleanAddress, function (result, status) {
-//             if (status === kakao.maps.services.Status.OK) {
-//                 const coords = new kakao.maps.LatLng(result[0].y, result[0].x)
-//                 map.setCenter(coords)
-//                 new kakao.maps.Marker({ map, position: coords })
-//             } else {
-//                 console.warn('주소를 좌표로 변환할 수 없습니다:', status, cleanAddress)
+// // FA 아이콘을 SVG data URL로 변환
+// function faToSvgDataUrl(iconDef, { size = 28, color = '#ef4444' } = {}) {
+//     const [w, h, , , d] = iconDef.icon
+//     const svg = `
+//     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" width="${size}" height="${size}">
+//       <path d="${d}" fill="${color}"/>
+//     </svg>`
+//     return 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg)
+// }
 
-//                 // 1차 검색 실패 → 'OO리'까지만 사용해 재검색
-//                 const partialAddr = getAddressUpToRi(subscription.value.address)
-//                 console.log('Fallback 주소 재검색:', partialAddr)
-
-//                 geocoder.addressSearch(partialAddr, function (res2, status2) {
-//                     if (status2 === kakao.maps.services.Status.OK) {
-//                         const coords = new kakao.maps.LatLng(res2[0].y, res2[0].x)
-//                         map.setCenter(coords)
-//                         new kakao.maps.Marker({ map, position: coords })
-//                     } else {
-//                         console.warn('Fallback 주소도 좌표로 변환 실패:', status2, partialAddr)
-
-//                         // 완전 실패 → 기본 좌표 사용
-//                         const fallbackCoords = new kakao.maps.LatLng(36.5, 127.5)
-//                         map.setCenter(fallbackCoords)
-//                         new kakao.maps.Marker({ map, position: fallbackCoords })
-//                     }
-//                 })
-//             }
-//         })
+// // Kakao MarkerImage 생성 (앵커: 아래 중앙)
+// function makeFAImage(iconDef, { size = 28, color = '#ef4444' } = {}) {
+//     const kakao = window.kakao
+//     const url = faToSvgDataUrl(iconDef, { size, color })
+//     return new kakao.maps.MarkerImage(url, new kakao.maps.Size(size, size), {
+//         offset: new kakao.maps.Point(size / 2, size),
 //     })
 // }
 
-// 지도 초기화 함수
+// 타입별 아이콘/색 매핑
+const ICON_BY_TYPE = {
+    // subway: { icon: faMapPin, color: '#16a34a' }, //초록
+    // bus: { icon: faMapPin, color: '#16a34a' },
+    // school: { icon: faMapPin, color: '#9333ea' },
+    // kindergarten: { icon: faMapPin, color: '#9333ea' },
+    // hospital: { icon: faMapPin, color: '#ef4444' },
+    // mart: { icon: faMapPin, color: '#f97316' },
+    subway: { color: '#22c55e' }, // 교통 - 약간 더 선명한 초록
+    bus: { color: '#22c55e' },
+    school: { color: '#7c3aed' }, // 학교/유아 - 선명 보라
+    kindergarten: { color: '#7c3aed' },
+    hospital: { color: '#ef4444' }, // 의료 - 레드
+    mart: { color: '#f59e0b' }, // 편의 - 오렌지
+}
+
+// 테어드롭 마커 SVG (흰 외곽선 + 그림자 + 중앙 하얀 점)
+function makePinSvgDataUrl(color, { size = 34 } = {}) {
+    // viewBox 기준으로 만든 뒤 width/height로 스케일
+    const svg = `
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 44" width="${size}" height="${size}">
+    <defs>
+      <filter id="dropShadow" x="-50%" y="-50%" width="200%" height="200%">
+        <feGaussianBlur in="SourceAlpha" stdDeviation="1.5" result="blur"/>
+        <feOffset in="blur" dx="0" dy="1" result="offsetBlur"/>
+        <feMerge>
+          <feMergeNode in="offsetBlur"/>
+          <feMergeNode in="SourceGraphic"/>
+        </feMerge>
+      </filter>
+    </defs>
+    <!-- 테어드롭 외곽 -->
+    <path d="M16 0c-6.6 0-12 5.4-12 12 0 9 12 22 12 22s12-13 12-22C28 5.4 22.6 0 16 0z"
+          fill="${color}" stroke="white" stroke-width="2" filter="url(#dropShadow)"/>
+    <!-- 중앙 하얀 점 -->
+    <circle cx="16" cy="12" r="4.5" fill="white"/>
+  </svg>`
+    return 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg)
+}
+
+function makePinImage(color, { size = 34 } = {}) {
+    const kakao = window.kakao
+    const url = makePinSvgDataUrl(color, { size })
+    return new kakao.maps.MarkerImage(url, new kakao.maps.Size(size, size), {
+        offset: new kakao.maps.Point(size / 2, size - 3), // 하단 끝이 좌표에 오도록
+    })
+}
+
+function closeInfo() {
+    if (sharedInfoWindow.value) sharedInfoWindow.value.close()
+    // openMarker.value = null
+    // if (openMarker.value) {
+    //     // 열려있던 마커 강조 해제
+    //     const meta = ICON_BY_TYPE[openMarker.value.place_type] || { color: '#3b82f6' }
+    //     // place_type을 marker에 달아두면 더 편함 (아래 참고)
+    //     openMarker.value.setImage(makePinImage(meta.color, { size: 34 }))
+    //     openMarker.value.setZIndex(150)
+    // }
+    if (openMarker.value) {
+        const m = openMarker.value
+        m.setImage(
+            m._images?.normal ??
+                makePinImage(ICON_BY_TYPE[m.place_type]?.color || '#3b82f6', { size: 34 }),
+        )
+        m.setZIndex(150)
+    }
+    openMarker.value = null
+}
+
+function closeOverlay() {
+    if (activeOverlay.value) {
+        activeOverlay.value.setMap(null)
+        activeOverlay.value = null
+    }
+}
+
 async function initMap(lat, lng) {
     const kakao = await loadKakaoMapScript()
     await nextTick()
@@ -249,16 +355,199 @@ async function initMap(lat, lng) {
     kakao.maps.load(() => {
         if (!mapRef.value) return
 
+        // 지도 생성
         const map = new kakao.maps.Map(mapRef.value, {
             center: new kakao.maps.LatLng(lat, lng),
             level: 5,
         })
+        mapInstance.value = map
 
-        new kakao.maps.Marker({
+        baseMarker.value = new kakao.maps.Marker({
             map,
             position: new kakao.maps.LatLng(lat, lng),
+            zIndex: 200, // 인프라/POI 위
         })
+        // kakao.maps.event.addListener(marker, 'mouseover', () => {
+        //     if (openMarker.value !== marker) {
+        //         marker.setImage(marker._images.hover)
+        //         marker.setZIndex(220)
+        //     }
+        // })
+        // kakao.maps.event.addListener(marker, 'mouseout', () => {
+        //     if (openMarker.value !== marker) {
+        //         marker.setImage(marker._images.normal)
+        //         marker.setZIndex(150)
+        //     }
+        // })
+
+        // ✅ 공용 InfoWindow
+        sharedInfoWindow.value = new kakao.maps.InfoWindow({ removable: false, zIndex: 1000 })
+
+        kakao.maps.event.addListener(map, 'click', () => {})
+
+        kakao.maps.event.addListener(map, 'click', () => {
+            // 마커 클릭 직후엔 무시 (버블/타이밍 이슈 방지)
+            if (Date.now() - lastMarkerClickAt < 150) return
+            closeInfo()
+            openMarker.value = null
+        })
+
+        // 주변 시설 마커 그리기
+        drawInfraMarkers()
     })
+}
+
+function clearInfraMarkers() {
+    closeOverlay()
+    infraMarkers.value.forEach((m) => m.setMap(null))
+    infraMarkers.value = []
+}
+
+function drawInfraMarkers() {
+    const kakao = window.kakao
+    if (!mapInstance.value || !subscription.value?.infra_places) return
+
+    //   clearInfraMarkers()
+    //   const bounds = new kakao.maps.LatLngBounds()
+    //   if (baseMarker.value) bounds.extend(baseMarker.value.getPosition())
+
+    // 👇 현재 뷰 저장 (필터 변경 시 복원)
+    const map = mapInstance.value
+    const prevCenter = map.getCenter()
+    const prevLevel = map.getLevel()
+
+    clearInfraMarkers()
+    const bounds = new kakao.maps.LatLngBounds()
+    if (baseMarker.value) bounds.extend(baseMarker.value.getPosition())
+
+    // 모두 해제 상태면 마커 없이 뷰만 유지
+    if (infraFilter.value === 'none') {
+        if (!didFirstRender.value) {
+            if (baseMarker.value) map.setCenter(baseMarker.value.getPosition())
+            didFirstRender.value = true
+        } else {
+            map.setCenter(prevCenter)
+            map.setLevel(prevLevel)
+        }
+        return
+    }
+
+    subscription.value.infra_places.forEach((place) => {
+        const lat = Number(place.latitude)
+        const lng = Number(place.longitude)
+        if (!Number.isFinite(lat) || !Number.isFinite(lng)) return
+
+        // 1) 카테고리 필터 (place_type 기준)
+        const types = filterKeyToTypes[infraFilter.value]
+        if (types && !types.includes(place.place_type)) return
+
+        const pos = new kakao.maps.LatLng(lat, lng)
+
+        // // 2) 마커 이미지 (Font Awesome 매핑 사용!)
+        // const meta = ICON_BY_TYPE[place.place_type] || { icon: faMapPin, color: '#3b82f6' }
+        // const markerImage = makeFAImage(meta.icon, { size: 24, color: meta.color })
+
+        // 2) 마커 이미지 (커스텀 SVG 핀)
+        const meta = ICON_BY_TYPE[place.place_type] || { color: '#3b82f6' }
+        const normalImage = makePinImage(meta.color, { size: 34 })
+        const hoverImage = makePinImage(meta.color, { size: 40 }) // 살짝 확대 버전
+        const activeImage = makePinImage(meta.color, { size: 42 }) // 클릭(InfoWindow 오픈) 강조
+
+        const marker = new kakao.maps.Marker({
+            position: pos,
+            map: mapInstance.value,
+            // image: markerImage,
+            image: normalImage,
+            title: place.place_name,
+            zIndex: 150,
+        })
+        marker._images = { normal: normalImage, hover: hoverImage, active: activeImage }
+        marker.place_type = place.place_type
+
+        // 3) InfoWindow
+        const km = Number(place.distance) / 1000
+        const kmText = Number.isFinite(km) ? km.toFixed(1) : '-'
+        const walk = walkingTimeFromKm(km)
+        const html = `
+      <div style="padding:8px 10px; max-width:220px;">
+        <div style="font-weight:700; font-size:13px; color:#111827; margin-bottom:2px;">
+          ${place.place_name}
+        </div>
+        <div style="font-size:12px; color:#6b7280;">
+          ${kmText}km · 도보 ${walk ?? '-'}분
+        </div>
+      </div>`
+
+        // kakao.maps.event.addListener(marker, 'click', () => {
+        //     lastMarkerClickAt = Date.now()
+        //     if (openMarker.value === marker) {
+        //         closeInfo()
+        //         return
+        //     }
+        //     closeInfo()
+        //     sharedInfoWindow.value.setContent(html)
+        //     sharedInfoWindow.value.open(mapInstance.value, marker)
+        //     openMarker.value = marker
+        // })
+        kakao.maps.event.addListener(marker, 'click', () => {
+            lastMarkerClickAt = Date.now()
+            if (openMarker.value === marker) {
+                closeInfo()
+                marker.setImage(marker._images.normal)
+                marker.setZIndex(150)
+                return
+            }
+            closeInfo()
+            sharedInfoWindow.value.setContent(html)
+            sharedInfoWindow.value.open(mapInstance.value, marker)
+            openMarker.value = marker
+            marker.setImage(marker._images.active)
+            marker.setZIndex(300)
+        })
+        infraMarkers.value.push(marker)
+        // bounds.extend(pos)
+    })
+    // // ✅ 호버/아웃: 마커별로 등록
+    // kakao.maps.event.addListener(marker, 'mouseover', () => {
+    //     if (openMarker.value !== marker) {
+    //         marker.setImage(marker._images.hover)
+    //         marker.setZIndex(220)
+    //     }
+    // })
+    // kakao.maps.event.addListener(marker, 'mouseout', () => {
+    //     if (openMarker.value !== marker) {
+    //         marker.setImage(marker._images.normal)
+    //         marker.setZIndex(150)
+    //     }
+    // })
+    // // 호버 시 살짝 확대
+    // kakao.maps.event.addListener(marker, 'mouseover', () => {
+    //     if (openMarker.value !== marker) {
+    //         marker.setImage(hoverImage)
+    //         marker.setZIndex(220)
+    //     }
+    // })
+    // kakao.maps.event.addListener(marker, 'mouseout', () => {
+    //     if (openMarker.value !== marker) {
+    //         marker.setImage(normalImage)
+    //         marker.setZIndex(150)
+    //     }
+    // })
+
+    // ✅ 뷰 유지/고정 규칙
+    if (!didFirstRender.value) {
+        // 첫 렌더: 청약 좌표를 확실히 중심으로
+        if (baseMarker.value) {
+            map.setCenter(baseMarker.value.getPosition())
+            // 필요하면 기본 확대 수준 고정 (주석 해제)
+            // map.setLevel(5)
+        }
+        didFirstRender.value = true
+    } else {
+        // 이후(필터 변경 등): 기존 뷰 그대로 복원
+        map.setCenter(prevCenter)
+        map.setLevel(prevLevel)
+    }
 }
 
 onMounted(async () => {
@@ -347,12 +636,13 @@ onMounted(async () => {
         loading.value = false
     }
 
-    // // --- watchEffect로 map init ---
-    // watchEffect(async () => {
-    //     if (subscription.value?.address && mapRef.value) {
-    //         await initMap(subscription.value.address)
-    //     }
-    // })
+    watch(
+        [() => mapInstance.value, () => subscription.value?.infra_places, () => infraFilter.value],
+        ([map, places]) => {
+            if (map && places) drawInfraMarkers()
+        },
+        { immediate: true },
+    )
 })
 
 // 날짜 포맷 함수
@@ -383,7 +673,7 @@ const areaList = computed(() => {
     if (!types || types.length === 0) return ''
 
     // 면적만 추출
-    const areas = types.map((t) => parseFloat(t.SUPLY_AR || t.EXCLUSE_AR)).filter((a) => !isNaN(a))
+    const areas = types.map((t) => parseFloat(t.HOUSE_TY || t.EXCLUSE_AR)).filter((a) => !isNaN(a))
     if (areas.length === 0) return ''
 
     const min = Math.min(...areas)
@@ -392,21 +682,6 @@ const areaList = computed(() => {
     // 최소 = 최대라면 하나만, 아니면 범위 표기
     return min === max ? `${min.toFixed(1)}㎡` : `${min.toFixed(1)}㎡ ~ ${max.toFixed(1)}㎡`
 })
-
-// 모든 면적 보여주는 함수
-// const areaList = computed(() => {
-//     const types = subscription.value?.apt_type || subscription.value?.officetel_type
-//     if (!types || types.length === 0) return ''
-
-//     return types
-//         .map((t) => {
-//             // 아파트는 SUPLY_AR, 오피스텔은 EXCLUSE_AR 사용
-//             const area = parseFloat(t.SUPLY_AR || t.EXCLUSE_AR)
-//             return isNaN(area) ? null : `${area.toFixed(1)}㎡`
-//         })
-//         .filter(Boolean) // null 제거
-//         .join(' / ')
-// })
 
 function calcBadge(start, end) {
     if (!start || !end) return ''
@@ -504,9 +779,14 @@ const iconMap = {
 const facilityGroups = computed(() => {
     if (!subscription.value?.infra_places) return []
 
+    // ✅ infra_places 전체 데이터 확인
+    console.log('infra_places:', subscription.value.infra_places)
+
     // 1. 타입별로 묶기
     const grouped = {}
     subscription.value.infra_places.forEach((place) => {
+        console.log('place:', place) // 개별 place 정보 확인
+
         const meta = iconMap[place.place_type]
         if (!meta) return
 
@@ -537,31 +817,9 @@ const formatToEok = (priceValue) => {
 
     if (isNaN(num)) return ''
 
-    // 서버 단위가 '만원'이므로 10,000으로 나눠야 '억' 단위가 됨
     const eok = num / 10000
     return `${eok.toFixed(1)}억`
 }
-
-// function normalizeAddress(addr) {
-//     if (!addr) return ''
-//     return addr
-//         .replace(/외\s*\d+필지/, '') // "외 10필지"만 제거
-//         .replace(/일원$/, '') // "일원" 글자만 제거
-//         .replace(/번지/g, '')
-//         .replace(/\s+/g, ' ') // 공백 정리
-//         .trim()
-// }
-
-// function getAddressUpToRi(addr) {
-//     if (!addr) return ''
-//     const match = addr.match(/^(.*?리)/) // 처음 '리'까지 매칭
-//     if (match) return match[1]
-//     return addr
-// }
-
-// const openPromotionLink = () => {
-//     window.open('https://www.applyhome.co.kr/co/coa/selectMainView.do', '_blank')
-// }
 
 function goToApply() {
     window.open(
@@ -577,12 +835,10 @@ function viewSubscriptionInfo() {
 
 // 도보 시간 계산 함수
 function walkingTimeFromKm(km) {
-    if (typeof km !== 'number' || isNaN(km) || km < 0) {
-        throw new Error('유효한 양의 숫자(km)를 입력해주세요.')
-    }
-
+    const v = Number(km)
+    if (!Number.isFinite(v) || v < 0) return null
     const minutesPerKm = 12
-    return Math.round(km * minutesPerKm)
+    return Math.max(1, Math.round(v * minutesPerKm))
 }
 
 const goToChatbot = () => {

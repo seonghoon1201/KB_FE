@@ -114,6 +114,13 @@ const quickQuestions = ref([
 const containerRef = ref(null)
 const bottomAnchor = ref(null)
 
+const typeText = async (text, indexInLog) => {
+  for (let i = 0; i < text.length; i++) {
+    chatLog.value[indexInLog].message += text[i]
+    await new Promise((resolve) => setTimeout(resolve, 20)) // 20ms 딜레이
+  }
+}
+
 const scrollToBottom = async () => {
     await nextTick()
     const el = containerRef.value
@@ -155,30 +162,28 @@ const sendMessage = async (text) => {
     userInput.value = ''
     await scrollToBottom()
 
-    // 일단 로딩 메시지 표시
+    // 로딩 문구 먼저 추가
     const loadingMsg = {
         sender: 'bot',
-        message: '답변을 불러오는 중입니다...',
+        message: '지비가 생각하는 중...',
     }
     chatLog.value.push(loadingMsg)
+    const botMsgIndex = chatLog.value.length - 1
     await scrollToBottom()
 
     try {
         const response = await sendToChatbotAPI(msg)
+        const finalText = response || '답변을 불러오지 못했습니다.'
 
-        // 로딩 메시지 제거하고 실제 응답 삽입
-        chatLog.value.pop()
-        chatLog.value.push({
-            sender: 'bot',
-            message: response || '답변을 불러오지 못했습니다.',
-        })
+        // 잠깐 대기 후 문구 초기화
+        await new Promise((resolve) => setTimeout(resolve, 600))
+        chatLog.value[botMsgIndex].message = '' // 지우기
+
+        // 한 글자씩 타이핑
+        await typeText(finalText, botMsgIndex)
     } catch (e) {
         console.error(e)
-        chatLog.value.pop()
-        chatLog.value.push({
-            sender: 'bot',
-            message: '오류가 발생했어요. 잠시 후 다시 시도해주세요.',
-        })
+        chatLog.value[botMsgIndex].message = '오류가 발생했어요. 잠시 후 다시 시도해주세요.'
     }
 
     await scrollToBottom()

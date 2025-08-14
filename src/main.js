@@ -3,6 +3,8 @@ import { createApp } from 'vue'
 import App from './App.vue'
 import router from './router'
 import { createPinia } from 'pinia'
+import { setupMessaging, onForegroundMessage } from '@/firebase'
+import { useNotificationStore } from '@/stores/notificationStore'
 import './assets/main.css'
 
 import '@/utils/date'
@@ -11,7 +13,30 @@ import { useAccountStore } from '@/stores/account'
 import { useScoreStore } from '@/stores/scoreStore'
 import * as lucide from 'lucide-vue-next'
 
+// ant design
+import Antd from 'ant-design-vue'
+/* 마진 생겨서 일단 주석 처리 
+import 'ant-design-vue/dist/reset.css' // CSS 리셋 포함 (4.x 기준)
+*/
 const app = createApp(App)
+
+async function initFcmAfterLogin() {
+    try {
+        const vapidKey = import.meta.env.VITE_FIREBASE_VAPID_KEY
+        const { token } = await setupMessaging(vapidKey)
+        if (!token) return
+        // 서버에 토큰 저장
+        await axios.post('/v1/me/fcm-token', { token }) // JWT 인증 필요 시 헤더 자동 첨부 가정
+
+        const store = useNotificationStore()
+        onForegroundMessage((payload) => {
+            // 포그라운드 수신 → 인앱 토스트/리스트 반영
+            store.add(payload)
+        })
+    } catch (e) {
+        console.error('FCM 초기화 실패:', e)
+    }
+}
 
 // 전역 아이콘 등록
 for (const [key, comp] of Object.entries(lucide)) {
@@ -19,8 +44,10 @@ for (const [key, comp] of Object.entries(lucide)) {
 }
 
 const pinia = createPinia()
+
 app.use(pinia)
 app.use(router)
+app.use(Antd)
 
 // — 로그인 유지(새로고침 복원) 로직 —
 const userStore = useUserStore()

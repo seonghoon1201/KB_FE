@@ -93,6 +93,9 @@ export const useUserStore = defineStore('user', {
             localStorage.removeItem('residenceStartDate')
             localStorage.removeItem('noHousePeriod')
 
+            // fcm 토큰 로컬스토리지 삭제
+            localStorage.removeItem('fcmToken')
+
             // ✅ 다른 store도 상태 초기화
             const accountStore = useAccountStore()
             accountStore.reset()

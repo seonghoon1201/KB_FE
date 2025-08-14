@@ -60,24 +60,20 @@
                 <button
                     v-for="option in areaOptions"
                     :key="option.value"
-                    @click="toggleArea(option.value)"
+                    @click="selectArea(option.value)"
                     :class="[
                         'px-3 py-2 rounded-full border',
-                        selectedAreas.some((a) => a.toString() === option.value.toString())
+                        props.selectedArea?.toString() === option.value.toString()
                             ? 'bg-blue-500 text-white'
                             : 'bg-white text-gray-600',
                     ]"
                 >
                     {{ option.label }}
-
-                    <!-- {{ option.label }}<br> ({{ option.pyeong }}) -->
                 </button>
             </div>
 
             <!-- 가격 -->
-            <label class="text-sm font-semibold text-gray-800 block mb-2"
-                >가격대 (만원 단위)</label
-            >
+            <label class="text-sm font-semibold text-gray-800 block mb-2">가격대 (만원 단위)</label>
             <div class="flex items-center gap-2 mb-6">
                 <input
                     :value="priceMin"
@@ -107,14 +103,14 @@
 </template>
 
 <script setup>
-import { computed, defineProps, defineEmits } from 'vue'
+import { ref, computed, defineProps, defineEmits } from 'vue'
 import { districts } from '@/data/districts'
 import { areaOptions } from '@/data/area'
 
 const props = defineProps({
     visible: Boolean,
     selectedRegions: Array,
-    selectedAreas: Array,
+    selectedArea: { type: Array, default: null }, // ✅ 배열 허용
     priceMin: Number,
     priceMax: Number,
     selectedCity: String,
@@ -127,6 +123,7 @@ const close = () => emit('update:visible', false)
 
 const cities = Object.keys(districts)
 const filteredDistricts = computed(() => districts[props.selectedCity] || [])
+const selectedArea = ref('')
 
 const addSelectedRegion = () => {
     console.log('📍 city:', props.selectedCity, 'district:', props.selectedDistrict)
@@ -154,16 +151,6 @@ const addSelectedRegion = () => {
     emit('update', { field: 'selectedDistrict', value: '' })
 }
 
-// const handleDistrictChange = (e) => {
-//   const district = e.target.value
-//   emit('update', { field: 'selectedDistrict', value: district })
-
-//   // 약간의 지연 후 호출
-//   setTimeout(() => {
-//     addSelectedRegion()
-//   }, 0)
-// }
-
 const handleDistrictChange = (e) => {
     const district = e.target.value
     emit('update', { field: 'selectedDistrict', value: district })
@@ -190,19 +177,6 @@ const handleDistrictChange = (e) => {
     }, 0)
 }
 
-// const onChangeCity = (e) => {
-//     emit('update', { field: 'selectedCity', value: e.target.value })
-
-//     // 약간의 지연 후 호출
-//     setTimeout(() => {
-//         addSelectedRegion()
-//     }, 0)
-// }
-
-// const onChangeRegion = (e) => {
-//     emit('update', { field: 'selectedRegion', value: e.target.value })
-// }
-
 const removeSelectedRegion = (index) => {
     const updated = [...props.selectedRegions]
     updated.splice(index, 1)
@@ -216,6 +190,11 @@ const toggleArea = (val) => {
         ? props.selectedAreas.filter((a) => a.toString() !== valStr)
         : [...props.selectedAreas, [...val]] // 깊은 복사
     emit('update', { field: 'selectedAreas', value: updated })
+}
+
+const selectArea = (val) => {
+    const isSame = JSON.stringify(props.selectedArea) === JSON.stringify(val)
+    emit('update', { field: 'selectedArea', value: isSame ? null : val })
 }
 
 const apply = () => {
