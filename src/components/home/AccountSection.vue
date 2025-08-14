@@ -115,7 +115,7 @@
         <!-- ❌ 계좌 미등록 시 -->
         <template v-else>
             <div class="flex flex-col items-center gap-2">
-                <img src="@/assets/images/zibi_0.png" alt="egg" class="w-40 h-40" />
+                <img src="@/assets/images/surprise_zibi_0.png" alt="egg" class="w-40 h-40" />
                 <p class="text-gray-600 text-xl font-bold">계좌를 연결해 주세요!</p>
                 <p class="text-gray-500 text-sm text-center">
                     청약통장을 연결하면 예치금 현황과<br />
@@ -153,6 +153,13 @@ import zibi2 from '@/assets/images/zibi_2.png'
 import zibi3 from '@/assets/images/zibi_3.png'
 import zibi4 from '@/assets/images/zibi_4.png'
 import zibi5 from '@/assets/images/zibi_5.png'
+// 이번 달 미입금(경고)용 이미지들
+import sz0 from '@/assets/images/surprise_zibi_0.png'
+import sz1 from '@/assets/images/surprise_zibi_1.png'
+import sz2 from '@/assets/images/surprise_zibi_2.png'
+import sz3 from '@/assets/images/surprise_zibi_3.png'
+import sz4 from '@/assets/images/surprise_zibi_4.png'
+import sz5 from '@/assets/images/surprise_zibi_5.png'
 
 const router = useRouter()
 const accountStore = useAccountStore()
@@ -233,7 +240,9 @@ const dashOffset = computed(() => circumference * (1 - depositRate.value / 100))
 // zibi 이미지 선택
 const imagePath = computed(() => {
     const idx = Math.min(5, Math.floor(depositRate.value / 20))
-    return [zibi0, zibi1, zibi2, zibi3, zibi4, zibi5][idx]
+    const normalSet = [zibi0, zibi1, zibi2, zibi3, zibi4, zibi5]
+    const surpriseSet = [sz0, sz1, sz2, sz3, sz4, sz5]
+    return (hasDepositThisMonth.value ? normalSet : surpriseSet)[idx]
 })
 
 // // 초기 로드 시 계좌 정보 및 주소 fetch
