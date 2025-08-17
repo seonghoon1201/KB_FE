@@ -6,8 +6,17 @@ import notificationApi from '@/api/notificationApi'
 export const useNotificationStore = defineStore('notification', () => {
     const notifications = ref([]) // 알림 전체 목록
     const maxIndex = ref(0)
-    let unreadCount = ref() // 안 읽은 알림 개수
+    let unreadCount = ref(0) // 안 읽은 알림 개수
 
+    // 안읽음 알림 개수 카운트
+    async function countIsRead() {
+        const data = await notificationApi.getList()
+
+        unreadCount.value = data.filter((item) => item.read === false).length
+        console.log('countIsRead unreadCount.value : ', unreadCount.value)
+    }
+
+    // 알람 목록 조회
     async function getList() {
         notifications.value = []
         const data = await notificationApi.getList()
@@ -28,8 +37,12 @@ export const useNotificationStore = defineStore('notification', () => {
                 isRead: item.read,
             })
         })
+
+        unreadCount.value = data.filter((item) => item.read === false).length
+        console.log('unreadCount.value : ', unreadCount.value)
     }
 
+    // 알람 단건 상세 조회
     async function getItem(alarmIdx) {
         const data = await notificationApi.getItem(alarmIdx)
 
@@ -54,6 +67,9 @@ export const useNotificationStore = defineStore('notification', () => {
             content: data.content,
             routing: data.routing,
             link: data.link,
+            userIndex: data.usersIdx,
+            read: data.read,
+            houseType: data.house_type,
         }
         console.log('returnData : ', returnData)
         return returnData
@@ -68,9 +84,11 @@ export const useNotificationStore = defineStore('notification', () => {
 
     // 알람 삭제
     async function deleteItem(alarmIdx) {
-        await notificationApi.deleteItem(alarmIdx)
+        const response = await notificationApi.deleteItem(alarmIdx)
 
-        notifications.value = notifications.value.map((item) => item.id !== alarmIdx)
+        notifications.value = notifications.value.filter((item) => item.id !== alarmIdx)
+
+        return response
     }
 
     // 모두 읽음 처리
@@ -80,11 +98,41 @@ export const useNotificationStore = defineStore('notification', () => {
         notifications.value.forEach((item) => {
             item.isRead = true
         })
+
+        unreadCount.value = 0
     }
 
     // 새 청약 공고 알람 생성
     async function newNotice(params) {
-        await notificationApi.newNotice(params)
+        const { respose } = await notificationApi.newNotice(params)
+
+        notifications.value.push({
+            alarmDate: new Date().dateStringFormat(new Date(), '.'),
+            alarmIdx: respose.alarmIdx,
+            alarmTime: new Date().dateTimeStringFormat(new Date()),
+            read: false,
+            title: '테스트',
+        })
+    }
+
+    // 청약 접수 시작 알람 생성
+    async function applicationStart(params) {
+        await notificationApi.applicationStart(params)
+
+        maxIndex.value += 1
+
+        notifications.value.push({
+            alarmDate: new Date().dateStringFormat(new Date(), '.'),
+            alarmIdx: maxIndex.value,
+            alarmTime: new Date().dateTimeStringFormat(new Date()),
+            read: false,
+            title: '테스트',
+        })
+    }
+
+    // 예치금 미납 알람 생성
+    async function createDepositunpaid(params) {
+        await notificationApi.createDepositunpaid(params)
 
         maxIndex.value += 1
 
@@ -100,11 +148,14 @@ export const useNotificationStore = defineStore('notification', () => {
     return {
         notifications,
         unreadCount,
+        countIsRead,
         getList,
         getItem,
         deleteList,
         deleteItem,
         readAll,
         newNotice,
+        applicationStart,
+        createDepositunpaid,
     }
 })
