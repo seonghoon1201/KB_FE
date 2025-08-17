@@ -66,7 +66,7 @@ import alarmApi from '@/api/alarmApi'
 import { useUserStore } from '@/stores/user'
 import { useAccountStore } from '@/stores/account'
 import { useScoreStore } from '@/stores/scoreStore'
-import { setupMessaging } from '@/firebase'
+//import { setupMessaging } from '@/firebase'
 
 const email = ref('')
 const password = ref('')

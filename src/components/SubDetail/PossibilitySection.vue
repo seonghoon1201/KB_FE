@@ -19,9 +19,9 @@
                 <p :class="resultTextClass" class="text-base font-extrabold mt-1">
                     {{ resultText }}
                 </p>
-                <p class="text-xs text-gray-500 mt-1" v-if="probabilityPct !== null">
+                <!-- <p class="text-xs text-gray-500 mt-1" v-if="probabilityPct !== null">
                     예측 확률 약 <span class="font-semibold">{{ probabilityPct }}%</span>
-                </p>
+                </p> -->
                 <p class="text-[11px] text-gray-400 mt-1">
                     {{ resultSubText }}
                 </p>
@@ -37,7 +37,7 @@
                             <li>해당 청약의 공급 세대수</li>
                             <li>나의 순위</li>
                             <li>나의 가점</li>
-                            <li>예측 지원자수</li>
+                            <li>과거 경쟁률</li>
                         </ul>
                     </div>
                 </div>
