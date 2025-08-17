@@ -19,12 +19,23 @@
                 </div>
                 <div>
                     <label class="text-xs text-[#8D8D9] mb-1 block">비밀번호</label>
-                    <input
-                        v-model="password"
-                        type="password"
-                        placeholder="비밀번호를 입력해 주세요."
-                        class="w-full border-b border-[#D9D9D9] py-2 text-sm placeholder-[#C4C4C4] focus:outline-none focus:border-black"
-                    />
+                    <div class="relative">
+                        <input
+                            v-model="password"
+                            :type="showPassword ? 'text' : 'password'"
+                            placeholder="비밀번호를 입력해 주세요."
+                            class="w-full border-b border-[#D9D9D9] py-2 pr-8 text-sm placeholder-[#C4C4C4] focus:outline-none focus:border-black"
+                        />
+                        <!-- Lucide 아이콘: Eye / EyeOff -->
+                        <button
+                            type="button"
+                            @click="togglePassword"
+                            class="absolute right-0 top-1/2 -translate-y-1/2 pr-2 text-gray-500 hover:text-black"
+                        >
+                            <Eye v-if="!showPassword" class="w-5 h-5" />
+                            <EyeOff v-else class="w-5 h-5" />
+                        </button>
+                    </div>
                 </div>
 
                 <PrimaryButton
@@ -66,15 +77,21 @@ import alarmApi from '@/api/alarmApi'
 import { useUserStore } from '@/stores/user'
 import { useAccountStore } from '@/stores/account'
 import { useScoreStore } from '@/stores/scoreStore'
+import { Eye, EyeOff } from 'lucide-vue-next'
 //import { setupMessaging } from '@/firebase'
 
 const email = ref('')
 const password = ref('')
 const loading = ref(false)
+const showPassword = ref(false)
 const router = useRouter()
 const userStore = useUserStore()
 const accountStore = useAccountStore()
 const scoreStore = useScoreStore()
+
+function togglePassword() {
+    showPassword.value = !showPassword.value
+}
 
 async function handleLogin() {
     if (!email.value || !password.value) {
