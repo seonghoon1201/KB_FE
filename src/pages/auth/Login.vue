@@ -19,12 +19,23 @@
                 </div>
                 <div>
                     <label class="text-xs text-[#8D8D9] mb-1 block">비밀번호</label>
-                    <input
-                        v-model="password"
-                        type="password"
-                        placeholder="비밀번호를 입력해 주세요."
-                        class="w-full border-b border-[#D9D9D9] py-2 text-sm placeholder-[#C4C4C4] focus:outline-none focus:border-black"
-                    />
+                    <div class="relative">
+                        <input
+                            v-model="password"
+                            :type="showPassword ? 'text' : 'password'"
+                            placeholder="비밀번호를 입력해 주세요."
+                            class="w-full border-b border-[#D9D9D9] py-2 pr-8 text-sm placeholder-[#C4C4C4] focus:outline-none focus:border-black"
+                        />
+                        <!-- Lucide 아이콘: Eye / EyeOff -->
+                        <button
+                            type="button"
+                            @click="togglePassword"
+                            class="absolute right-0 top-1/2 -translate-y-1/2 pr-2 text-gray-500 hover:text-black"
+                        >
+                            <Eye v-if="!showPassword" class="w-5 h-5" />
+                            <EyeOff v-else class="w-5 h-5" />
+                        </button>
+                    </div>
                 </div>
 
                 <PrimaryButton
@@ -66,15 +77,21 @@ import alarmApi from '@/api/notificationApi'
 import { useUserStore } from '@/stores/user'
 import { useAccountStore } from '@/stores/account'
 import { useScoreStore } from '@/stores/scoreStore'
+import { Eye, EyeOff } from 'lucide-vue-next'
 import { setupMessaging } from '@/firebase'
 
 const email = ref('')
 const password = ref('')
 const loading = ref(false)
+const showPassword = ref(false)
 const router = useRouter()
 const userStore = useUserStore()
 const accountStore = useAccountStore()
 const scoreStore = useScoreStore()
+
+function togglePassword() {
+    showPassword.value = !showPassword.value
+}
 
 async function handleLogin() {
     if (!email.value || !password.value) {
@@ -116,16 +133,16 @@ async function handleLogin() {
             console.error(err)
         }
 
-        // // fcm 토큰 저장
-        // try {
-        //     const { token } = await setupMessaging(import.meta.env.VITE_VAPID_PUBLIC_KEY)
-        //     console.log('login token : ', token)
-        //     if (token) {
-        //         // await alarmApi.tokenUpdate(token)
-        //     }
-        // } catch (err) {
-        //     console.error('FCM 토큰 저장 실패:', err)
-        // }
+        // fcm 토큰 저장
+        try {
+            const { token } = await setupMessaging(import.meta.env.VITE_VAPID_PUBLIC_KEY)
+            console.log('login token : ', token)
+            if (token) {
+                await alarmApi.saveToken(token)
+            }
+        } catch (err) {
+            console.error('FCM 토큰 저장 실패:', err)
+        }
 
         // ④ 홈으로 이동
         router.push('/home')
@@ -142,7 +159,7 @@ async function handleKakaoLogin() {
     try {
         // ① 카카오 로그인 페이지로 리디렉션해서 code 받기
         const clientId = '53da207a5cc86b7ec03890c960d2937b' // 실제 REST API 키로 교체
-        const redirectUri = 'http://localhost:5173/kakao/callback' // 프론트엔드 콜백 URL
+        const redirectUri = 'https://zibi.vercel.app/kakao/callback' // 프론트엔드 콜백 URL
         const kakaoAuthUrl = `https://kauth.kakao.com/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code`
 
         window.location.href = kakaoAuthUrl

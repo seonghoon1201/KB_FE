@@ -8,7 +8,7 @@
         <!-- 오른쪽: 알림, 메뉴 (BackHeader와 동일하게 수정) -->
         <div class="flex items-center space-x-4">
             <div>
-                <a-badge :count="noticeStore.unreadCount">
+                <a-badge :count="unreadCount">
                     <Bell @click="alarmClick" />
                 </a-badge>
             </div>
@@ -20,6 +20,8 @@
 </template>
 
 <script setup>
+import { ref, computed, onMounted } from 'vue'
+import { storeToRefs } from 'pinia'
 import { Bell, BellDot, Menu } from 'lucide-vue-next'
 import { useCommonStore } from '@/stores/common'
 import { useRouter } from 'vue-router'
@@ -40,4 +42,10 @@ const alarmClick = () => {
 const menuClick = () => {
     modalStore.modalOnOff()
 }
+
+const { unreadCount } = storeToRefs(noticeStore)
+
+onMounted(() => {
+    noticeStore.countIsRead()
+})
 </script>
