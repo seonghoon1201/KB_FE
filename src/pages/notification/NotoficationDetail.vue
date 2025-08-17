@@ -85,6 +85,12 @@
                             </span>
                         </div>
                     </div>
+                    <button
+                        class="text-xs text-red-500 font-medium hover:underline"
+                        @click="deleteItem"
+                    >
+                        삭제
+                    </button>
                 </div>
 
                 <!-- 구분선 -->
@@ -120,59 +126,119 @@
                     -->
 
                     <!-- 링크 프리뷰 -->
-                    <div v-if="notice.link" class="mt-5">
-                        <router-link
-                            :to="{ name: 'SubscriptionDetail', params: { id: 2025000325 } }"
-                            class="group block rounded-xl border border-slate-200 hover:border-sky-300 hover:shadow-md transition-all"
-                        >
-                            <div class="px-4 py-3 flex items-center gap-3">
-                                <div class="shrink-0">
-                                    <!-- 링크 아이콘 -->
-                                    <svg
-                                        class="h-5 w-5 text-sky-600 group-hover:translate-x-0.5 transition-transform"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                    >
-                                        <path
-                                            d="M10 14a3 3 0 0 1 0-4l4-4a3 3 0 1 1 4 4l-1 1"
-                                            stroke="currentColor"
-                                            stroke-width="1.5"
-                                            stroke-linecap="round"
-                                        />
-                                        <path
-                                            d="M14 10a3 3 0 0 1 0 4l-4 4a3 3 0 0 1-4-4l1-1"
-                                            stroke="currentColor"
-                                            stroke-width="1.5"
-                                            stroke-linecap="round"
-                                        />
-                                    </svg>
+                    <div v-if="notice.link !== ''" class="mt-5">
+                        <!-- 내부 링크 -> houseType으로 아파트 상세정보인지, 오피스텔 상세정보인지 구분 -->
+                        <div v-if="notice.routing">
+                            <!-- 내부 아파트 링크 -->
+                            <router-link
+                                v-if="notice.houseType === 'APT'"
+                                :to="{ name: 'SubscriptionDetail', params: { id: notice.link } }"
+                                class="group block rounded-xl border border-slate-200 hover:border-sky-300 hover:shadow-md transition-all"
+                            >
+                                <div class="px-4 py-3 flex items-center gap-3">
+                                    <div class="shrink-0">
+                                        <!-- 링크 아이콘 -->
+                                        <svg
+                                            class="h-5 w-5 text-sky-600 group-hover:translate-x-0.5 transition-transform"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                        >
+                                            <path
+                                                d="M10 14a3 3 0 0 1 0-4l4-4a3 3 0 1 1 4 4l-1 1"
+                                                stroke="currentColor"
+                                                stroke-width="1.5"
+                                                stroke-linecap="round"
+                                            />
+                                            <path
+                                                d="M14 10a3 3 0 0 1 0 4l-4 4a3 3 0 0 1-4-4l1-1"
+                                                stroke="currentColor"
+                                                stroke-width="1.5"
+                                                stroke-linecap="round"
+                                            />
+                                        </svg>
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <p class="text-sm font-medium text-slate-900 truncate">
+                                            내부 아파트 링크 이동
+                                        </p>
+                                        <p class="text-xs text-slate-500 truncate">
+                                            더 자세한 내용을 확인하세요
+                                        </p>
+                                    </div>
+                                    <div class="shrink-0">
+                                        <svg
+                                            class="h-5 w-5 text-slate-400 group-hover:text-sky-600 transition-colors"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                        >
+                                            <path
+                                                d="M9 5l7 7-7 7"
+                                                stroke="currentColor"
+                                                stroke-width="1.5"
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                            />
+                                        </svg>
+                                    </div>
                                 </div>
-                                <div class="flex-1 min-w-0">
-                                    <p class="text-sm font-medium text-slate-900 truncate">
-                                        관련 페이지로 이동하기
-                                    </p>
-                                    <p class="text-xs text-slate-500 truncate">
-                                        더 자세한 내용을 확인하세요
-                                    </p>
+                            </router-link>
+                            <!-- 내부 오피스텔 링크 -->
+                            <router-link
+                                v-else
+                                :to="{ name: 'EtcSubscriptionDetail', params: { id: notice.link } }"
+                                class="group block rounded-xl border border-slate-200 hover:border-sky-300 hover:shadow-md transition-all"
+                            >
+                                <div class="px-4 py-3 flex items-center gap-3">
+                                    <div class="shrink-0">
+                                        <!-- 링크 아이콘 -->
+                                        <svg
+                                            class="h-5 w-5 text-sky-600 group-hover:translate-x-0.5 transition-transform"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                        >
+                                            <path
+                                                d="M10 14a3 3 0 0 1 0-4l4-4a3 3 0 1 1 4 4l-1 1"
+                                                stroke="currentColor"
+                                                stroke-width="1.5"
+                                                stroke-linecap="round"
+                                            />
+                                            <path
+                                                d="M14 10a3 3 0 0 1 0 4l-4 4a3 3 0 0 1-4-4l1-1"
+                                                stroke="currentColor"
+                                                stroke-width="1.5"
+                                                stroke-linecap="round"
+                                            />
+                                        </svg>
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <p class="text-sm font-medium text-slate-900 truncate">
+                                            내부 오피스텔 링크 이동
+                                        </p>
+                                        <p class="text-xs text-slate-500 truncate">
+                                            더 자세한 내용을 확인하세요
+                                        </p>
+                                    </div>
+                                    <div class="shrink-0">
+                                        <svg
+                                            class="h-5 w-5 text-slate-400 group-hover:text-sky-600 transition-colors"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                        >
+                                            <path
+                                                d="M9 5l7 7-7 7"
+                                                stroke="currentColor"
+                                                stroke-width="1.5"
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                            />
+                                        </svg>
+                                    </div>
                                 </div>
-                                <div class="shrink-0">
-                                    <svg
-                                        class="h-5 w-5 text-slate-400 group-hover:text-sky-600 transition-colors"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                    >
-                                        <path
-                                            d="M9 5l7 7-7 7"
-                                            stroke="currentColor"
-                                            stroke-width="1.5"
-                                            stroke-linecap="round"
-                                            stroke-linejoin="round"
-                                        />
-                                    </svg>
-                                </div>
-                            </div>
-                        </router-link>
+                            </router-link>
+                        </div>
+                        <!-- 외부 링크 -> 그냥 a 태그로 바로 링크로 이동 -->
                         <a
+                            v-else
                             :href="notice.link"
                             target="_blank"
                             rel="noopener noreferrer"
@@ -202,7 +268,7 @@
                                 </div>
                                 <div class="flex-1 min-w-0">
                                     <p class="text-sm font-medium text-slate-900 truncate">
-                                        관련 페이지로 이동하기
+                                        외부 링크 이동
                                     </p>
                                     <p class="text-xs text-slate-500 truncate">
                                         더 자세한 내용을 확인하세요
@@ -241,16 +307,23 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useNotificationStore } from '@/stores/notificationStore'
 import BackHeader from '@/components/common/BackHeader.vue'
 
 // ✅ 예시: route param 기반 알림 ID 가져오기
 const route = useRoute()
+const router = useRouter()
 const notificationId = route.params.id
 const store = useNotificationStore()
 
 const notice = ref({})
+
+const deleteItem = async () => {
+    const response = await store.deleteItem(notice.value.id)
+
+    response && router.back()
+}
 
 onMounted(async () => {
     console.log('detial : ', store.getItem(notificationId))
