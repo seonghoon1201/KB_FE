@@ -46,8 +46,12 @@
                                 <ChevronRight color="gray" size="14px" />
                             </div>
                         </div>
-                        <div class="gap-2">
-                            <img src="@/assets/images/zibi_2.png" alt="egg" class="w-16 h-16" />
+                        <div class="w-16 h-16 overflow-hidden rounded-full shrink-0">
+                            <img
+                                src="@/assets/images/zibi_2.png"
+                                alt="egg"
+                                class="w-full h-full object-cover"
+                            />
                         </div>
                     </div>
                 </div>
