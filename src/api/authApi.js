@@ -41,7 +41,7 @@ export default {
     },
     // 로그아웃
     async logout() {
-        return api.post('/auth/logout')
+        return api.delete('/auth/logout')
     },
     // 회원탈퇴
     async signout() {
