@@ -302,15 +302,15 @@ const finalSubscriptions = computed(() => {
     }
 
     // // 1. 마감 공고 제거 -> 테스트 시에는 마감 공고 제거 X
-    // if (!props.showExpired) {
-    //     result = result.filter((item) => {
-    //         if (!item.application_period) return false
-    //         const [, endStrRaw] = item.application_period.split('~') || []
-    //         if (!endStrRaw) return false
-    //         const endDate = new Date(endStrRaw.trim().replace(/\./g, '-'))
-    //         return endDate >= today
-    //     })
-    // }
+    if (!props.showExpired) {
+        result = result.filter((item) => {
+            if (!item.application_period) return false
+            const [, endStrRaw] = item.application_period.split('~') || []
+            if (!endStrRaw) return false
+            const endDate = new Date(endStrRaw.trim().replace(/\./g, '-'))
+            return endDate >= today
+        })
+    }
 
     // 2. 지역 필터
     if (appliedFilters.value.regions.length > 0) {
