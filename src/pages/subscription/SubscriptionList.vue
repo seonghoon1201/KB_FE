@@ -198,7 +198,7 @@ const props = defineProps({
 const sortStandards = [
     { key: 'latest', label: '최신순', icon: TrendingUp },
     { key: 'deadline-first', label: '마감임박순', icon: Clock },
-    { key: 'recommend', label: '인기순', icon: ThumbsUp },
+    { key: 'popular', label: '인기순', icon: ThumbsUp },
 ]
 
 // --- UI 핸들러 ---
@@ -384,7 +384,7 @@ const finalSubscriptions = computed(() => {
                 return parseStartDate(a.application_period) - parseStartDate(b.application_period)
             case 'deadline-first':
                 return parseEndDate(a.application_period) - parseEndDate(b.application_period)
-            case 'recommend':
+            case 'popular':
                 return (parseFloat(b.max_price) || 0) - (parseFloat(a.max_price) || 0)
             default:
                 return 0
@@ -430,8 +430,8 @@ const handleScroll = () => {
 const scrollToTop = () => window.scrollTo({ top: 0, behavior: 'smooth' })
 
 onMounted(() => {
-    if (route.query.sort === 'recommend') {
-        selectedFilter.value = 'recommend'
+    if (route.query.sort === 'popular') {
+        selectedFilter.value = 'popular'
     }
     subscriptionsStore.fetchSubscriptions()
     favoritesStore.getFavorite()
