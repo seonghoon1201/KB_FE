@@ -13,17 +13,19 @@
         </div>
 
         <!-- 추천 있음 -->
-        <div v-else-if="prefStore.isSet && recStore.top3.length > 0" class="space-y-3">
+        <div v-else-if="prefStore.isSet && recStore.list.length > 0" class="space-y-3">
             <SubscriptionCard
-                v-for="item in recStore.top3"
+                v-for="item in visibleList"
                 :key="item.pblanc_no || item.house_nm"
                 :subscription="item"
             />
+            <!-- 전체 개수가 3 초과일 때만 버튼 노출 -->
             <button
+                v-if="recStore.list.length > 3"
                 class="w-full mt-2 text-sm font-semibold py-2 border rounded-lg hover:bg-gray-50"
-                @click="goToRecommendList"
+                @click="showAll = !showAll"
             >
-                더 보기
+                {{ showAll ? '접기' : `더 보기 (${recStore.list.length - 3}개 더)` }}
             </button>
         </div>
 
@@ -58,7 +60,7 @@
 </template>
 
 <script setup>
-import { watch, onMounted } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { Cog, Settings } from 'lucide-vue-next'
 import SubscriptionCard from '../subscription/SubscriptionCard.vue'
@@ -70,8 +72,8 @@ const recStore = useRecommendationStore()
 const prefStore = usePreferenceStore()
 
 const goToPreference = () => router.push('/preference')
-const goToRecommendList = () =>
-    router.push({ path: '/subscriptions', query: { mode: 'recommend' } })
+const showAll = ref(false)
+const visibleList = computed(() => (showAll.value ? recStore.list : recStore.top3))
 
 onMounted(async () => {
     // 앱 진입 시 선호 동기화 → 추천 로드

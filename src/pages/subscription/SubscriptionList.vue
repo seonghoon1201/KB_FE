@@ -156,23 +156,19 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { useRoute } from 'vue-router'
 import BottomNavbar from '@/components/common/BottomNavbar.vue'
 import SubscriptionCard from '@/components/subscription/SubscriptionCard.vue'
 import BackHeader from '@/components/common/BackHeader.vue'
 import { useSubscriptionsStore } from '@/stores/subscription'
 import { useFavoritesStore } from '@/stores/favorites'
 import { TrendingUp, Clock, ListFilter, ThumbsUp } from 'lucide-vue-next'
-import { useRecommendationStore } from '@/stores/recommendation'
 import SubscriptionFilterModal from '@/components/modal/SubscriptionFilterModal.vue'
 import { BotMessageSquare } from 'lucide-vue-next'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
-const route = useRoute()
 const subscriptionsStore = useSubscriptionsStore()
 const favoritesStore = useFavoritesStore()
-const recommendationStore = useRecommendationStore()
 
 const selectedFilter = ref('latest')
 const isFilterOpen = ref(false)
@@ -200,7 +196,6 @@ const props = defineProps({
 const sortStandards = [
     { key: 'latest', label: '최신순', icon: TrendingUp },
     { key: 'deadline-first', label: '마감임박순', icon: Clock },
-    { key: 'recommended', label: '추천순', icon: ThumbsUp },
 ]
 
 // --- UI 핸들러 ---
@@ -286,12 +281,8 @@ const applyFilters = () => {
     }
     isFilterOpen.value = false
 }
-// --- 최종 목록 계산 ---
-const isRecommendMode = computed(() => route.query.mode === 'recommend')
+
 const finalSubscriptions = computed(() => {
-    if (selectedFilter.value === 'recommended' || isRecommendMode.value) {
-        return recommendationStore.list
-    }
     if (!subscriptionsStore.subscriptions || subscriptionsStore.subscriptions.length === 0)
         return []
 
@@ -390,8 +381,6 @@ const finalSubscriptions = computed(() => {
                 return parseStartDate(a.application_period) - parseStartDate(b.application_period)
             case 'deadline-first':
                 return parseEndDate(a.application_period) - parseEndDate(b.application_period)
-            case 'popular':
-                return (parseFloat(b.max_price) || 0) - (parseFloat(a.max_price) || 0)
             default:
                 return 0
         }
@@ -436,19 +425,11 @@ const handleScroll = () => {
 const scrollToTop = () => window.scrollTo({ top: 0, behavior: 'smooth' })
 
 onMounted(async () => {
-  // 추천 모드라면 추천 먼저 로드
-  if (route.query.mode === 'recommend') {
-    selectedFilter.value = 'recommended'
-    if (recommendationStore.list.length === 0) {
-      await recommendationStore.fetch()
-    }
-  } else {
-    // 평소처럼 전체 공고 로드
+    // 항상 전체 공고 로드
     subscriptionsStore.fetchSubscriptions()
-  }
 
-  favoritesStore.getFavorite()
-  window.addEventListener('scroll', handleScroll)
+    favoritesStore.getFavorite()
+    window.addEventListener('scroll', handleScroll)
 })
 onUnmounted(() => window.removeEventListener('scroll', handleScroll))
 
