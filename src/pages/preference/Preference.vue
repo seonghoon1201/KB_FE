@@ -63,8 +63,10 @@
         <!-- 선호 평수 -->
         <div class="mb-5">
             <label class="text-sm font-semibold text-gray-800 block mb-2"
-                >선호 평수 (1개만 선택 가능)</label
-            >
+                >선호 평수 (1개만 선택 가능)
+                <span class="text-red-500">*</span>
+                <span class="text-xs text-red-500">(필수)</span>
+            </label>
             <div class="grid grid-cols-3 gap-2 text-sm">
                 <button
                     v-for="option in formattedAreaOptions"
@@ -82,6 +84,10 @@
                     </span>
                 </button>
             </div>
+            <!-- ❗ 평수 필수 에러 -->
+            <p v-if="showAreaError" class="text-red-500 text-xs mt-2">
+                선호 평수는 반드시 선택해야 합니다.
+            </p>
         </div>
 
         <!-- 희망 가격대 -->
@@ -143,12 +149,14 @@ import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import BackHeader from '@/components/common/BackHeader.vue'
 import { usePreferenceStore } from '@/stores/preference'
+import { useRecommendationStore } from '@/stores/recommendation'
 import { districts } from '@/data/districts'
 import { areaOptions } from '@/data/area'
 import api from '@/api/axios'
 
 const router = useRouter()
 const preferenceStore = usePreferenceStore()
+const recommendationStore = useRecommendationStore()
 
 const cities = Object.keys(districts)
 
@@ -157,6 +165,7 @@ const selectedDistrict = ref('')
 const selectedRegions = ref([])
 const filteredDistricts = computed(() => districts[selectedCity.value] || [])
 const showRegionError = ref(false)
+const showAreaError = ref(false)
 
 const formattedAreaOptions = computed(() =>
     areaOptions.map((o) => ({
@@ -238,41 +247,85 @@ const toggleType = (value) => {
 }
 
 const onSubmit = async () => {
+    // 1) 필수: 지역
     if (selectedRegions.value.length === 0) {
         showRegionError.value = true
         return
     }
     showRegionError.value = false
+
+    // 2) 필수: 평수
+    if (!Array.isArray(selectedArea.value) || selectedArea.value.length !== 2) {
+        showAreaError.value = true
+        return
+    }
+    showAreaError.value = false
+
+    // 3) 희망 가격대 기본값: 0 ~ 1000억 (만원 단위 그대로 전송)
+    // int32 안전 범위 내에서 클램프 (최대 2,147,483,647)
+    const INT32_MAX = 2_147_483_647
+    const DEFAULT_MIN_MANWON = 0
+    const DEFAULT_MAX_MANWON = 10_000_000 // 1000억 = 10,000,000 (만원)
+
+    const toSafeInt = (v, fallback = 0) => {
+        const n = Number.isFinite(Number(v)) ? Number(v) : fallback
+        return Math.max(0, Math.min(n, INT32_MAX))
+    }
+
+    const hopeMinMan = toSafeInt(priceMin.value ?? DEFAULT_MIN_MANWON)
+    const hopeMaxMan = toSafeInt(priceMax.value ?? DEFAULT_MAX_MANWON)
+
+    // 4) 주택 유형: 미선택이면 둘 다 보냄
+    const typesToSend =
+        selectedTypes.value.length > 0 ? selectedTypes.value : houseTypes.map((h) => h.value)
+
+    // 5) 지역: '전체'는 gun_gu 생략
+    const regionsToSend = selectedRegions.value.map((r) => {
+        const obj = { si: r.city }
+        if (r.district && r.district !== '전체') obj.gun_gu = r.district
+        return obj
+    })
+
+    // 6) 페이로드
     const preferenceData = {
-        selected_homesize: selectedArea.value
-            ? [
-                  {
-                      min_homesize: selectedArea.value[0],
-                      max_homesize: selectedArea.value[1],
-                  },
-              ]
-            : [],
-        selected_hometype: selectedTypes.value.map((t) => ({
-            selected_house_secd: t,
-        })),
-        selected_region: selectedRegions.value.map((r) => ({
-            si: r.city,
-            gun_gu: r.district,
-        })),
+        selected_homesize: [
+            {
+                min_homesize: Number(selectedArea.value[0]),
+                max_homesize: Number(selectedArea.value[1]),
+            },
+        ],
+        selected_hometype: typesToSend.map((t) => ({ selected_house_secd: t })),
+        selected_region: regionsToSend,
         user_info: {
-            hope_min_price: priceMin.value || null,
-            hope_max_price: priceMax.value || null,
+            hope_min_price: hopeMinMan,
+            hope_max_price: hopeMaxMan,
         },
     }
 
-    try {
-        // 2) API로 POST 요청
-        await api.post('/user/preferences', preferenceData)
+    // 7) 간단 유효성
+    if (preferenceData.user_info.hope_min_price > preferenceData.user_info.hope_max_price) {
+        alert('희망 가격의 최소값이 최대값보다 큽니다.')
+        return
+    }
 
+    try {
+        await api.post('/user/preferences', preferenceData, {
+            headers: { 'Content-Type': 'application/json' },
+        })
+        // ✅ 전역에 '설정됨' 표시
+        // ✅ 전역에 즉시 저장(폼 -> 스토어), persist + local backup
+        preferenceStore.setFromClient({
+            regions: regionsToSend.map((r) => ({ city: r.si, district: r.gun_gu || '전체' })),
+            area: [Number(selectedArea.value[0]), Number(selectedArea.value[1])],
+            types: typesToSend,
+            priceRange: [hopeMinMan, hopeMaxMan], // 만원 단위
+        })
+        // ✅ 추천 미리 불러오기(홈 가자마자 로딩 없이 보이도록)
+        await recommendationStore.fetch()
         alert('설정이 저장되었습니다.')
         router.push('/home')
     } catch (error) {
-        console.error('선호 정보 저장 실패:', error)
+        console.error('선호 정보 저장 실패:', error?.response?.data || error)
         alert('저장에 실패했습니다. 다시 시도해주세요.')
     }
 }
