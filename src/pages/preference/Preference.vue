@@ -174,6 +174,24 @@ const formattedAreaOptions = computed(() =>
     })),
 )
 
+// '전체'가 들어간 선택을 실제 군·구 리스트로 전개
+const expandRegions = (selected) => {
+    const list = []
+    for (const r of selected) {
+        const city = r.city
+        if (!city) continue
+
+        if (r.district === '전체') {
+            const gus = districts[city] || []
+            for (const gu of gus) list.push({ si: city, gun_gu: gu })
+        } else {
+            list.push({ si: city, gun_gu: r.district })
+        }
+    }
+    // 중복 제거
+    return Array.from(new Map(list.map((x) => [`${x.si}|${x.gun_gu}`, x])).values())
+}
+
 const addSelectedRegion = () => {
     if (!selectedCity.value || !selectedDistrict.value) return
 
@@ -279,12 +297,8 @@ const onSubmit = async () => {
     const typesToSend =
         selectedTypes.value.length > 0 ? selectedTypes.value : houseTypes.map((h) => h.value)
 
-    // 5) 지역: '전체'는 gun_gu 생략
-    const regionsToSend = selectedRegions.value.map((r) => {
-        const obj = { si: r.city }
-        if (r.district && r.district !== '전체') obj.gun_gu = r.district
-        return obj
-    })
+    // 5) 지역: '전체' 선택 시 해당 시/도의 모든 군·구로 전개해서 보냄
+    const regionsToSend = expandRegions(selectedRegions.value)
 
     // 6) 페이로드
     const preferenceData = {
@@ -315,10 +329,10 @@ const onSubmit = async () => {
         // ✅ 전역에 '설정됨' 표시
         // ✅ 전역에 즉시 저장(폼 -> 스토어), persist + local backup
         preferenceStore.setFromClient({
-            regions: regionsToSend.map((r) => ({ city: r.si, district: r.gun_gu || '전체' })),
+            regions: selectedRegions.value.map((r) => ({ city: r.city, district: r.district })), // '전체' 유지
             area: [Number(selectedArea.value[0]), Number(selectedArea.value[1])],
             types: typesToSend,
-            priceRange: [hopeMinMan, hopeMaxMan], // 만원 단위
+            priceRange: [hopeMinMan, hopeMaxMan],
         })
         // ✅ 추천 미리 불러오기(홈 가자마자 로딩 없이 보이도록)
         await recommendationStore.fetch()
