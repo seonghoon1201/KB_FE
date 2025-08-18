@@ -128,6 +128,7 @@ const map = ref(null)
 const markers = ref([])
 const selectedItem = ref(null)
 const activeTab = ref('all')
+const seoulCenteredOnce = ref(true)
 
 // 필터 관련 상태
 const isFilterOpen = ref(false)
@@ -143,13 +144,13 @@ const mapHeightStyle = computed(() => ({
 }))
 
 function onFavoriteChange({ pblanc_no, is_favorite }) {
-  const i = subscriptionList.value.findIndex(v => v.pblanc_no === pblanc_no)
-  if (i !== -1) subscriptionList.value[i] = { ...subscriptionList.value[i], is_favorite }
-  if (selectedItem.value?.pblanc_no === pblanc_no) {
-    selectedItem.value = { ...selectedItem.value, is_favorite }
-  }
-  renderMarkers(visibleList.value, true)
-  // (찜 탭이면 bounds 조정 로직 유지)
+    const i = subscriptionList.value.findIndex((v) => v.pblanc_no === pblanc_no)
+    if (i !== -1) subscriptionList.value[i] = { ...subscriptionList.value[i], is_favorite }
+    if (selectedItem.value?.pblanc_no === pblanc_no) {
+        selectedItem.value = { ...selectedItem.value, is_favorite }
+    }
+    renderMarkers(visibleList.value, true)
+    // (찜 탭이면 bounds 조정 로직 유지)
 }
 
 // =============== 날짜/마감 헬퍼 ===============
@@ -276,27 +277,21 @@ async function getUserCenter() {
     const addr = userStore.fullAddress || userStore.address
     const target = addr && addr.trim().length > 0 ? addr.trim() : '서울특별시청'
     const coords = await new Promise((resolve) => {
-        geocoder.addressSearch(target, (result, status) => {
+        geocoder.addressSearch(target || '서울특별시청', (result, status) => {
             if (status === kakao.maps.services.Status.OK) {
                 resolve({ lat: parseFloat(result[0].y), lng: parseFloat(result[0].x) })
             } else {
-                resolve({ lat: 37.5665, lng: 126.978 }) // 서울시청 폴백
+                resolve({ lat: 37.5665, lng: 126.978 }) // 폴백
             }
         })
     })
-    userStore.coords = coords
+
+    // 주소가 실제로 있는 경우에만 스토어에 저장
+    if (target) {
+        userStore.coords = coords
+    }
     return coords
 }
-
-watch(
-    () => userStore.coords,
-    (c) => {
-        if (c && map.value) {
-            map.value.setCenter(new kakao.maps.LatLng(c.lat, c.lng))
-            // level은 유지
-        }
-    },
-)
 
 // =============== 초기화 ===============
 onMounted(async () => {
@@ -309,9 +304,10 @@ onMounted(async () => {
         api.get('/subscriptions'),
     ])
 
+    const SEOUL = { lat: 37.5665, lng: 126.978 }
     map.value = new kakao.maps.Map(mapRef.value, {
-        center: new kakao.maps.LatLng(userCenter.lat, userCenter.lng),
-        level: 8,
+        center: new kakao.maps.LatLng(SEOUL.lat, SEOUL.lng),
+        level: 9,
     })
 
     kakao.maps.event.addListener(map.value, 'click', () => {
@@ -344,16 +340,6 @@ watch([activeTab, () => props.showExpired, subscriptionList], () => {
             })
             map.value.setBounds(bounds)
         }
-    } else {
-        // 전체 탭: 서울 중심/레벨 고정 유지
-        const geocoder = new kakao.maps.services.Geocoder()
-        geocoder.addressSearch('서울특별시', (result, status) => {
-            if (status === kakao.maps.services.Status.OK) {
-                const coords = new kakao.maps.LatLng(result[0].y, result[0].x)
-                map.value.setCenter(coords)
-                map.value.setLevel(9)
-            }
-        })
     }
 })
 
