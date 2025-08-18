@@ -28,15 +28,30 @@
 
                 <!-- 비밀번호 입력 -->
                 <div class="w-full flex flex-col gap-1">
-                    <div class="flex items-center border border-gray-300 rounded-md px-3 py-2">
+                    <div
+                        class="relative flex items-center border border-gray-300 rounded-md px-3 py-2"
+                    >
                         <span class="mr-2 text-lg">🔒</span>
                         <input
                             v-model="password"
-                            type="password"
+                            :type="showPassword ? 'text' : 'password'"
                             placeholder="새 비밀번호 입력"
                             class="flex-1 text-sm sm:text-base placeholder-gray-400 focus:outline-none"
                             :disabled="sending"
+                            autocomplete="new-password"
+                            inputmode="text"
                         />
+                        <!-- 눈 아이콘 버튼 -->
+                        <button
+                            type="button"
+                            @click="togglePassword"
+                            :aria-pressed="showPassword"
+                            aria-label="비밀번호 표시 전환"
+                            class="absolute right-2 text-gray-500 hover:text-black p-1"
+                        >
+                            <Eye v-if="!showPassword" class="w-5 h-5" />
+                            <EyeOff v-else class="w-5 h-5" />
+                        </button>
                     </div>
                     <p v-if="password && !isPasswordValid" class="text-red-500 text-sm">
                         비밀번호는 문자와 숫자를 모두 포함하여 8~20자여야 합니다.
@@ -45,15 +60,30 @@
 
                 <!-- 비밀번호 확인 -->
                 <div class="w-full flex flex-col gap-1">
-                    <div class="flex items-center border border-gray-300 rounded-md px-3 py-2">
+                    <div
+                        class="relative flex items-center border border-gray-300 rounded-md px-3 py-2"
+                    >
                         <span class="mr-2 text-lg">🔒</span>
                         <input
                             v-model="confirmPassword"
-                            type="password"
+                            :type="showConfirm ? 'text' : 'password'"
                             placeholder="비밀번호 확인"
                             class="flex-1 text-sm sm:text-base placeholder-gray-400 focus:outline-none"
                             :disabled="sending"
+                            autocomplete="new-password"
+                            inputmode="text"
                         />
+                        <!-- 눈 아이콘 버튼 -->
+                        <button
+                            type="button"
+                            @click="toggleConfirm"
+                            :aria-pressed="showConfirm"
+                            aria-label="비밀번호 확인 표시 전환"
+                            class="absolute right-2 text-gray-500 hover:text-black p-1"
+                        >
+                            <Eye v-if="!showConfirm" class="w-5 h-5" />
+                            <EyeOff v-else class="w-5 h-5" />
+                        </button>
                     </div>
                     <p v-if="confirmPassword && !isPasswordMatch" class="text-red-500 text-sm">
                         비밀번호가 일치하지 않습니다.
@@ -77,7 +107,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { ArrowLeft as LucideArrowLeft } from 'lucide-vue-next'
+import { ArrowLeft as LucideArrowLeft, Eye, EyeOff } from 'lucide-vue-next'
 import authApi from '@/api/authApi'
 
 // router & route
@@ -96,10 +126,14 @@ const password = ref('')
 const confirmPassword = ref('')
 const sending = ref(false)
 
+// 보기/숨기기 상태
+const showPassword = ref(false)
+const showConfirm = ref(false)
+const togglePassword = () => (showPassword.value = !showPassword.value)
+const toggleConfirm = () => (showConfirm.value = !showConfirm.value)
+
 // 뒤로가기
-const goBack = () => {
-    router.back()
-}
+const goBack = () => router.back()
 
 // 비밀번호 유효성: 문자+숫자 포함 8~20자
 const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,20}$/

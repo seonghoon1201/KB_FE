@@ -63,12 +63,26 @@
             <!-- 비밀번호 -->
             <div>
                 <label class="text-base font-medium block mb-2">비밀번호</label>
-                <input
-                    v-model="password"
-                    type="password"
-                    placeholder="비밀번호를 입력해 주세요."
-                    class="w-full border-b border-gray-300 py-2 text-base focus:outline-none"
-                />
+                <div class="relative">
+                    <input
+                        v-model="password"
+                        :type="showPassword ? 'text' : 'password'"
+                        placeholder="비밀번호를 입력해 주세요."
+                        class="w-full border-b border-gray-300 py-2 text-base focus:outline-none pr-8"
+                        autocomplete="new-password"
+                        inputmode="text"
+                    />
+                    <button
+                        type="button"
+                        @click="togglePassword"
+                        :aria-pressed="showPassword"
+                        aria-label="비밀번호 표시 전환"
+                        class="absolute right-0 top-1/2 -translate-y-1/2 p-1 text-gray-500 hover:text-black"
+                    >
+                        <Eye v-if="!showPassword" class="w-5 h-5" />
+                        <EyeOff v-else class="w-5 h-5" />
+                    </button>
+                </div>
                 <p v-if="password && !isPasswordValid" class="text-red-500 text-sm mt-1">
                     비밀번호는 문자와 숫자를 모두 포함하여 8~20자여야 합니다.
                 </p>
@@ -77,12 +91,26 @@
             <!-- 비밀번호 확인 -->
             <div>
                 <label class="text-base font-medium block mb-2">비밀번호 확인</label>
-                <input
-                    v-model="confirmPassword"
-                    type="password"
-                    placeholder="비밀번호를 다시 입력해 주세요."
-                    class="w-full border-b border-gray-300 py-2 text-base focus:outline-none"
-                />
+                <div class="relative">
+                    <input
+                        v-model="confirmPassword"
+                        :type="showConfirm ? 'text' : 'password'"
+                        placeholder="비밀번호를 다시 입력해 주세요."
+                        class="w-full border-b border-gray-300 py-2 text-base focus:outline-none pr-8"
+                        autocomplete="new-password"
+                        inputmode="text"
+                    />
+                    <button
+                        type="button"
+                        @click="toggleConfirm"
+                        :aria-pressed="showConfirm"
+                        aria-label="비밀번호 확인 표시 전환"
+                        class="absolute right-0 top-1/2 -translate-y-1/2 p-1 text-gray-500 hover:text-black"
+                    >
+                        <Eye v-if="!showConfirm" class="w-5 h-5" />
+                        <EyeOff v-else class="w-5 h-5" />
+                    </button>
+                </div>
                 <p v-if="confirmPassword && !isPasswordMatch" class="text-red-500 text-sm mt-1">
                     비밀번호가 일치하지 않습니다.
                 </p>
@@ -145,6 +173,7 @@
                     <input type="checkbox" v-model="agreeAll" @change="toggleAll" />
                     모두 동의합니다
                 </label>
+
                 <label class="flex items-center gap-2">
                     <input type="checkbox" v-model="terms.service" />
                     [필수] 이용약관
@@ -184,7 +213,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { ArrowLeft as LucideArrowLeft } from 'lucide-vue-next'
+import { ArrowLeft as LucideArrowLeft, Eye, EyeOff } from 'lucide-vue-next'
 import PrimaryButton from '@/components/common/PrimaryButton.vue'
 import TermsModal from '@/components/modal/TermsModal.vue'
 import PrivacyModal from '@/components/modal/PrivacyModal.vue'
@@ -202,6 +231,12 @@ const confirmPassword = ref('')
 const name = ref('')
 const address = ref('')
 const birth = ref('')
+
+// 보기/숨기기 상태 + 토글
+const showPassword = ref(false)
+const showConfirm = ref(false)
+const togglePassword = () => (showPassword.value = !showPassword.value)
+const toggleConfirm = () => (showConfirm.value = !showConfirm.value)
 
 // email 인증 상태
 const sending = ref(false)

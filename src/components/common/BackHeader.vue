@@ -11,7 +11,7 @@
         </div>
         <div class="flex items-center space-x-4">
             <div>
-                <a-badge :count="firebaseStore.unreadCount">
+                <a-badge :count="unreadCount">
                     <Bell @click="alarmClick" />
                 </a-badge>
             </div>
@@ -23,10 +23,11 @@
 </template>
 <script setup>
 import { ChevronLeft, Bell, BellDot, Menu } from 'lucide-vue-next'
-import { ref } from 'vue'
+import { ref, computed, onMounted } from 'vue'
+import { storeToRefs } from 'pinia'
 import { useCommonStore } from '@/stores/common'
 import { useRoute, useRouter } from 'vue-router'
-import { useFirebaseStore } from '@/stores/firebaseStore'
+import { useNotificationStore } from '@/stores/notificationStore'
 
 // ✅ props로 제목 받기
 const props = defineProps({
@@ -39,7 +40,7 @@ const props = defineProps({
 const router = useRouter()
 const route = useRoute()
 const modalStore = useCommonStore()
-const firebaseStore = useFirebaseStore()
+const noticeStore = useNotificationStore()
 
 const backClick = () => {
     const currentPath = route.path.slice(1).split('/')
@@ -60,6 +61,12 @@ const alarmClick = () => {
 const menuClick = () => {
     modalStore.modalOnOff()
 }
+
+const { unreadCount } = storeToRefs(noticeStore)
+
+onMounted(() => {
+    noticeStore.countIsRead()
+})
 </script>
 
 <style></style>
