@@ -163,6 +163,7 @@ import BackHeader from '@/components/common/BackHeader.vue'
 import { useSubscriptionsStore } from '@/stores/subscription'
 import { useFavoritesStore } from '@/stores/favorites'
 import { TrendingUp, Clock, ListFilter, ThumbsUp } from 'lucide-vue-next'
+import { useRecommendationStore } from '@/stores/recommendation'
 import SubscriptionFilterModal from '@/components/modal/SubscriptionFilterModal.vue'
 import { BotMessageSquare } from 'lucide-vue-next'
 import { useRouter } from 'vue-router'
@@ -171,6 +172,7 @@ const router = useRouter()
 const route = useRoute()
 const subscriptionsStore = useSubscriptionsStore()
 const favoritesStore = useFavoritesStore()
+const recommendationStore = useRecommendationStore()
 
 const selectedFilter = ref('latest')
 const isFilterOpen = ref(false)
@@ -198,7 +200,7 @@ const props = defineProps({
 const sortStandards = [
     { key: 'latest', label: '최신순', icon: TrendingUp },
     { key: 'deadline-first', label: '마감임박순', icon: Clock },
-    { key: 'popular', label: '인기순', icon: ThumbsUp },
+    { key: 'recommended', label: '추천순', icon: ThumbsUp },
 ]
 
 // --- UI 핸들러 ---
@@ -285,7 +287,11 @@ const applyFilters = () => {
     isFilterOpen.value = false
 }
 // --- 최종 목록 계산 ---
+const isRecommendMode = computed(() => route.query.mode === 'recommend')
 const finalSubscriptions = computed(() => {
+    if (selectedFilter.value === 'recommended' || isRecommendMode.value) {
+        return recommendationStore.list
+    }
     if (!subscriptionsStore.subscriptions || subscriptionsStore.subscriptions.length === 0)
         return []
 
@@ -429,13 +435,20 @@ const handleScroll = () => {
 }
 const scrollToTop = () => window.scrollTo({ top: 0, behavior: 'smooth' })
 
-onMounted(() => {
-    if (route.query.sort === 'popular') {
-        selectedFilter.value = 'popular'
+onMounted(async () => {
+  // 추천 모드라면 추천 먼저 로드
+  if (route.query.mode === 'recommend') {
+    selectedFilter.value = 'recommended'
+    if (recommendationStore.list.length === 0) {
+      await recommendationStore.fetch()
     }
+  } else {
+    // 평소처럼 전체 공고 로드
     subscriptionsStore.fetchSubscriptions()
-    favoritesStore.getFavorite()
-    window.addEventListener('scroll', handleScroll)
+  }
+
+  favoritesStore.getFavorite()
+  window.addEventListener('scroll', handleScroll)
 })
 onUnmounted(() => window.removeEventListener('scroll', handleScroll))
 

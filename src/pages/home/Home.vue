@@ -21,7 +21,7 @@
                 @recalculate="goToScoreInput"
             />
             <!-- 선호 설정 파트 -->
-            <RecommendSection :isPreferenceSet="isPreferenceSet" :recommendList="recommendList" />
+            <RecommendSection />
 
             <!-- 화면 오른쪽 하단 챗봇 플로팅 -->
             <!-- 화면 오른쪽 하단 챗봇 플로팅 -->
