@@ -5,16 +5,16 @@
         <!-- 왼쪽: 로고 -->
         <div @click="goHome" class="text-xl font-bold text-black cursor-pointer">zibi</div>
 
-        <!-- 오른쪽: 알림, 메뉴 (BackHeader와 동일하게 수정) -->
+        <!-- 오른쪽: 알림, 메뉴 -->
         <div class="flex items-center space-x-4">
-            <div>
-                <a-badge :count="unreadCount">
-                    <Bell @click="alarmClick" />
-                </a-badge>
-            </div>
-            <div>
-                <Menu @click="menuClick" />
-            </div>
+            <a-badge :count="unreadCount" class="inline-flex items-center">
+                <button type="button" class="icon-btn" @click="alarmClick" aria-label="알림">
+                    <Bell class="w-6 h-6" />
+                </button>
+            </a-badge>
+            <button type="button" class="icon-btn" @click="menuClick" aria-label="메뉴">
+                <Menu class="w-6 h-6" />
+            </button>
         </div>
     </header>
 </template>
