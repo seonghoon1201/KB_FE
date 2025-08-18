@@ -198,7 +198,7 @@ const props = defineProps({
 const sortStandards = [
     { key: 'latest', label: '최신순', icon: TrendingUp },
     { key: 'deadline-first', label: '마감임박순', icon: Clock },
-    { key: 'recommend', label: '추천순', icon: ThumbsUp },
+    { key: 'popular', label: '인기순', icon: ThumbsUp },
 ]
 
 // --- UI 핸들러 ---
@@ -222,24 +222,24 @@ const toggleFilter = () => {
     isFilterOpen.value = !isFilterOpen.value
 }
 const handleFilterUpdate = ({ field, value }) => {
-  if (field === 'selectedCity') {
-    selectedCity.value = value
-  } else if (field === 'selectedDistrict') {
-    selectedDistrict.value = value
-  } else if (field === 'selectedRegions') {
-    selectedRegions.value = value
-  } else if (field === 'selectedArea') {
-    // ✅ null 또는 [min, max]로 강제 변환
-    if (Array.isArray(value) && value.length === 2) {
-      selectedArea.value = value.map(Number)
-    } else {
-      selectedArea.value = null
+    if (field === 'selectedCity') {
+        selectedCity.value = value
+    } else if (field === 'selectedDistrict') {
+        selectedDistrict.value = value
+    } else if (field === 'selectedRegions') {
+        selectedRegions.value = value
+    } else if (field === 'selectedArea') {
+        // ✅ null 또는 [min, max]로 강제 변환
+        if (Array.isArray(value) && value.length === 2) {
+            selectedArea.value = value.map(Number)
+        } else {
+            selectedArea.value = null
+        }
+    } else if (field === 'priceMin') {
+        priceMin.value = value
+    } else if (field === 'priceMax') {
+        priceMax.value = value
     }
-  } else if (field === 'priceMin') {
-    priceMin.value = value
-  } else if (field === 'priceMax') {
-    priceMax.value = value
-  }
 }
 const removeFilter = (type, index) => {
     if (type === 'region') appliedFilters.value.regions.splice(index, 1)
@@ -302,15 +302,15 @@ const finalSubscriptions = computed(() => {
     }
 
     // // 1. 마감 공고 제거 -> 테스트 시에는 마감 공고 제거 X
-    // if (!props.showExpired) {
-    //     result = result.filter((item) => {
-    //         if (!item.application_period) return false
-    //         const [, endStrRaw] = item.application_period.split('~') || []
-    //         if (!endStrRaw) return false
-    //         const endDate = new Date(endStrRaw.trim().replace(/\./g, '-'))
-    //         return endDate >= today
-    //     })
-    // }
+    if (!props.showExpired) {
+        result = result.filter((item) => {
+            if (!item.application_period) return false
+            const [, endStrRaw] = item.application_period.split('~') || []
+            if (!endStrRaw) return false
+            const endDate = new Date(endStrRaw.trim().replace(/\./g, '-'))
+            return endDate >= today
+        })
+    }
 
     // 2. 지역 필터
     if (appliedFilters.value.regions.length > 0) {
@@ -384,7 +384,7 @@ const finalSubscriptions = computed(() => {
                 return parseStartDate(a.application_period) - parseStartDate(b.application_period)
             case 'deadline-first':
                 return parseEndDate(a.application_period) - parseEndDate(b.application_period)
-            case 'recommend':
+            case 'popular':
                 return (parseFloat(b.max_price) || 0) - (parseFloat(a.max_price) || 0)
             default:
                 return 0
@@ -430,8 +430,8 @@ const handleScroll = () => {
 const scrollToTop = () => window.scrollTo({ top: 0, behavior: 'smooth' })
 
 onMounted(() => {
-    if (route.query.sort === 'recommend') {
-        selectedFilter.value = 'recommend'
+    if (route.query.sort === 'popular') {
+        selectedFilter.value = 'popular'
     }
     subscriptionsStore.fetchSubscriptions()
     favoritesStore.getFavorite()

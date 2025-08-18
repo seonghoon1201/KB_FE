@@ -3,6 +3,7 @@ import { createApp } from 'vue'
 import App from './App.vue'
 import router from './router'
 import { createPinia } from 'pinia'
+import api from '@/api/axios'
 import { setupMessaging, onForegroundMessage } from '@/firebase'
 import { useNotificationStore } from '@/stores/notificationStore'
 import './assets/main.css'
@@ -13,6 +14,15 @@ import { useAccountStore } from '@/stores/account'
 import { useScoreStore } from '@/stores/scoreStore'
 import * as lucide from 'lucide-vue-next'
 
+// ant design
+import Antd from 'ant-design-vue'
+/* 마진 생겨서 일단 주석 처리 
+import 'ant-design-vue/dist/reset.css' // CSS 리셋 포함 (4.x 기준)
+*/
+
+// 애니메이션 효과
+import 'animate.css'
+
 const app = createApp(App)
 
 async function initFcmAfterLogin() {
@@ -21,7 +31,7 @@ async function initFcmAfterLogin() {
         const { token } = await setupMessaging(vapidKey)
         if (!token) return
         // 서버에 토큰 저장
-        await axios.post('/v1/me/fcm-token', { token }) // JWT 인증 필요 시 헤더 자동 첨부 가정
+        await api.put('/alarm/token', { fcm_token: token }) // JWT 인증 필요 시 헤더 자동 첨부 가정
 
         const store = useNotificationStore()
         onForegroundMessage((payload) => {
@@ -42,6 +52,7 @@ const pinia = createPinia()
 
 app.use(pinia)
 app.use(router)
+app.use(Antd)
 
 // — 로그인 유지(새로고침 복원) 로직 —
 const userStore = useUserStore()
@@ -54,6 +65,8 @@ if (at && rt && rawUser) {
         refresh_token: rt,
         user: JSON.parse(rawUser),
     })
+
+    // initFcmAfterLogin()
 }
 
 // — 로그인 시 자동으로 현재 입력값 기준 가점 계산하기 —

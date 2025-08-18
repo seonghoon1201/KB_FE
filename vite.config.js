@@ -17,7 +17,7 @@ export default defineConfig({
                 start_url: '/',
                 background_color: '#ffffff',
                 theme_color: '#ffffff',
-                icons: [  
+                icons: [
                     {
                         src: '/pwa-192x192.png',
                         sizes: '192x192',
@@ -30,6 +30,10 @@ export default defineConfig({
                     },
                 ],
             },
+            workbox: {
+                // 기본 2 * 1024 * 1024 → 상향
+                maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
+            },
         }),
     ],
     resolve: {
@@ -37,6 +41,7 @@ export default defineConfig({
             '@': fileURLToPath(new URL('./src', import.meta.url)),
         },
     },
+    base: '/',
     server: {
         host: '0.0.0.0',
         port: 5173,

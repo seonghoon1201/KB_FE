@@ -61,7 +61,10 @@
                 <!-- 지도 래퍼를 relative로 감싸기 -->
                 <div class="relative mt-4">
                     <!-- 지도 영역 -->
-                    <div ref="mapRef" class="rounded-lg mt-4 w-full aspect-video" />
+                    <div
+                        ref="mapRef"
+                        class="rounded-lg mt-4 w-full h-[35vh] min-h-72 md:h-[30vh]"
+                    />
                     <!-- 좌측 상단 필터 바 -->
                     <div class="absolute top-2 left-2 z-10">
                         <div
@@ -70,7 +73,7 @@
                             <button
                                 v-for="btn in filterButtons"
                                 :key="btn.key"
-                                @click="infraFilter = btn.key"
+                                @click="handleFilterClick(btn.key)"
                                 :class="[
                                     'px-2.5 py-1 rounded-lg text-xs font-medium border transition',
                                     infraFilter === btn.key
@@ -195,7 +198,6 @@ import {
     Building2,
     Expand,
     House,
-    ExpandIcon,
 } from 'lucide-vue-next'
 import { onMounted, ref, computed, nextTick, watch, watchEffect } from 'vue'
 import api from '@/api/axios'
@@ -207,10 +209,7 @@ import { useFavoritesStore } from '@/stores/favorites'
 import { loadKakaoMapScript } from '@/utils/KakaoMapLoader'
 import { BotMessageSquare } from 'lucide-vue-next'
 import { useRouter } from 'vue-router'
-// Font Awesome icon defs
-import {
-    faMapPin, // 기준(청약) 마커용
-} from '@fortawesome/free-solid-svg-icons'
+import { faMapPin } from '@fortawesome/free-solid-svg-icons'
 
 const router = useRouter()
 const route = useRoute()
@@ -219,6 +218,7 @@ const subscription = ref(null)
 const loading = ref(true)
 const mapRef = ref(null)
 const mapInstance = ref(null)
+const activeOverlay = ref(null)
 const baseMarker = ref(null)
 const infraMarkers = ref([])
 const openMarker = ref(null)
@@ -228,8 +228,9 @@ const sharedInfoWindow = ref(null)
 const didFirstRender = ref(false) // 첫 draw 이후엔 뷰를 절대 건드리지 않음
 
 // 필터 상태: 'all' | 그룹 타이틀(의료 시설/교통/편의 시설/학교/유치원 · 어린이집)
-const infraFilter = ref('all')
+const infraFilter = ref('none')
 const filterKeyToTypes = {
+    none: [],
     all: null,
     '의료 시설': ['hospital'],
     교통: ['subway', 'bus'],
@@ -247,91 +248,104 @@ const filterButtons = [
     { key: '유치원 · 어린이집', label: '유치원' },
 ]
 
-// FA 아이콘을 SVG data URL로 변환
-function faToSvgDataUrl(iconDef, { size = 28, color = '#ef4444' } = {}) {
-    const [w, h, , , d] = iconDef.icon
-    const svg = `
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" width="${size}" height="${size}">
-      <path d="${d}" fill="${color}"/>
-    </svg>`
-    return 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg)
+function handleFilterClick(key) {
+    // 같은 버튼을 다시 누르면 모두 해제(none)
+    infraFilter.value = infraFilter.value === key ? 'none' : key
 }
 
-// Kakao MarkerImage 생성 (앵커: 아래 중앙)
-function makeFAImage(iconDef, { size = 28, color = '#ef4444' } = {}) {
-    const kakao = window.kakao
-    const url = faToSvgDataUrl(iconDef, { size, color })
-    return new kakao.maps.MarkerImage(url, new kakao.maps.Size(size, size), {
-        offset: new kakao.maps.Point(size / 2, size),
-    })
-}
+// // FA 아이콘을 SVG data URL로 변환
+// function faToSvgDataUrl(iconDef, { size = 28, color = '#ef4444' } = {}) {
+//     const [w, h, , , d] = iconDef.icon
+//     const svg = `
+//     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" width="${size}" height="${size}">
+//       <path d="${d}" fill="${color}"/>
+//     </svg>`
+//     return 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg)
+// }
+
+// // Kakao MarkerImage 생성 (앵커: 아래 중앙)
+// function makeFAImage(iconDef, { size = 28, color = '#ef4444' } = {}) {
+//     const kakao = window.kakao
+//     const url = faToSvgDataUrl(iconDef, { size, color })
+//     return new kakao.maps.MarkerImage(url, new kakao.maps.Size(size, size), {
+//         offset: new kakao.maps.Point(size / 2, size),
+//     })
+// }
 
 // 타입별 아이콘/색 매핑
 const ICON_BY_TYPE = {
-    subway: { icon: faMapPin, color: '#16a34a' }, //초록
-    bus: { icon: faMapPin, color: '#16a34a' },
-    school: { icon: faMapPin, color: '#9333ea' },
-    kindergarten: { icon: faMapPin, color: '#9333ea' },
-    hospital: { icon: faMapPin, color: '#ef4444' },
-    mart: { icon: faMapPin, color: '#f97316' },
+    // subway: { icon: faMapPin, color: '#16a34a' }, //초록
+    // bus: { icon: faMapPin, color: '#16a34a' },
+    // school: { icon: faMapPin, color: '#9333ea' },
+    // kindergarten: { icon: faMapPin, color: '#9333ea' },
+    // hospital: { icon: faMapPin, color: '#ef4444' },
+    // mart: { icon: faMapPin, color: '#f97316' },
+    subway: { color: '#22c55e' }, // 교통 - 약간 더 선명한 초록
+    bus: { color: '#22c55e' },
+    school: { color: '#7c3aed' }, // 학교/유아 - 선명 보라
+    kindergarten: { color: '#7c3aed' },
+    hospital: { color: '#ef4444' }, // 의료 - 레드
+    mart: { color: '#f59e0b' }, // 편의 - 오렌지
+}
+
+// 테어드롭 마커 SVG (흰 외곽선 + 그림자 + 중앙 하얀 점)
+function makePinSvgDataUrl(color, { size = 34 } = {}) {
+    // viewBox 기준으로 만든 뒤 width/height로 스케일
+    const svg = `
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 44" width="${size}" height="${size}">
+    <defs>
+      <filter id="dropShadow" x="-50%" y="-50%" width="200%" height="200%">
+        <feGaussianBlur in="SourceAlpha" stdDeviation="1.5" result="blur"/>
+        <feOffset in="blur" dx="0" dy="1" result="offsetBlur"/>
+        <feMerge>
+          <feMergeNode in="offsetBlur"/>
+          <feMergeNode in="SourceGraphic"/>
+        </feMerge>
+      </filter>
+    </defs>
+    <!-- 테어드롭 외곽 -->
+    <path d="M16 0c-6.6 0-12 5.4-12 12 0 9 12 22 12 22s12-13 12-22C28 5.4 22.6 0 16 0z"
+          fill="${color}" stroke="white" stroke-width="2" filter="url(#dropShadow)"/>
+    <!-- 중앙 하얀 점 -->
+    <circle cx="16" cy="12" r="4.5" fill="white"/>
+  </svg>`
+    return 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg)
+}
+
+function makePinImage(color, { size = 34 } = {}) {
+    const kakao = window.kakao
+    const url = makePinSvgDataUrl(color, { size })
+    return new kakao.maps.MarkerImage(url, new kakao.maps.Size(size, size), {
+        offset: new kakao.maps.Point(size / 2, size - 3), // 하단 끝이 좌표에 오도록
+    })
 }
 
 function closeInfo() {
     if (sharedInfoWindow.value) sharedInfoWindow.value.close()
+    // openMarker.value = null
+    // if (openMarker.value) {
+    //     // 열려있던 마커 강조 해제
+    //     const meta = ICON_BY_TYPE[openMarker.value.place_type] || { color: '#3b82f6' }
+    //     // place_type을 marker에 달아두면 더 편함 (아래 참고)
+    //     openMarker.value.setImage(makePinImage(meta.color, { size: 34 }))
+    //     openMarker.value.setZIndex(150)
+    // }
+    if (openMarker.value) {
+        const m = openMarker.value
+        m.setImage(
+            m._images?.normal ??
+                makePinImage(ICON_BY_TYPE[m.place_type]?.color || '#3b82f6', { size: 34 }),
+        )
+        m.setZIndex(150)
+    }
     openMarker.value = null
 }
-
-const typeStyleMap = {
-    subway: { color: '#16a34a', label: TrainFront }, // green-600
-    bus: { color: '#16a34a', label: TrainFront },
-    school: { color: '#9333ea', label: '🎓' }, // purple-600
-    kindergarten: { color: '#9333ea', label: '👶' },
-    hospital: { color: '#ef4444', label: '＋' }, // red-500
-    mart: { color: '#f97316', label: '🛒' }, // orange-500
-}
-
-// 필요시 이모지 대신 'S','B','H','M' 등 한 글자 라벨로 바꿔도 OK
-function makePinSVG({ color, label }) {
-    // 32x40 핀 (오프셋 하단 중앙)
-    return `
-  <svg xmlns="http://www.w3.org/2000/svg" width="32" height="40" viewBox="0 0 32 40">
-    <path d="M16 0c6.6 0 12 5.4 12 12 0 9-12 28-12 28S4 21 4 12C4 5.4 9.4 0 16 0z" fill="${color}"/>
-    <circle cx="16" cy="12" r="8" fill="white"/>
-    <text x="16" y="16" text-anchor="middle" font-size="12" font-family="system-ui, -apple-system, Segoe UI, Roboto" fill="${color}" font-weight="700">${label}</text>
-  </svg>`
-}
-
-// 파일 상단 helpers 근처에 추가
-const markerImgCache = {}
-const typeColorKey = {
-    subway: 'red',
-    bus: 'red',
-    school: 'red',
-    kindergarten: 'red',
-    hospital: 'red',
-    mart: 'red',
-    default: 'red',
-}
-
-// refs 근처에 추가
-const activeOverlay = ref(null)
 
 function closeOverlay() {
     if (activeOverlay.value) {
         activeOverlay.value.setMap(null)
         activeOverlay.value = null
     }
-}
-
-// 클릭 시 보여줄 오버레이 HTML (원하면 스타일 수정)
-function overlayHtml(place) {
-    const km = (Number(place.distance) / 1000).toFixed(1)
-    const addr = place.road_address_name || ''
-    return `
-    <div class="customoverlay">
-      <div class="co-title">${place.place_name}</div>
-      <div class="co-sub">${km}km · 도보 ${minutesPerKm(km)}분</div>
-    </div>`
 }
 
 async function initMap(lat, lng) {
@@ -353,21 +367,29 @@ async function initMap(lat, lng) {
             position: new kakao.maps.LatLng(lat, lng),
             zIndex: 200, // 인프라/POI 위
         })
+        // kakao.maps.event.addListener(marker, 'mouseover', () => {
+        //     if (openMarker.value !== marker) {
+        //         marker.setImage(marker._images.hover)
+        //         marker.setZIndex(220)
+        //     }
+        // })
+        // kakao.maps.event.addListener(marker, 'mouseout', () => {
+        //     if (openMarker.value !== marker) {
+        //         marker.setImage(marker._images.normal)
+        //         marker.setZIndex(150)
+        //     }
+        // })
 
         // ✅ 공용 InfoWindow
         sharedInfoWindow.value = new kakao.maps.InfoWindow({ removable: false, zIndex: 1000 })
 
-        kakao.maps.event.addListener(map, 'click', () => {
-            // closeOpenInfo()
-        })
+        kakao.maps.event.addListener(map, 'click', () => {})
 
         kakao.maps.event.addListener(map, 'click', () => {
             // 마커 클릭 직후엔 무시 (버블/타이밍 이슈 방지)
             if (Date.now() - lastMarkerClickAt < 150) return
-            // closeOverlay()
             closeInfo()
             openMarker.value = null
-            // closeOpenInfo()
         })
 
         // 주변 시설 마커 그리기
@@ -398,6 +420,18 @@ function drawInfraMarkers() {
     const bounds = new kakao.maps.LatLngBounds()
     if (baseMarker.value) bounds.extend(baseMarker.value.getPosition())
 
+    // 모두 해제 상태면 마커 없이 뷰만 유지
+    if (infraFilter.value === 'none') {
+        if (!didFirstRender.value) {
+            if (baseMarker.value) map.setCenter(baseMarker.value.getPosition())
+            didFirstRender.value = true
+        } else {
+            map.setCenter(prevCenter)
+            map.setLevel(prevLevel)
+        }
+        return
+    }
+
     subscription.value.infra_places.forEach((place) => {
         const lat = Number(place.latitude)
         const lng = Number(place.longitude)
@@ -409,17 +443,26 @@ function drawInfraMarkers() {
 
         const pos = new kakao.maps.LatLng(lat, lng)
 
-        // 2) 마커 이미지 (Font Awesome 매핑 사용!)
-        const meta = ICON_BY_TYPE[place.place_type] || { icon: faMapPin, color: '#3b82f6' }
-        const markerImage = makeFAImage(meta.icon, { size: 24, color: meta.color })
+        // // 2) 마커 이미지 (Font Awesome 매핑 사용!)
+        // const meta = ICON_BY_TYPE[place.place_type] || { icon: faMapPin, color: '#3b82f6' }
+        // const markerImage = makeFAImage(meta.icon, { size: 24, color: meta.color })
+
+        // 2) 마커 이미지 (커스텀 SVG 핀)
+        const meta = ICON_BY_TYPE[place.place_type] || { color: '#3b82f6' }
+        const normalImage = makePinImage(meta.color, { size: 34 })
+        const hoverImage = makePinImage(meta.color, { size: 40 }) // 살짝 확대 버전
+        const activeImage = makePinImage(meta.color, { size: 42 }) // 클릭(InfoWindow 오픈) 강조
 
         const marker = new kakao.maps.Marker({
             position: pos,
             map: mapInstance.value,
-            image: markerImage,
+            // image: markerImage,
+            image: normalImage,
             title: place.place_name,
             zIndex: 150,
         })
+        marker._images = { normal: normalImage, hover: hoverImage, active: activeImage }
+        marker.place_type = place.place_type
 
         // 3) InfoWindow
         const km = Number(place.distance) / 1000
@@ -435,23 +478,62 @@ function drawInfraMarkers() {
         </div>
       </div>`
 
+        // kakao.maps.event.addListener(marker, 'click', () => {
+        //     lastMarkerClickAt = Date.now()
+        //     if (openMarker.value === marker) {
+        //         closeInfo()
+        //         return
+        //     }
+        //     closeInfo()
+        //     sharedInfoWindow.value.setContent(html)
+        //     sharedInfoWindow.value.open(mapInstance.value, marker)
+        //     openMarker.value = marker
+        // })
         kakao.maps.event.addListener(marker, 'click', () => {
             lastMarkerClickAt = Date.now()
             if (openMarker.value === marker) {
                 closeInfo()
+                marker.setImage(marker._images.normal)
+                marker.setZIndex(150)
                 return
             }
             closeInfo()
             sharedInfoWindow.value.setContent(html)
             sharedInfoWindow.value.open(mapInstance.value, marker)
             openMarker.value = marker
+            marker.setImage(marker._images.active)
+            marker.setZIndex(300)
         })
-
         infraMarkers.value.push(marker)
         // bounds.extend(pos)
     })
+    // // ✅ 호버/아웃: 마커별로 등록
+    // kakao.maps.event.addListener(marker, 'mouseover', () => {
+    //     if (openMarker.value !== marker) {
+    //         marker.setImage(marker._images.hover)
+    //         marker.setZIndex(220)
+    //     }
+    // })
+    // kakao.maps.event.addListener(marker, 'mouseout', () => {
+    //     if (openMarker.value !== marker) {
+    //         marker.setImage(marker._images.normal)
+    //         marker.setZIndex(150)
+    //     }
+    // })
+    // // 호버 시 살짝 확대
+    // kakao.maps.event.addListener(marker, 'mouseover', () => {
+    //     if (openMarker.value !== marker) {
+    //         marker.setImage(hoverImage)
+    //         marker.setZIndex(220)
+    //     }
+    // })
+    // kakao.maps.event.addListener(marker, 'mouseout', () => {
+    //     if (openMarker.value !== marker) {
+    //         marker.setImage(normalImage)
+    //         marker.setZIndex(150)
+    //     }
+    // })
 
-    // if (!bounds.isEmpty()) mapInstance.value.setBounds(bounds)
     // ✅ 뷰 유지/고정 규칙
     if (!didFirstRender.value) {
         // 첫 렌더: 청약 좌표를 확실히 중심으로
@@ -735,7 +817,6 @@ const formatToEok = (priceValue) => {
 
     if (isNaN(num)) return ''
 
-    // 서버 단위가 '만원'이므로 10,000으로 나눠야 '억' 단위가 됨
     const eok = num / 10000
     return `${eok.toFixed(1)}억`
 }

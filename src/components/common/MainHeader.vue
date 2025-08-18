@@ -7,15 +7,10 @@
 
         <!-- 오른쪽: 알림, 메뉴 (BackHeader와 동일하게 수정) -->
         <div class="flex items-center space-x-4">
-            <div v-if="showAlarm">
-                <Bell @click="alarmClick" />
-            </div>
-            <div v-else class="relative inline-block">
-                <BellDot @click="alarmClick" />
-                <div
-                    class="absolute top-2 right-1.5 w-2 h-2 bg-red-500 rounded-full board-2 border-red"
-                    style="transform: translate(50%, -50%)"
-                ></div>
+            <div>
+                <a-badge :count="unreadCount">
+                    <Bell @click="alarmClick" />
+                </a-badge>
             </div>
             <div>
                 <Menu @click="menuClick" />
@@ -25,13 +20,15 @@
 </template>
 
 <script setup>
+import { ref, computed, onMounted } from 'vue'
+import { storeToRefs } from 'pinia'
 import { Bell, BellDot, Menu } from 'lucide-vue-next'
-import { ref } from 'vue'
 import { useCommonStore } from '@/stores/common'
 import { useRouter } from 'vue-router'
+import { useNotificationStore } from '@/stores/notificationStore'
 
 const modalStore = useCommonStore()
-const showAlarm = ref(true)
+const noticeStore = useNotificationStore()
 const router = useRouter()
 
 const goHome = () => {
@@ -45,4 +42,10 @@ const alarmClick = () => {
 const menuClick = () => {
     modalStore.modalOnOff()
 }
+
+const { unreadCount } = storeToRefs(noticeStore)
+
+onMounted(() => {
+    noticeStore.countIsRead()
+})
 </script>

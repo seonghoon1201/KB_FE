@@ -1,11 +1,12 @@
 import { ref } from 'vue'
 import { defineStore } from 'pinia'
 
-export const useNotificationStore = defineStore('notification', () => {
+export const useFirebaseStore = defineStore('firebase', () => {
     let items = ref([])
-    let unreadCount = ref(0)
+    let unreadCount = ref(5)
 
     function add(payload) {
+        console.log('payload : ', payload)
         const { notification, data } = payload
         const item = {
             id: crypto.randomUUID(),

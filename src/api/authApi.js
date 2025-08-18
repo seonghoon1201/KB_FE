@@ -27,10 +27,6 @@ export default {
     async verifyEmailCode({ user_id, code }) {
         return api.post('/email/verification', { user_id, code })
     },
-    async notificationApi({ token }) {
-        // return api.post('', { token })
-        return true
-    },
     // 비밀번호 재설정
     async refreshPassword({ user_id, new_password }) {
         return api.put('/auth/resetpassword', { user_id, new_password })
@@ -45,7 +41,7 @@ export default {
     },
     // 로그아웃
     async logout() {
-        return api.post('/auth/logout')
+        return api.delete('/auth/logout')
     },
     // 회원탈퇴
     async signout() {

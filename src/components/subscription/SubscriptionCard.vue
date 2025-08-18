@@ -179,8 +179,10 @@ const handleFavoriteClick = () => {
     const { house_type, pblanc_no } = props.subscription
     if (favoritesStore.isFavorite(house_type, pblanc_no)) {
         favoritesStore.removeFavorite({ house_type, pblanc_no })
+        emit('favorite-changed', { pblanc_no, house_type, is_favorite: false })
     } else {
         favoritesStore.addFavorite({ house_type, pblanc_no })
+        emit('favorite-changed', { pblanc_no, house_type, is_favorite: true })
     }
 }
 
