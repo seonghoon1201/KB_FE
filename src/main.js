@@ -68,7 +68,7 @@ if (at && rt && rawUser) {
         user: JSON.parse(rawUser),
     })
 
-    // initFcmAfterLogin()
+    initFcmAfterLogin()
 }
 
 // — 로그인 시 자동으로 현재 입력값 기준 가점 계산하기 —
