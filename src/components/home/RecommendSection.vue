@@ -5,6 +5,7 @@
             <h2 class="text-lg font-bold">맞춤형 청약 추천</h2>
             <Cog class="w-4 h-4 text-gray-500 cursor-pointer" @click="goToPreference" />
         </div>
+
         <!-- 로딩: 선호/추천 둘 중 하나라도 로딩이면 스켈레톤 -->
         <div v-if="prefStore.loading || recStore.loading" class="space-y-2">
             <div class="h-16 bg-gray-100 rounded animate-pulse"></div>
@@ -14,11 +15,27 @@
 
         <!-- 추천 있음 -->
         <div v-else-if="prefStore.isSet && recStore.list.length > 0" class="space-y-3">
+            <!-- ✅ 안내 배지: 선호 + 예상 당첨 확률 기반 -->
+            <div class="flex items-start gap-2 bg-blue-50 border border-blue-200 rounded-lg p-3">
+                <Sparkles class="w-4 h-4 mt-[2px] text-blue-500 shrink-0" />
+                <div class="text-xs leading-5 text-blue-900">
+                    선호 조건과 <span class="font-semibold">예상 당첨 확률</span>을 기준으로
+                    추천했어요.
+                    <button
+                        class="inline-flex items-center gap-1 text-blue-600 font-medium hover:underline"
+                        @click="goToPreference"
+                    >
+                        기준 변경하기 <ChevronRight class="w-3 h-3" />
+                    </button>
+                </div>
+            </div>
+
             <SubscriptionCard
                 v-for="item in visibleList"
                 :key="item.pblanc_no || item.house_nm"
                 :subscription="item"
             />
+
             <!-- 전체 개수가 3 초과일 때만 버튼 노출 -->
             <button
                 v-if="recStore.list.length > 3"
@@ -62,7 +79,7 @@
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { Cog, Settings } from 'lucide-vue-next'
+import { Cog, Settings, Sparkles, ChevronRight } from 'lucide-vue-next'
 import SubscriptionCard from '../subscription/SubscriptionCard.vue'
 import { useRecommendationStore } from '@/stores/recommendation'
 import { usePreferenceStore } from '@/stores/preference'
