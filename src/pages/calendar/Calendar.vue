@@ -14,25 +14,38 @@
                         v-if="showCalendar"
                         class="relative w-full h-6 rounded flex justify-between items-center m-1 mt-4"
                     >
+                        <!-- 이전 달 -->
                         <button
-                            class="w-8 m-1 flex justify-center items-center border"
+                            class="w-8 m-1 flex justify-center items-center border rounded"
                             @click="handleMonthMove('prev')"
                         >
                             <ChevronLeft />
                         </button>
+
+                        <!-- ✅ 가운데: 현재 표시 중인 '월'만 -->
                         <span
-                            class="flex flex-col items-center px-4 py-2 font-medium rounded-lg shadow focus:outline-none focus:ring-2 transition z-50"
-                            @click="handleMonthMove('today')"
+                            class="flex items-center px-4 py-2 font-semibold rounded-lg pointer-events-none"
                         >
-                            <span class="text-sm text-center mb-1">{{ todayMonth }}</span>
-                            <span class="text-lg font-semibold -mt-1">{{ todayDay }}</span>
+                            {{ displayedMonth }}
+                            <!-- 예: 2025년 8월 -->
                         </span>
-                        <button
-                            class="w-8 m-1 flex justify-center items-center border"
-                            @click="handleMonthMove('next')"
-                        >
-                            <ChevronRight />
-                        </button>
+
+                        <!-- 오른쪽: 다음 달 + 오늘 버튼 -->
+                        <div class="flex items-center gap-2">
+                            <button
+                                class="w-8 m-1 flex justify-center items-center border rounded"
+                                @click="handleMonthMove('next')"
+                            >
+                                <ChevronRight />
+                            </button>
+                            <!-- ✅ 오늘 버튼: 오늘 날짜 보여주고 클릭 시 today로 이동 -->
+                            <button
+                                class="px-3 h-8 m-1 flex items-center justify-center border rounded text-sm hover:bg-gray-50"
+                                @click="handleMonthMove('today')"
+                            >
+                                오늘 날짜로
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -131,7 +144,7 @@ const showCalendar = ref(true) // 월간 뷰(true)/주간 뷰(false)
 const subscriptions = ref([]) // 청약 공고 리스트
 const selectedDate = ref('') // 사용자가 선택한 날짜 (YYYY-MM-DD)
 const selectedWeekRange = ref([]) // 주간 날짜 배열
-
+const viewDate = ref(new Date()) // 현재 어떤 달인지 보여주는 기능
 const favorite = useFavoritesStore()
 
 // 날짜/월 텍스트
@@ -149,8 +162,16 @@ const MONTH_NAMES = [
     'November',
     'December',
 ]
-const todayMonth = computed(() => MONTH_NAMES[new Date().getMonth()])
-const todayDay = computed(() => new Date().getDate())
+
+// ✅ 가운데에 보여줄 'YYYY년 M월'
+const displayedMonth = computed(() => {
+    const d = viewDate.value
+    return `${d.getFullYear()}년 ${d.getMonth() + 1}월`
+})
+
+// 오늘 레이블용 (오른쪽 버튼에 사용)
+const MONTH_NAMES_SHORT = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12']
+const todayMonthShort = computed(() => MONTH_NAMES_SHORT[new Date().getMonth()])
 
 // 청약 공고 리스트 정렬
 const filteredSubscriptions = computed(() => {
@@ -177,17 +198,21 @@ const calendarOptions = reactive({
     plugins: [dayGridPlugin, interactionPlugin],
     initialView: 'dayGridMonth',
     weekends: false,
-    // allDaySlot: false, // 종일 슬롯 비활성화
     displayEventTime: false,
     contentHeight: 350,
     fixedWeekCount: false,
     dayMaxEvents: 2,
     headerToolbar: { left: false, center: false, right: false },
     views: { dayGridMonth: { showNonCurrentDates: true } },
-    events: loadCalendarEvents, // 이벤트(청약 데이터) 동적 로드
-    dateClick: handleDateClick, // 날짜 클릭 이벤트
+    events: loadCalendarEvents,
+    dateClick: handleDateClick,
     moreLinkClick: handleMoreClick,
 
+    // ✅ 뷰가 바뀔 때마다(이전/다음/오늘 이동 포함) 현재 보여주는 월 기준 날짜 갱신
+    datesSet(info) {
+        // info.view.currentStart: 현재 뷰의 기준 시작일(월 뷰의 해당 월 내부 날짜)
+        viewDate.value = new Date(info.view.currentStart)
+    },
     eventDidMount({ event, el }) {
         // 1) 고유 키 생성 (pblanc_no가 없으면 시작일 기준)
         const key = event.extendedProps.pblanc_no || event.startStr
@@ -249,7 +274,6 @@ function handleMoreClick(info) {
 
 // 월 이동/오늘 버튼 핸들러 (getApi null 방지)
 function handleMonthMove(direction) {
-    // FullCalendar가 mount 전에는 calendarRef.value가 null일 수 있음
     if (!calendarRef.value) return
     const api = calendarRef.value.getApi()
     if (!api) return
