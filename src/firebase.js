@@ -40,21 +40,21 @@ async function getOrRegisterFCMServiceWorker() {
 }
 
 export async function setupMessaging(vapidKey) {
-    console.log('vapidKey : ', vapidKey)
+    console.log('firebase.js vapidKey : ', vapidKey)
     const supported = await isSupported()
-    console.log('supported : ', supported)
+    console.log('firebase.js supported : ', supported)
     if (!supported) return null
 
     // [추가] 웹 알림 권한 요청 (거부 시 토큰 발급 불가)
     const perm = await Notification.requestPermission()
-    console.log('perm : ', perm)
+    console.log('firebase.js perm : ', perm)
     if (perm !== 'granted') return null
 
     messaging = getMessaging(firebaseApp)
 
     // [핵심 변경] 루트의 SW를 명시적으로 넘겨 안정적으로 getToken 수행
     const swReg = await getOrRegisterFCMServiceWorker()
-    console.log('swReg : ', swReg)
+    console.log('firebase.js swReg : ', swReg)
 
     // 이미 루트에 firebase-messaging-sw.js가 있으므로 import 불필요
     const token = await getToken(messaging, {
@@ -62,10 +62,10 @@ export async function setupMessaging(vapidKey) {
         serviceWorkerRegistration: swReg, // 루트 SW 명시
     })
 
-    console.log('token : ', token)
+    console.log('firebase.js token : ', token)
 
     if (token) {
-        localStorage.setItem('fcmToken', token) // 로컬 스토리지 저장
+        localStorage.setItem('firebase.js fcmToken', token) // 로컬 스토리지 저장
     }
 
     return { messaging, token }
