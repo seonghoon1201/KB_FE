@@ -12,13 +12,13 @@ self.addEventListener('activate', function (e) {
 })
 
 const firebaseConfig = {
-    apiKey: '',
-    authDomain: '',
+    apiKey: 'AIzaSyD-K7FzUKq7TljLQ0JEW6zhYMOV39BzaZ4',
+    authDomain: 'zibi-b79d7.firebaseapp.com',
     projectId: 'zibi-b79d7',
-    storageBucket: '',
+    storageBucket: 'zibi-b79d7.firebasestorage.app',
     messagingSenderId: '274112151209',
-    appId: '',
-    measurementId: '',
+    appId: '1:274112151209:web:835e9119bc3e7b0ba5f3b8',
+    measurementId: 'G-P2PBCFNG10',
 }
 
 // 파이어베이스 초기화
@@ -28,6 +28,7 @@ const messaging = firebase.messaging()
 
 messaging.onBackgroundMessage((payload) => {
     // [추가] notification payload면 브라우저가 자동 표시하므로 중복 방지
+    console.log('firebase-messaging-sw.js payload : ', payload)
     if (payload && payload.notification) return
     const notificationTitle = payload.title
     const notificationOptions = {

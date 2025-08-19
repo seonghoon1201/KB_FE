@@ -31,6 +31,10 @@ async function initFcmAfterLogin() {
     try {
         const vapidKey = import.meta.env.VITE_FIREBASE_VAPID_KEY
         const { token } = await setupMessaging(vapidKey)
+
+        console.log('mian.js vapidKey : ', vapidKey)
+        console.log('mian.js token : ', token)
+
         if (!token) return
         // 서버에 토큰 저장
         await api.put('/alarm/token', { fcm_token: token }) // JWT 인증 필요 시 헤더 자동 첨부 가정
