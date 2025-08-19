@@ -126,7 +126,7 @@
                     -->
 
                     <!-- 링크 프리뷰 -->
-                    <div v-if="notice.link !== ''" class="mt-5">
+                    <div v-if="notice.link" class="mt-5">
                         <!-- 내부 링크 -> houseType으로 아파트 상세정보인지, 오피스텔 상세정보인지 구분 -->
                         <div v-if="notice.routing">
                             <!-- 내부 아파트 링크 -->
