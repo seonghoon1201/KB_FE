@@ -91,7 +91,11 @@
 
         <!-- ✅ 청약 상세 카드 -->
         <div v-if="selectedItem" class="absolute left-4 right-4 bottom-24 z-20">
-            <SubscriptionCard :subscription="selectedItem" :key="selectedItem.pblanc_no" />
+            <SubscriptionCard
+                :subscription="selectedItem"
+                :key="selectedItem.pblanc_no"
+                @favorite-changed="onFavoriteChange"
+            />
         </div>
 
         <!-- ✅ 하단 내비게이션 -->
@@ -110,9 +114,13 @@ import { useUserStore } from '@/stores/user'
 import { useFavoritesStore } from '@/stores/favorites'
 import api from '@/api/axios'
 
-const subscriptionList = ref([]) // 전체 공고 리스트 (서울 포함)
-const coordsCache = {} // 주소 → {lat, lng}
+// ✅ 프롭 정의 (테스트 시 마감 공고 표시하려면 :showExpired="true")
+const props = defineProps({
+    showExpired: { type: Boolean, default: false },
+})
 
+const subscriptionList = ref([]) // 전체 공고 리스트
+const coordsCache = {} // 주소 → {lat, lng}
 const userStore = useUserStore()
 
 const mapRef = ref(null)
@@ -120,6 +128,7 @@ const map = ref(null)
 const markers = ref([])
 const selectedItem = ref(null)
 const activeTab = ref('all')
+const seoulCenteredOnce = ref(true)
 
 // 필터 관련 상태
 const isFilterOpen = ref(false)
@@ -134,31 +143,53 @@ const mapHeightStyle = computed(() => ({
     height: `calc(100vh - 56px - 52px - 60px)`,
 }))
 
-// ------------------- 유틸 함수 -------------------
+function onFavoriteChange({ pblanc_no, is_favorite }) {
+    const i = subscriptionList.value.findIndex((v) => v.pblanc_no === pblanc_no)
+    if (i !== -1) subscriptionList.value[i] = { ...subscriptionList.value[i], is_favorite }
+    if (selectedItem.value?.pblanc_no === pblanc_no) {
+        selectedItem.value = { ...selectedItem.value, is_favorite }
+    }
+    renderMarkers(visibleList.value, true)
+    // (찜 탭이면 bounds 조정 로직 유지)
+}
 
-import { reactive } from 'vue'
+// =============== 날짜/마감 헬퍼 ===============
+function parseYMDToEndOfDay(s) {
+    if (!s) return null
+    const [y, m, d] = s
+        .trim()
+        .replace(/\./g, '-')
+        .split('-')
+        .map((n) => parseInt(n, 10))
+    if (!y || !m || !d) return null
+    return new Date(y, m - 1, d, 23, 59, 59, 999)
+}
 
-const viewState = reactive({
-    all: null, // { center: kakao.maps.LatLng, level: number }
-    favorite: null,
+function isExpired(item, now = new Date()) {
+    if (!item?.application_period) return true // 기간 없으면 제외
+    const parts = item.application_period.split('~').map((s) => s.trim())
+    if (parts.length < 2) return true
+    const end = parseYMDToEndOfDay(parts[1])
+    if (!end) return true
+    return end < now // 마감 당일 23:59:59까지 유효
+}
+
+// 현재 탭(전체/찜) + 마감여부를 반영한 최종 리스트
+const visibleList = computed(() => {
+    let list = subscriptionList.value
+    if (!props.showExpired) {
+        list = list.filter((item) => !isExpired(item))
+    }
+    if (activeTab.value === 'favorite') {
+        list = list.filter((item) => item.is_favorite)
+    }
+    return list
 })
 
-function snapshotView() {
-    return {
-        center: map.value.getCenter(),
-        level: map.value.getLevel(),
-    }
-}
-
-function restoreView(v) {
-    if (!v) return
-    map.value.setCenter(v.center)
-    map.value.setLevel(v.level)
-}
-
-// 주소를 좌표로 변환 (캐싱)
+// =============== 지오코딩 유틸 ===============
 async function getCoords(addr) {
     if (coordsCache[addr]) return coordsCache[addr]
+    const kakao = window.kakao
     const geocoder = new kakao.maps.services.Geocoder()
     return new Promise((resolve) => {
         geocoder.addressSearch(addr, (result, status) => {
@@ -174,26 +205,18 @@ async function getCoords(addr) {
     })
 }
 
-// 병렬요청으로 수정
-async function prepareCoords(list) {
-    const promises = list.map((item) => {
-        const addr = `${item.si} ${item.sigungu}`
-        if (!coordsCache[addr]) {
-            return getCoords(addr)
-        }
-    })
-    await Promise.all(promises)
-}
-
-// 마커 렌더링
+// =============== 마커 렌더링 ===============
 function renderMarkers(list, skipBoundsCheck = false) {
     const kakao = window.kakao
+    if (!map.value) return
+
+    // 기존 마커 제거
     markers.value.forEach((m) => m.setMap(null))
     markers.value = []
 
     let bounds = null
     if (!skipBoundsCheck) {
-        bounds = map.value.getBounds()
+        bounds = map.value.getBounds?.()
         if (!bounds || typeof bounds.contains !== 'function') return
     }
 
@@ -213,7 +236,7 @@ function renderMarkers(list, skipBoundsCheck = false) {
                 district: item.district || item.sigungu,
             }
             if (newItem.application_period) {
-                const [start, end] = newItem.application_period.split(' ~ ')
+                const [start, end] = newItem.application_period.split('~').map((s) => s.trim())
                 newItem.application_start_date = start
                 newItem.application_end_date = end
             }
@@ -224,7 +247,7 @@ function renderMarkers(list, skipBoundsCheck = false) {
     })
 }
 
-// ------------------- 필터 버튼 -------------------
+// =============== 지역 필터 버튼 ===============
 const applyFilters = async () => {
     const kakao = await loadKakaoMapScript()
     const geocoder = new kakao.maps.services.Geocoder()
@@ -237,95 +260,75 @@ const applyFilters = async () => {
         if (status === kakao.maps.services.Status.OK) {
             const coords = new kakao.maps.LatLng(result[0].y, result[0].x)
             map.value.setCenter(coords)
-            map.value.setLevel(8) // ✅ 줌 레벨을 고정
+            map.value.setLevel(8) // 줌 고정
         }
     })
     filterError.value = false
     isFilterOpen.value = false
 }
 
+// =============== 유저 중심 좌표 ===============
 async function getUserCenter() {
-    // 좌표가 스토어에 있으면 바로 사용
     if (userStore.coords?.lat && userStore.coords?.lng) {
         return userStore.coords
     }
-
-    // 주소 → 좌표 1회 지오코딩 후 스토어에 저장
     const kakao = await loadKakaoMapScript()
     const geocoder = new kakao.maps.services.Geocoder()
-
     const addr = userStore.fullAddress || userStore.address
     const target = addr && addr.trim().length > 0 ? addr.trim() : '서울특별시청'
-
     const coords = await new Promise((resolve) => {
-        geocoder.addressSearch(target, (result, status) => {
+        geocoder.addressSearch(target || '서울특별시청', (result, status) => {
             if (status === kakao.maps.services.Status.OK) {
                 resolve({ lat: parseFloat(result[0].y), lng: parseFloat(result[0].x) })
             } else {
-                resolve({ lat: 37.5665, lng: 126.978 }) // 서울시청 폴백
+                resolve({ lat: 37.5665, lng: 126.978 }) // 폴백
             }
         })
     })
 
-    userStore.coords = coords // 다음 진입부터 즉시 사용
+    // 주소가 실제로 있는 경우에만 스토어에 저장
+    if (target) {
+        userStore.coords = coords
+    }
     return coords
 }
 
-watch(
-    () => userStore.coords,
-    (c) => {
-        if (c && map.value) {
-            map.value.setCenter(new kakao.maps.LatLng(c.lat, c.lng))
-            // level은 유지
-        }
-    },
-)
-
-// ------------------- onMounted -------------------
+// =============== 초기화 ===============
 onMounted(async () => {
     const favoritesStore = useFavoritesStore()
 
-    // 1) 병렬로 수행
-    const [kakao, userCenter, favoritesResult, subsRes] = await Promise.all([
+    const [kakao, userCenter, _favorites, subsRes] = await Promise.all([
         loadKakaoMapScript(),
         getUserCenter(),
         favoritesStore.getFavorite(),
         api.get('/subscriptions'),
     ])
 
-    // 2) 맵을 '처음부터' 유저 좌표로 생성 (확대 레벨 유지)
+    const SEOUL = { lat: 37.5665, lng: 126.978 }
     map.value = new kakao.maps.Map(mapRef.value, {
-        center: new kakao.maps.LatLng(userCenter.lat, userCenter.lng),
-        level: 8, // 그대로 유지
+        center: new kakao.maps.LatLng(SEOUL.lat, SEOUL.lng),
+        level: 9,
     })
 
     kakao.maps.event.addListener(map.value, 'click', () => {
         selectedItem.value = null
     })
 
-    // 3) 데이터 세팅
     subscriptionList.value = subsRes.data
 
-    // 4) 마커 렌더 (불필요한 지오코딩 제거!)
-    renderMarkers(subscriptionList.value, true)
-
-    // ✅ 더 이상 '서울로 다시 이동'하는 코드 넣지 마세요
+    // 처음 렌더는 현재 탭/마감설정 반영
+    renderMarkers(visibleList.value, true)
 })
 
-// 찜한 청약 지도 탭 변환 준비중....
-watch(activeTab, () => {
+// =============== 탭 전환 시 ===============
+watch([activeTab, () => props.showExpired, subscriptionList], () => {
     if (!map.value) return
 
-    let list = subscriptionList.value
+    const list = visibleList.value
+    renderMarkers(list, true)
 
     if (activeTab.value === 'favorite') {
-        // ⭐ 찜한 공고만 필터링
-        list = list.filter((item) => item.is_favorite)
-
-        // ✅ 마커 렌더링
-        renderMarkers(list, true)
-
-        // ✅ 찜한 공고가 하나 이상 있을 경우 모든 마커가 보이도록 bounds 설정
+        // 찜 탭에서 마커가 있다면 bounds 맞추기
         if (list.length > 0) {
             const bounds = new kakao.maps.LatLngBounds()
             list.forEach((item) => {
@@ -337,18 +340,6 @@ watch(activeTab, () => {
             })
             map.value.setBounds(bounds)
         }
-    } else {
-        // ⭐ 전체 탭일 경우: 전체 렌더링 + 서울 중심 고정 + 확대 레벨 고정
-        renderMarkers(list, true)
-
-        const geocoder = new kakao.maps.services.Geocoder()
-        geocoder.addressSearch('서울특별시', (result, status) => {
-            if (status === kakao.maps.services.Status.OK) {
-                const coords = new kakao.maps.LatLng(result[0].y, result[0].x)
-                map.value.setCenter(coords)
-                map.value.setLevel(9) // ✅ 확대 레벨 고정
-            }
-        })
     }
 })
 

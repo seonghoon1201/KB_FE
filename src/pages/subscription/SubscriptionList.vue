@@ -156,7 +156,6 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { useRoute } from 'vue-router'
 import BottomNavbar from '@/components/common/BottomNavbar.vue'
 import SubscriptionCard from '@/components/subscription/SubscriptionCard.vue'
 import BackHeader from '@/components/common/BackHeader.vue'
@@ -168,7 +167,6 @@ import { BotMessageSquare } from 'lucide-vue-next'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
-const route = useRoute()
 const subscriptionsStore = useSubscriptionsStore()
 const favoritesStore = useFavoritesStore()
 
@@ -198,7 +196,6 @@ const props = defineProps({
 const sortStandards = [
     { key: 'latest', label: '최신순', icon: TrendingUp },
     { key: 'deadline-first', label: '마감임박순', icon: Clock },
-    { key: 'recommend', label: '인기순', icon: ThumbsUp },
 ]
 
 // --- UI 핸들러 ---
@@ -284,7 +281,7 @@ const applyFilters = () => {
     }
     isFilterOpen.value = false
 }
-// --- 최종 목록 계산 ---
+
 const finalSubscriptions = computed(() => {
     if (!subscriptionsStore.subscriptions || subscriptionsStore.subscriptions.length === 0)
         return []
@@ -302,15 +299,15 @@ const finalSubscriptions = computed(() => {
     }
 
     // // 1. 마감 공고 제거 -> 테스트 시에는 마감 공고 제거 X
-    // if (!props.showExpired) {
-    //     result = result.filter((item) => {
-    //         if (!item.application_period) return false
-    //         const [, endStrRaw] = item.application_period.split('~') || []
-    //         if (!endStrRaw) return false
-    //         const endDate = new Date(endStrRaw.trim().replace(/\./g, '-'))
-    //         return endDate >= today
-    //     })
-    // }
+    if (!props.showExpired) {
+        result = result.filter((item) => {
+            if (!item.application_period) return false
+            const [, endStrRaw] = item.application_period.split('~') || []
+            if (!endStrRaw) return false
+            const endDate = new Date(endStrRaw.trim().replace(/\./g, '-'))
+            return endDate >= today
+        })
+    }
 
     // 2. 지역 필터
     if (appliedFilters.value.regions.length > 0) {
@@ -384,8 +381,6 @@ const finalSubscriptions = computed(() => {
                 return parseStartDate(a.application_period) - parseStartDate(b.application_period)
             case 'deadline-first':
                 return parseEndDate(a.application_period) - parseEndDate(b.application_period)
-            case 'recommend':
-                return (parseFloat(b.max_price) || 0) - (parseFloat(a.max_price) || 0)
             default:
                 return 0
         }
@@ -429,11 +424,10 @@ const handleScroll = () => {
 }
 const scrollToTop = () => window.scrollTo({ top: 0, behavior: 'smooth' })
 
-onMounted(() => {
-    if (route.query.sort === 'recommend') {
-        selectedFilter.value = 'recommend'
-    }
+onMounted(async () => {
+    // 항상 전체 공고 로드
     subscriptionsStore.fetchSubscriptions()
+
     favoritesStore.getFavorite()
     window.addEventListener('scroll', handleScroll)
 })

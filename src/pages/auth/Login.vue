@@ -158,7 +158,7 @@ async function handleKakaoLogin() {
     loading.value = true
     try {
         // ① 카카오 로그인 페이지로 리디렉션해서 code 받기
-        const clientId = '53da207a5cc86b7ec03890c960d2937b' // 실제 REST API 키로 교체
+        const clientId = '53da207a5cc86b7ec03890c960d2937b' // 실제 REST API 키
         const redirectUri = 'https://zibi.vercel.app/kakao/callback' // 프론트엔드 콜백 URL
         const kakaoAuthUrl = `https://kauth.kakao.com/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code`
 

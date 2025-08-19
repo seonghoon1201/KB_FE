@@ -9,15 +9,16 @@
         >
             {{ props.title }}
         </div>
+        <!-- 오른쪽: 알림, 메뉴 -->
         <div class="flex items-center space-x-4">
-            <div>
-                <a-badge :count="unreadCount">
-                    <Bell @click="alarmClick" />
-                </a-badge>
-            </div>
-            <div>
-                <Menu @click="menuClick" />
-            </div>
+            <a-badge :count="unreadCount" class="inline-flex items-center">
+                <button type="button" class="icon-btn" @click="alarmClick" aria-label="알림">
+                    <Bell class="w-6 h-6" />
+                </button>
+            </a-badge>
+            <button type="button" class="icon-btn" @click="menuClick" aria-label="메뉴">
+                <Menu class="w-6 h-6" />
+            </button>
         </div>
     </header>
 </template>
@@ -43,11 +44,30 @@ const modalStore = useCommonStore()
 const noticeStore = useNotificationStore()
 
 const backClick = () => {
-    const currentPath = route.path.slice(1).split('/')
-    console.log('currentPath : ', currentPath)
-    const backPath = ['subscriptions', 'mypage']
-    if (backPath.filter((item) => item === currentPath[0]) && currentPath.length > 1) router.back()
-    else router.push('/home')
+    const segments = route.path.slice(1).split('/')
+    const fullPath = route.path
+
+    // ✅ 1) '최근 본 공고' 예외처리
+    //   - 라우트 이름 또는 경로로 식별 (이름/경로 중 하나만 맞아도 동작)
+    const RECENT_VIEWED_ROUTE_NAMES = ['RecentlyViewedSupscription', 'RecentlyViewedSubscription']
+    const RECENT_VIEWED_PATHS = [
+        '/subscription/recent',
+        '/subscription/recently-viewed',
+        '/subscription/recentlyViewed', // 프로젝트에 맞춰 필요한 것만 남기세요
+    ]
+
+    if (RECENT_VIEWED_ROUTE_NAMES.includes(route.name) || RECENT_VIEWED_PATHS.includes(fullPath)) {
+        router.push('/mypage')
+        return
+    }
+
+    // ✅ 2) 일반 뒤로가기 규칙 (상위 depth면 back, 아니면 홈/마이페이지)
+    const backPath = ['subscriptions', 'mypage'] // 상위 depth를 갖는 섹션
+    if (backPath.includes(segments[0]) && segments.length > 1) {
+        router.back()
+    } else {
+        router.push('/home')
+    }
 }
 
 const titleClick = () => {

@@ -60,7 +60,7 @@ export default {
 
     // FCM 토큰 저장/갱신
     async saveToken(token) {
-        await api.put(BASE_URL + 'token', token)
+        await api.put(BASE_URL + 'token', { fcm_token: token })
     },
 
     // FCM 토큰 삭제(초기화)
