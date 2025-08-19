@@ -40,10 +40,49 @@ async function initFcmAfterLogin() {
         await api.put('/alarm/token', { fcm_token: token }) // JWT 인증 필요 시 헤더 자동 첨부 가정
 
         const store = useNotificationStore()
-        onForegroundMessage((payload) => {
+        onForegroundMessage(async (payload) => {
             // 포그라운드 수신 → 인앱 토스트/리스트 반영
             console.log('main.js payload : ', payload)
-            store.add(payload)
+            // store.add(payload)
+
+            try {
+                const title = payload?.notification?.title || payload?.data?.title || '알림'
+
+                const body = payload?.notification?.body || payload?.data?.body || ''
+
+                // 아이콘(없으면 프로젝트의 PWA 아이콘 등으로 교체)
+                const icon = payload?.notification?.icon || ''
+
+                // 클릭 시 열 링크(가능한 필드를 최대한 커버)
+                const url =
+                    payload?.fcmOptions?.link ||
+                    payload?.notification?.click_action ||
+                    payload?.data?.url ||
+                    payload?.data?.link ||
+                    '/'
+
+                // 권한 요청 (거부 시 표시 안 함)
+                if ('Notification' in window) {
+                    if (Notification.permission !== 'granted') {
+                        const p = await Notification.requestPermission()
+                        if (p !== 'granted') return
+                    }
+                }
+
+                console.log('main.js title : ', title)
+                console.log('main.js body : ', body)
+                console.log('main.js icon : ', icon)
+                console.log('main.js url : ', url)
+                // 서비스워커를 통해 시스템 알림을 띄우면 클릭 핸들링이 쉬워집니다.
+                const reg = await navigator.serviceWorker.ready
+                await reg.showNotification(title, {
+                    body,
+                    icon,
+                    data: { url },
+                })
+            } catch (e) {
+                console.error('showNotification error:', e)
+            }
         })
     } catch (e) {
         console.error('FCM 초기화 실패:', e)
