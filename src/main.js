@@ -38,6 +38,7 @@ async function initFcmAfterLogin() {
         const store = useNotificationStore()
         onForegroundMessage((payload) => {
             // 포그라운드 수신 → 인앱 토스트/리스트 반영
+            console.log('main.js payload : ', payload)
             store.add(payload)
         })
     } catch (e) {
