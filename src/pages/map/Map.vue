@@ -90,7 +90,7 @@
         <div ref="mapRef" class="w-full" :style="mapHeightStyle" />
 
         <!-- ✅ 청약 상세 카드 -->
-        <div v-if="selectedItem" class="absolute left-4 right-4 bottom-40 z-20">
+        <div v-if="selectedItem" class="absolute left-4 right-4 bottom-24 z-20">
             <SubscriptionCard
                 :subscription="selectedItem"
                 :key="selectedItem.pblanc_no"
