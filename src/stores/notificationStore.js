@@ -22,6 +22,7 @@ export const useNotificationStore = defineStore('notification', () => {
         const data = await notificationApi.getList()
 
         const now = new Date().dateStringFormat(new Date(), '.')
+
         data.map((item) => {
             notifications.value.push({
                 id: item.alarmIdx,
@@ -33,13 +34,12 @@ export const useNotificationStore = defineStore('notification', () => {
                               new Date(),
                               new Date(item.alarmDate + ' ' + item.alarmTime),
                           ) + '분 전'
-                        : new Date().diffTime(new Date(), new Date(item.alarmDate)) + '일 전',
+                        : new Date().diffDate(new Date(), new Date(item.alarmDate)) + '일 전',
                 isRead: item.read,
             })
         })
 
         unreadCount.value = data.filter((item) => item.read === false).length
-        console.log('unreadCount.value : ', unreadCount.value)
     }
 
     // 알람 단건 상세 조회
@@ -63,7 +63,7 @@ export const useNotificationStore = defineStore('notification', () => {
                           new Date(),
                           new Date(data.alarmDate + ' ' + data.alarmTime),
                       ) + '분 전'
-                    : new Date().diffTime(new Date(), new Date(data.alarmDate)) + '일 전',
+                    : new Date().diffDate(new Date(), new Date(data.alarmDate)) + '일 전',
             content: data.content,
             routing: data.routing,
             link: data.link,
@@ -71,7 +71,7 @@ export const useNotificationStore = defineStore('notification', () => {
             read: data.read,
             houseType: data.house_type,
         }
-        console.log('returnData : ', returnData)
+
         return returnData
     }
 
