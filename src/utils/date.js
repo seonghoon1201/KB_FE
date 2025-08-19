@@ -19,7 +19,7 @@ Date.prototype.addYear = function (year) {
 // 날짜 차이값 리턴 (일)
 Date.prototype.diffDate = function (date1, date2) {
     const diff = date1.getTime() - date2.getTime()
-    return diff / (24 * 60 * 60 * 1000)
+    return Math.round(diff / (24 * 60 * 60 * 1000))
 }
 
 // 시간 차이값 리턴 (분)
