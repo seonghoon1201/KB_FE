@@ -28,6 +28,7 @@ const messaging = firebase.messaging()
 
 messaging.onBackgroundMessage((payload) => {
     // [추가] notification payload면 브라우저가 자동 표시하므로 중복 방지
+    console.log('firebase-messaging-sw.js payload : ', payload)
     if (payload && payload.notification) return
     const notificationTitle = payload.title
     const notificationOptions = {
