@@ -48,13 +48,13 @@ const backClick = () => {
     const fullPath = route.path
 
     // ✅ 1) '최근 본 공고' 예외처리
-    //   - 라우트 이름 또는 경로로 식별 (이름/경로 중 하나만 맞아도 동작)
+    // - 라우트 이름 또는 경로로 식별 (이름/경로 중 하나만 맞아도 동작)
     const RECENT_VIEWED_ROUTE_NAMES = ['RecentlyViewedSupscription', 'RecentlyViewedSubscription']
     const RECENT_VIEWED_PATHS = [
         '/subscription/recent',
         '/subscription/recently-viewed',
         '/subscription/recentlyViewed', // 프로젝트에 맞춰 필요한 것만 남기세요
-    ]
+    ]``
 
     if (RECENT_VIEWED_ROUTE_NAMES.includes(route.name) || RECENT_VIEWED_PATHS.includes(fullPath)) {
         router.push('/mypage')

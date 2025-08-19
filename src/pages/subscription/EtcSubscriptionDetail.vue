@@ -69,7 +69,7 @@
                             <button
                                 v-for="btn in filterButtons"
                                 :key="btn.key"
-                                @click="infraFilter = btn.key"
+                                @click="handleFilterClick(btn.key)"
                                 :class="[
                                     'px-2.5 py-1 rounded-lg text-xs font-medium border transition',
                                     infraFilter === btn.key
@@ -176,10 +176,17 @@
 
 <script setup>
 import { ref, computed, onMounted, nextTick, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import api from '@/api/axios'
 import BackHeader from '@/components/common/BackHeader.vue'
+import PossibilitySection from '@/components/SubDetail/PossibilitySection.vue'
+import { loadKakaoMapScript } from '@/utils/KakaoMapLoader'
+import { useFavoritesStore } from '@/stores/favorites'
 import {
+    Heart,
+    Eye,
+    FileText,
+    Building2, // 템플릿에 쓰는 아이콘 추가
     MapPin,
     Calendar,
     TrainFront,
@@ -189,33 +196,31 @@ import {
     ShoppingBag,
     Expand,
     House,
+    BotMessageSquare,
 } from 'lucide-vue-next'
-import PossibilitySection from '@/components/SubDetail/PossibilitySection.vue'
-import { loadKakaoMapScript } from '@/utils/KakaoMapLoader'
-import { useFavoritesStore } from '@/stores/favorites'
-import { BotMessageSquare } from 'lucide-vue-next'
-import { useRouter } from 'vue-router'
-import { faMapPin } from '@fortawesome/free-solid-svg-icons'
 
 const router = useRouter()
 const route = useRoute()
-const subscription = ref(null)
-const mapRef = ref(null)
 const favoritesStore = useFavoritesStore()
+
+// 데이터
+const subscription = ref(null)
 const loading = ref(true)
+
+// 지도/마커 상태
+const mapRef = ref(null)
 const mapInstance = ref(null)
-const activeOverlay = ref(null)
 const baseMarker = ref(null)
 const infraMarkers = ref([])
+const sharedInfoWindow = ref(null)
 const openMarker = ref(null)
 let lastMarkerClickAt = 0
+const didFirstRender = ref(false) // 첫 draw만 중심 고정
 
-const sharedInfoWindow = ref(null)
-const didFirstRender = ref(false)
-
-// 필터 상태: 'all' | 그룹 타이틀(의료 시설/교통/편의 시설/학교/유치원 · 어린이집)
-const infraFilter = ref('all')
+// 필터: all / 개별 / none(모두 숨김)
+const infraFilter = ref('none')
 const filterKeyToTypes = {
+    none: [],
     all: null,
     '의료 시설': ['hospital'],
     교통: ['subway', 'bus'],
@@ -223,7 +228,9 @@ const filterKeyToTypes = {
     학교: ['school'],
     '유치원 · 어린이집': ['kindergarten'],
 }
-
+function handleFilterClick(key) {
+    infraFilter.value = infraFilter.value === key ? 'none' : key
+}
 const filterButtons = [
     { key: 'all', label: '전체' },
     { key: '의료 시설', label: '의료' },
@@ -233,213 +240,213 @@ const filterButtons = [
     { key: '유치원 · 어린이집', label: '유치원' },
 ]
 
-// FA 아이콘 SVG data URL로 변환
-function faToSvgDataUrl(iconDef, { size = 28, color = '#ef4444' } = {}) {
-    const [w, h, , , d] = iconDef.icon
-    const svg = `
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" width="${size}" height="${size}">
-      <path d="${d}" fill="${color}"/>
-    </svg>`
-    return 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg)
+// 타입별 색 (아파트와 동일)
+const ICON_BY_TYPE = {
+    subway: { color: '#22c55e' },
+    bus: { color: '#22c55e' },
+    school: { color: '#7c3aed' },
+    kindergarten: { color: '#7c3aed' },
+    hospital: { color: '#ef4444' },
+    mart: { color: '#f59e0b' },
 }
 
-function makeFAImage(iconDef, { size = 28, color = '#ef4444' } = {}) {
+// 테어드롭 핀
+function makePinSvgDataUrl(color, { size = 34 } = {}) {
+    const svg = `
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 44" width="${size}" height="${size}">
+    <defs>
+      <filter id="dropShadow" x="-50%" y="-50%" width="200%" height="200%">
+        <feGaussianBlur in="SourceAlpha" stdDeviation="1.5" result="blur"/>
+        <feOffset in="blur" dx="0" dy="1" result="offsetBlur"/>
+        <feMerge><feMergeNode in="offsetBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+    </defs>
+    <path d="M16 0c-6.6 0-12 5.4-12 12 0 9 12 22 12 22s12-13 12-22C28 5.4 22.6 0 16 0z"
+          fill="${color}" stroke="white" stroke-width="2" filter="url(#dropShadow)"/>
+    <circle cx="16" cy="12" r="4.5" fill="white"/>
+  </svg>`
+    return 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg)
+}
+function makePinImage(color, { size = 34 } = {}) {
     const kakao = window.kakao
-    const url = faToSvgDataUrl(iconDef, { size, color })
+    const url = makePinSvgDataUrl(color, { size })
     return new kakao.maps.MarkerImage(url, new kakao.maps.Size(size, size), {
-        offset: new kakao.maps.Point(size / 2, size),
+        offset: new kakao.maps.Point(size / 2, size - 3),
     })
 }
 
-// 타입별 아이콘/색 매핑
-const ICON_BY_TYPE = {
-    subway: { icon: faMapPin, color: '#16a34a' }, //초록
-    bus: { icon: faMapPin, color: '#16a34a' },
-    school: { icon: faMapPin, color: '#9333ea' },
-    kindergarten: { icon: faMapPin, color: '#9333ea' },
-    hospital: { icon: faMapPin, color: '#ef4444' },
-    mart: { icon: faMapPin, color: '#f97316' },
-}
-
+// 공용 InfoWindow 닫기 + 활성 마커 원복
 function closeInfo() {
     if (sharedInfoWindow.value) sharedInfoWindow.value.close()
+    if (openMarker.value) {
+        const m = openMarker.value
+        m.setImage(
+            m._images?.normal ??
+                makePinImage(ICON_BY_TYPE[m.place_type]?.color || '#3b82f6', { size: 34 }),
+        )
+        m.setZIndex(150)
+    }
     openMarker.value = null
 }
 
-function closeOverlay() {
-    if (activeOverlay.value) {
-        activeOverlay.value.setMap(null)
-        activeOverlay.value = null
-    }
-}
-
-async function initMap(lat, lng) {
-    const kakao = await loadKakaoMapScript()
-    await nextTick()
-
-    kakao.maps.load(() => {
-        if (!mapRef.value) return
-
-        // 지도 생성
-        const map = new kakao.maps.Map(mapRef.value, {
-            center: new kakao.maps.LatLng(lat, lng),
-            level: 5,
-        })
-        mapInstance.value = map
-
-        baseMarker.value = new kakao.maps.Marker({
-            map,
-            position: new kakao.maps.LatLng(lat, lng),
-            zIndex: 200, // 인프라/POI 위
-        })
-
-        // ✅ 공용 InfoWindow
-        sharedInfoWindow.value = new kakao.maps.InfoWindow({ removable: false, zIndex: 1000 })
-
-        kakao.maps.event.addListener(map, 'click', () => {
-            // 마커 클릭 직후엔 무시 (버블/타이밍 이슈 방지)
-            if (Date.now() - lastMarkerClickAt < 150) return
-            // closeOverlay()
-            closeInfo()
-            openMarker.value = null
-            // closeOpenInfo()
-        })
-
-        // 주변 시설 마커 그리기
-        drawInfraMarkers()
-    })
-}
-
+// 마커 모두 제거
 function clearInfraMarkers() {
-    closeOverlay()
     infraMarkers.value.forEach((m) => m.setMap(null))
     infraMarkers.value = []
 }
 
+// 필터에 맞춰 마커 다시 그리기 (뷰 유지)
 function drawInfraMarkers() {
     const kakao = window.kakao
     if (!mapInstance.value || !subscription.value?.infra_places) return
 
-    // 👇 현재 뷰 저장 (필터 변경 시 복원)
     const map = mapInstance.value
     const prevCenter = map.getCenter()
     const prevLevel = map.getLevel()
 
+    closeInfo()
     clearInfraMarkers()
-    const bounds = new kakao.maps.LatLngBounds()
-    if (baseMarker.value) bounds.extend(baseMarker.value.getPosition())
 
+    // none: 전부 숨김, 뷰만 유지
+    if (infraFilter.value === 'none') {
+        if (!didFirstRender.value) {
+            if (baseMarker.value) map.setCenter(baseMarker.value.getPosition())
+            didFirstRender.value = true
+        } else {
+            map.setCenter(prevCenter)
+            map.setLevel(prevLevel)
+        }
+        return
+    }
+
+    const types = filterKeyToTypes[infraFilter.value] // null이면 전체
     subscription.value.infra_places.forEach((place) => {
-        const lat = Number(place.latitude)
-        const lng = Number(place.longitude)
+        const lat = Number(place.latitude),
+            lng = Number(place.longitude)
         if (!Number.isFinite(lat) || !Number.isFinite(lng)) return
-
-        // 1) 카테고리 필터 (place_type 기준)
-        const types = filterKeyToTypes[infraFilter.value]
         if (types && !types.includes(place.place_type)) return
 
         const pos = new kakao.maps.LatLng(lat, lng)
-
-        // 2) 마커 이미지 (Font Awesome 매핑 사용!)
-        const meta = ICON_BY_TYPE[place.place_type] || { icon: faMapPin, color: '#3b82f6' }
-        const markerImage = makeFAImage(meta.icon, { size: 24, color: meta.color })
+        const meta = ICON_BY_TYPE[place.place_type] || { color: '#3b82f6' }
+        const normalImage = makePinImage(meta.color, { size: 34 })
+        const activeImage = makePinImage(meta.color, { size: 42 })
 
         const marker = new kakao.maps.Marker({
             position: pos,
-            map: mapInstance.value,
-            image: markerImage,
+            map,
+            image: normalImage,
             title: place.place_name,
             zIndex: 150,
         })
+        marker._images = { normal: normalImage, active: activeImage }
+        marker.place_type = place.place_type
 
-        // 3) InfoWindow
         const km = Number(place.distance) / 1000
         const kmText = Number.isFinite(km) ? km.toFixed(1) : '-'
         const walk = walkingTimeFromKm(km)
         const html = `
       <div style="padding:8px 10px; max-width:220px;">
-        <div style="font-weight:700; font-size:13px; color:#111827; margin-bottom:2px;">
-          ${place.place_name}
-        </div>
-        <div style="font-size:12px; color:#6b7280;">
-          ${kmText}km · 도보 ${walk ?? '-'}분
-        </div>
+        <div style="font-weight:700; font-size:13px; color:#111827; margin-bottom:2px;">${place.place_name}</div>
+        <div style="font-size:12px; color:#6b7280;">${kmText}km · 도보 ${walk ?? '-'}분</div>
       </div>`
 
         kakao.maps.event.addListener(marker, 'click', () => {
             lastMarkerClickAt = Date.now()
             if (openMarker.value === marker) {
                 closeInfo()
+                marker.setImage(marker._images.normal)
+                marker.setZIndex(150)
                 return
             }
             closeInfo()
             sharedInfoWindow.value.setContent(html)
-            sharedInfoWindow.value.open(mapInstance.value, marker)
+            sharedInfoWindow.value.open(map, marker)
             openMarker.value = marker
+            marker.setImage(marker._images.active)
+            marker.setZIndex(300)
         })
 
         infraMarkers.value.push(marker)
-        // bounds.extend(pos)
     })
 
-    // if (!bounds.isEmpty()) mapInstance.value.setBounds(bounds)
-    // ✅ 뷰 유지/고정 규칙
+    // 뷰 유지(첫 렌더만 중심 고정)
     if (!didFirstRender.value) {
-        // 첫 렌더: 청약 좌표를 확실히 중심으로
-        if (baseMarker.value) {
-            map.setCenter(baseMarker.value.getPosition())
-            // 필요하면 기본 확대 수준 고정 (주석 해제)
-            // map.setLevel(5)
-        }
+        if (baseMarker.value) map.setCenter(baseMarker.value.getPosition())
         didFirstRender.value = true
     } else {
-        // 이후(필터 변경 등): 기존 뷰 그대로 복원
         map.setCenter(prevCenter)
         map.setLevel(prevLevel)
     }
 }
 
+// 지도 초기화
+async function initMap(lat, lng) {
+    const kakao = await loadKakaoMapScript()
+    await nextTick()
+
+    kakao.maps.load(() => {
+        if (!mapRef.value) return
+        const map = new kakao.maps.Map(mapRef.value, {
+            center: new kakao.maps.LatLng(lat, lng),
+            level: 5,
+        })
+        mapInstance.value = map
+        didFirstRender.value = false // 새 맵 생성 시 첫 렌더 플래그 리셋
+
+        baseMarker.value = new kakao.maps.Marker({
+            map,
+            position: new kakao.maps.LatLng(lat, lng),
+            zIndex: 200,
+        })
+
+        sharedInfoWindow.value = new kakao.maps.InfoWindow({ removable: false, zIndex: 1000 })
+
+        kakao.maps.event.addListener(map, 'click', () => {
+            if (Date.now() - lastMarkerClickAt < 150) return
+            closeInfo()
+        })
+
+        // 초기 마커 그리기 (watch가 즉시 호출되지만 안전하게 1회 보장)
+        drawInfraMarkers()
+    })
+}
+
+// API 로딩
 onMounted(async () => {
     const id = route.params.id
-    const res = await api.get('/subscriptions/officetels/detail', { params: { pblanc_no: id } })
-    const d = res.data
+    try {
+        const res = await api.get('/subscriptions/officetels/detail', { params: { pblanc_no: id } })
+        const d = res.data
+        subscription.value = {
+            ...d,
+            type: d.house_secd_nm,
+            house_dtl_secd_nm: d.house_dtl_secd_nm,
+            address: d.hssply_adres,
+            price: d.officetel_type?.[0]?.SUPLY_AMOUNT || '',
+            householdCount: d.tot_suply_hshldco,
+            view_count: d.view_count,
+            pblanc_url: d.pblanc_url,
+            lat: d.latitude,
+            long: d.longitude,
+        }
 
-    subscription.value = {
-        ...d,
-        type: d.house_secd_nm,
-        house_dtl_secd_nm: d.house_dtl_secd_nm,
-        address: d.hssply_adres,
-        price: d.officetel_type?.[0]?.SUPLY_AMOUNT || '',
-        householdCount: d.tot_suply_hshldco,
-        view_count: d.view_count,
-        pblanc_url: d.pblanc_url,
-        lat: d.latitude,
-        long: d.longitude,
+        await nextTick()
+        await initMap(Number(subscription.value.lat), Number(subscription.value.long))
+    } finally {
+        loading.value = false
     }
-
-    await nextTick() // DOM 업데이트 기다림
-    await initMap(Number(subscription.value.lat), Number(subscription.value.long))
 })
 
+// ✅ 필터/데이터/맵 변화에 반응해서 항상 마커 재그리기 (뷰는 유지)
 watch(
-    () => subscription.value,
-    async (val) => {
-        if (val && val.lat && val.long) {
-            await nextTick()
-
-            const lat = parseFloat(subscription.value.lat)
-            const lng = parseFloat(subscription.value.long)
-
-            if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
-                console.warn('잘못된 좌표:', subscription.value.lat, subscription.value.long)
-                return
-            }
-
-            await initMap(lat, lng)
-        }
+    [() => mapInstance.value, () => subscription.value?.infra_places, () => infraFilter.value],
+    () => {
+        drawInfraMarkers()
     },
     { immediate: true },
 )
+
+// 즐겨찾기
 const isFavorite = computed(() => {
     if (!subscription.value) return false
     return favoritesStore.isFavorite(
@@ -447,10 +454,8 @@ const isFavorite = computed(() => {
         subscription.value.pblanc_no,
     )
 })
-
 const handleFavoriteClick = () => {
     const { house_dtl_secd_nm, pblanc_no } = subscription.value
-
     if (favoritesStore.isFavorite(house_dtl_secd_nm, pblanc_no)) {
         favoritesStore.removeFavorite({ house_type: house_dtl_secd_nm, pblanc_no })
     } else {
@@ -458,39 +463,29 @@ const handleFavoriteClick = () => {
     }
 }
 
-// 면적 최소 ~ 최대로 보여주는 함수
+// 표기 유틸
 const areaList = computed(() => {
     const types = subscription.value?.apt_type || subscription.value?.officetel_type
-    if (!types || types.length === 0) return ''
-
-    // 면적만 추출
+    if (!types?.length) return ''
     const areas = types.map((t) => parseFloat(t.SUPLY_AR || t.EXCLUSE_AR)).filter((a) => !isNaN(a))
-    if (areas.length === 0) return ''
-
-    const min = Math.min(...areas)
-    const max = Math.max(...areas)
-
-    // 최소 = 최대라면 하나만, 아니면 범위 표기
+    if (!areas.length) return ''
+    const min = Math.min(...areas),
+        max = Math.max(...areas)
     return min === max ? `${min.toFixed(1)}㎡` : `${min.toFixed(1)}㎡ ~ ${max.toFixed(1)}㎡`
 })
-
 function formatToEok(price) {
     if (!price) return ''
     const num = typeof price === 'string' ? parseFloat(price.replace(/,/g, '')) : price
     return isNaN(num) ? '' : `${(num / 10000).toFixed(1)}억`
 }
-
 function calcBadge(start, end) {
     if (!start || !end) return ''
-
     const today = new Date()
     today.setHours(0, 0, 0, 0)
-
     const s = new Date(start.replace(/\./g, '-'))
     const e = new Date(end.replace(/\./g, '-'))
     s.setHours(0, 0, 0, 0)
     e.setHours(0, 0, 0, 0)
-
     if (today > e) return '마감'
     if (today < s) {
         const diff = Math.ceil((s - today) / (1000 * 60 * 60 * 24))
@@ -499,37 +494,25 @@ function calcBadge(start, end) {
     if (today.getTime() === e.getTime()) return '오늘 마감'
     return '진행중'
 }
-
-// 날짜 포맷 함수
 function formatDate(dateString) {
     if (!dateString) return ''
     const parts = dateString.split('-')
     return parts.length === 3 ? `${parts[0]}.${parts[1]}.${parts[2]}` : dateString
 }
-
 const scheduleItems = computed(() => {
-    const d = subscription.value
-
-    // 변환할 날짜 필드 목록
-    const dateFields = [
+    const d = subscription.value || {}
+    ;[
         'rcrit_pblanc_de',
         'rcept_bgnde',
         'rcept_endde',
         'przwner_presnatn_de',
         'cntrct_cncls_bgnde',
         'cntrct_cncls_endde',
-    ]
-
-    // 날짜 필드 포맷팅
-    dateFields.forEach((key) => {
-        if (d[key]) d[key] = formatDate(d[key])
+    ].forEach((k) => {
+        if (d[k]) d[k] = formatDate(d[k])
     })
-
-    function makeDateText(start, end) {
-        if (!start && !end) return '일정이 정해지지 않았습니다!'
-        return `${start || '-'} ~ ${end || '-'}`
-    }
-
+    const makeDateText = (s, e) =>
+        !s && !e ? '일정이 정해지지 않았습니다!' : `${s || '-'} ~ ${e || '-'}`
     return [
         {
             label: '청약 접수',
@@ -548,16 +531,13 @@ const scheduleItems = computed(() => {
         },
     ]
 })
-
 function badgeColor(label) {
     if (label === '마감') return 'bg-gray-100 text-gray-500'
-    if (label === '진행중') return 'bg-red-100 text-red-700'
+    if (label === '진행중' || label === '오늘 마감') return 'bg-red-100 text-red-700'
     if (label.startsWith('D-')) return 'bg-yellow-100 text-yellow-700'
     return 'bg-gray-100 text-gray-700'
 }
-
 const preferredOrder = ['의료 시설', '교통', '편의 시설', '학교', '유치원 · 어린이집']
-
 const iconMap = {
     subway: { title: '교통', icon: TrainFront, color: 'text-green-600' },
     bus: { title: '교통', icon: TrainFront, color: 'text-green-600' },
@@ -566,7 +546,6 @@ const iconMap = {
     hospital: { title: '의료 시설', icon: Stethoscope, color: 'text-red-500' },
     mart: { title: '편의 시설', icon: ShoppingBag, color: 'text-orange-500' },
 }
-
 const facilityGroups = computed(() => {
     if (!subscription.value?.infra_places) return []
     const grouped = {}
@@ -583,28 +562,20 @@ const facilityGroups = computed(() => {
         (a, b) => preferredOrder.indexOf(a.title) - preferredOrder.indexOf(b.title),
     )
 })
-
+function walkingTimeFromKm(km) {
+    const v = Number(km)
+    if (!Number.isFinite(v) || v < 0) return null
+    return Math.max(1, Math.round(v * 12))
+}
 function goToApply() {
     window.open(
         'https://www.applyhome.co.kr/ap/apb/reqst/selectSubscrtReqstUOMainView.do',
         '_blank',
     )
 }
-
 function viewSubscriptionInfo() {
     if (!subscription.value?.pblanc_url) return
     window.open(subscription.value.pblanc_url, '_blank')
 }
-
-// 도보 시간 계산 함수
-function walkingTimeFromKm(km) {
-    const v = Number(km)
-    if (!Number.isFinite(v) || v < 0) return null
-    const minutesPerKm = 12
-    return Math.max(1, Math.round(v * minutesPerKm))
-}
-
-const goToChatbot = () => {
-    router.push('/chatbot')
-}
+const goToChatbot = () => router.push('/chatbot')
 </script>

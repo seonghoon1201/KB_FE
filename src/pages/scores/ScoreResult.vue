@@ -151,14 +151,23 @@
                                 <th>점수</th>
                             </tr>
                             <tr v-for="(row, i) in familyTable" :key="i">
-                                <td class="py-2">{{ row.left.count }}명</td>
+                                <!-- 왼쪽 -->
+                                <td class="py-2">{{ row.left.count }}</td>
                                 <td :class="highlightClass('family', row.left.score)">
                                     {{ row.left.score }}점
                                 </td>
-                                <td class="py-2">{{ row.right.count }}명</td>
-                                <td :class="highlightClass('family', row.right.score)">
-                                    {{ row.right.score }}점
-                                </td>
+
+                                <!-- 오른쪽: 값이 있을 때만 출력 -->
+                                <template v-if="row.right.count && row.right.score !== null">
+                                    <td class="py-2">{{ row.right.count }}</td>
+                                    <td :class="highlightClass('family', row.right.score)">
+                                        {{ row.right.score }}점
+                                    </td>
+                                </template>
+                                <!-- 없으면 colspan=2 -->
+                                <template v-else>
+                                    <td colspan="2"></td>
+                                </template>
                             </tr>
                         </table>
 
@@ -171,14 +180,22 @@
                                 <th>점수</th>
                             </tr>
                             <tr v-for="(row, i) in accountTable" :key="i">
+                                <!-- 왼쪽 -->
                                 <td class="py-2">{{ row.left.range }}</td>
                                 <td :class="highlightClass('account', row.left.score)">
                                     {{ row.left.score }}점
                                 </td>
-                                <td class="py-2">{{ row.right.range }}</td>
-                                <td :class="highlightClass('account', row.right.score)">
-                                    {{ row.right.score }}점
-                                </td>
+
+                                <!-- 오른쪽 -->
+                                <template v-if="row.right.range && row.right.score !== null">
+                                    <td class="py-2">{{ row.right.range }}</td>
+                                    <td :class="highlightClass('account', row.right.score)">
+                                        {{ row.right.score }}점
+                                    </td>
+                                </template>
+                                <template v-else>
+                                    <td colspan="2"></td>
+                                </template>
                             </tr>
                         </table>
                     </div>
